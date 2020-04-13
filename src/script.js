@@ -6,12 +6,16 @@ import {Fragmen} from './fragmen.js';
 let editor = null;
 let canvas = null;
 let lineout = null;
+let counter = null;
+let message = null;
 let fragmen = null;
 
 window.addEventListener('DOMContentLoaded', () => {
     editor = editorSetting();
     canvas = document.querySelector('#webgl');
     lineout = document.querySelector('#lineout');
+    counter = document.querySelector('#counter');
+    message = document.querySelector('#message');
     window.addEventListener('resize', resize, false);
     resize();
 
@@ -23,14 +27,14 @@ window.addEventListener('DOMContentLoaded', () => {
         escape: false
     };
     fragmen = new Fragmen(option).render(DEFAULT_SOURCE);
-    fragmen.onBuild((status, message) => {
+    fragmen.onBuild((status, msg) => {
         lineout.classList.remove('warn');
         lineout.classList.remove('error');
         lineout.classList.add(status);
-        lineout.textContent = message;
+        message.textContent = msg;
     });
-
-    lineout.textContent = ' > ready';
+    counter.textContent = `${DEFAULT_SOURCE.length} / 139`;
+    message.textContent = 'hello world';
 }, false);
 
 function resize(){
@@ -67,6 +71,7 @@ function editorSetting(){
             timeoutId = null;
             update(editor.getValue());
         }, 1000);
+        counter.textContent = `${editor.getValue().length} / 139`;
     });
     setTimeout(() => {editor.gotoLine(1);}, 100);
     return editor;
