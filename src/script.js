@@ -9,8 +9,13 @@ let lineout = null;
 let counter = null;
 let message = null;
 let mode = null;
+let frames = null;
+let size = null;
 let tweet = null;
 let download = null;
+
+let latestStatus = 'success';
+let isEncoding = false;
 
 let fragmen = null;
 const FRAGMEN_OPTION = {
@@ -28,16 +33,25 @@ window.addEventListener('DOMContentLoaded', () => {
     counter = document.querySelector('#counter');
     message = document.querySelector('#message');
     mode = document.querySelector('#modeselect');
+    frames = document.querySelector('#frameselect');
+    size = document.querySelector('#sizeselect');
     tweet = document.querySelector('#tweet');
     download = document.querySelector('#downloadgif');
     window.addEventListener('resize', resize, false);
     resize();
     download.addEventListener('click', () => {
-        if(download.classList.contains('download') === true){return;}
+        if(
+            download.classList.contains('disabled') === true ||
+            isEncoding === true
+        ){return;}
         download.classList.add('disabled');
-        fragmen.run = false;
+        isEncoding = true;
         setTimeout(() => {
-            captureGif();
+            const f = parseInt(frames.value);
+            const s = size.value.split('x');
+            const w = parseInt(s[0]);
+            const h = parseInt(s[1]);
+            captureGif(f, w, h);
         }, 100);
     });
 
@@ -45,13 +59,23 @@ window.addEventListener('DOMContentLoaded', () => {
         target: canvas,
         eventTarget: canvas,
     });
-    fragmen = new Fragmen(option).render(DEFAULT_SOURCE);
+    fragmen = new Fragmen(option);
     fragmen.onBuild((status, msg) => {
+        latestStatus = status;
         lineout.classList.remove('warn');
         lineout.classList.remove('error');
         lineout.classList.add(status);
         message.textContent = msg;
+        switch(status){
+            case 'warn':
+            case 'error':
+                download.classList.add('disabled');
+                break;
+            default:
+                download.classList.remove('disabled');
+        }
     });
+    fragmen.render(DEFAULT_SOURCE);
     counter.textContent = `${DEFAULT_SOURCE.length} / 139`;
     message.textContent = 'hello world';
 }, false);
@@ -96,15 +120,28 @@ function editorSetting(){
     return editor;
 }
 
-function captureGif(frame = 180, width = 256, height = 256){
+function captureGif(frame = 120, width = 256, height = 256){
     const capture = new CCapture({
+        verbose: false,
         format: 'gif',
         workersPath: './js/',
-        framerate: 30,
+        framerate: 60,
         quality: 100,
+        onProgress: (range) => {
+            const p = Math.floor(range * 100);
+            download.textContent = `${p}%`;
+
+            if(range >= 1.0){
+                setTimeout(() => {
+                    download.classList.remove('disabled');
+                    download.textContent = 'gif';
+                    isEncoding = false;
+                }, 2000);
+            }
+        },
     });
 
-    const captureCanvas = document.createElement('canvas');
+    let captureCanvas = document.createElement('canvas');
     captureCanvas.width = width;
     captureCanvas.height = height;
     captureCanvas.style.position = 'absolute';
@@ -128,13 +165,13 @@ function captureGif(frame = 180, width = 256, height = 256){
                 document.body.removeChild(captureCanvas);
                 captureCanvas = null;
                 frag = null;
-                download.classList.remove('disabled');
             }, 500);
         }
         ++frameCount;
     });
+    download.textContent = 'generate...';
     capture.start();
-    frag.render(DEFAULT_SOURCE);
+    frag.render(editor.getValue());
 }
 
 const DEFAULT_SOURCE = `precision mediump float;
