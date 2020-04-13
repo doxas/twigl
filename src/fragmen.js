@@ -68,7 +68,7 @@ export class Fragmen {
             this.target.appendChild(this.canvas);
         }
         // init webgl context
-        this.gl = this.canvas.getContext('webgl');
+        this.gl = this.canvas.getContext('webgl', {preserveDrawingBuffer: true});
         if(this.gl === null || this.gl === undefined){
             console.log('webgl unsupported');
             return;
@@ -132,12 +132,7 @@ void main(){
         }else{
             this.FS = source;
         }
-        if(this.run){
-            this.run = false;
-            setTimeout(this.reset, 500);
-        }else{
-            this.reset();
-        }
+        this.reset();
         return this;
     }
 
@@ -163,13 +158,19 @@ void main(){
      */
     reset(){
         this.rect();
-        this.program = this.gl.createProgram();
-        if(!this.createShader(this.program, 0, this.VS) || !this.createShader(this.program, 1, this.FS)){return;}
-        this.gl.linkProgram(this.program);
-        if(!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)){
-            console.warn(this.gl.getProgramInfoLog(this.program));
+        const program = this.gl.createProgram();
+        if(!this.createShader(program, 0, this.VS) || !this.createShader(program, 1, this.FS)){return;}
+        this.gl.linkProgram(program);
+        if(!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)){
+            let msg = this.gl.getProgramInfoLog(program);
+            console.warn(msg);
+            if(this.onBuildCallback != null){
+                const t = this.getTimeString();
+                this.onBuildCallback('error', ` > [ ${t} ] ${msg}`);
+            }
             return;
         }
+        this.program = program;
         this.gl.useProgram(this.program);
         this.uniLocation = {};
         this.uniLocation.resolution = this.gl.getUniformLocation(this.program, 'resolution');
@@ -231,9 +232,17 @@ void main(){
         const k = this.gl.createShader(this.gl.VERTEX_SHADER - i);
         this.gl.shaderSource(k, j);
         this.gl.compileShader(k);
+        const t = this.getTimeString();
         if(!this.gl.getShaderParameter(k, this.gl.COMPILE_STATUS)){
-            console.warn(this.gl.getShaderInfoLog(k));
+            let msg = this.gl.getShaderInfoLog(k);
+            console.warn(msg);
+            if(this.onBuildCallback != null){
+                this.onBuildCallback('error', ` > [ ${t} ] ${msg}`);
+            }
             return false;
+        }
+        if(this.onBuildCallback != null){
+            this.onBuildCallback('success', ` > [ ${t} ] shader compile succeeded`);
         }
         this.gl.attachShader(p, k);
         const l = this.gl.getShaderInfoLog(k);
@@ -320,6 +329,17 @@ void main(){
     keyDown(eve){
         if(this.gl === null){return;}
         this.run = (eve.keyCode !== 27);
+    }
+
+    onBuild(callback){
+        this.onBuildCallback = callback;
+    }
+
+    getTimeString(){
+        const d = new Date();
+        const h = (new Array(2).join('0') + d.getHours()).substr(-2, 2);
+        const m = (new Array(2).join('0') + d.getMinutes()).substr(-2, 2);
+        return `${h}:${m}`;
     }
 }
 
