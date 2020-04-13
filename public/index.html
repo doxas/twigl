@@ -22,7 +22,7 @@
             <div id="editorwrap">
                 <pre id="editor"></pre>
                 <div id="menu">
-                    <div class="menublock">
+                    <div class="menublock" style="display: none">
                         <h3>Mode[WIP]</h3>
                         <div class="menublockinner">
                             <select id="modeselect" disabled>
@@ -31,10 +31,10 @@
                             </select>
                         </div>
                     </div>
-                    <div class="menublock">
+                    <div class="menublock" style="display: none">
                         <h3>Twitter</h3>
                         <div class="menublockinner">
-                            <div id="tweet" class="button">tweet</div>
+                            <a href="https://twitter.com/intent/tweet?text=hoge&hashtags=つぶやきGLSL" rel=”nofollow” onClick="window.open(encodeURI(decodeURI(this.href)),'twwindow','width=550, height=450, personalbar=0, toolbar=0, scrollbars=1'); return false;"><div id="tweet" class="button">tweet</div></a>
                         </div>
                     </div>
                     <div class="menublock">

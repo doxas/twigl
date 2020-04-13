@@ -53,7 +53,21 @@ window.addEventListener('DOMContentLoaded', () => {
             const h = parseInt(s[1]);
             captureGif(f, w, h);
         }, 100);
-    });
+    }, false);
+    tweet.addEventListener('click', () => {
+        // const anchor = document.createElement('a');
+        // let source = editor.getValue();
+        // source = source.replace(/\n\r/g, '%0A');
+        // source = source.replace(/\n/g, '%0A');
+        // source = source.replace(/\r/g, '%0A');
+        // anchor.setAttribute('href', `https://twitter.com/intent/tweet?text=${source}&hashtags=つぶやきGLSL`);
+        // anchor.setAttribute('rel', 'nofollow');
+        // anchor.onClick = () => {
+        //     window.open(encodeURI(decodeURI(anchor.href)),'twwindow','width=550, height=450, personalbar=0, toolbar=0, scrollbars=1');
+        //     return false;
+        // };
+        // anchor.click();
+    }, false);
 
     const option = Object.assign(FRAGMEN_OPTION, {
         target: canvas,
@@ -76,7 +90,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
     fragmen.render(DEFAULT_SOURCE);
-    counter.textContent = `${DEFAULT_SOURCE.length} / 139`;
+    counter.textContent = `${DEFAULT_SOURCE.length} char`;
     message.textContent = 'hello world';
 }, false);
 
@@ -114,7 +128,7 @@ function editorSetting(){
             timeoutId = null;
             update(editor.getValue());
         }, 1000);
-        counter.textContent = `${editor.getValue().length} / 139`;
+        counter.textContent = `${editor.getValue().length} char`;
     });
     setTimeout(() => {editor.gotoLine(1);}, 100);
     return editor;
@@ -174,31 +188,7 @@ function captureGif(frame = 120, width = 256, height = 256){
     frag.render(editor.getValue());
 }
 
-const DEFAULT_SOURCE = `precision mediump float;
-uniform vec2  resolution;     // resolution (width, height)
-uniform vec2  mouse;          // mouse      (0.0 ~ 1.0)
-uniform float time;           // time       (1second == 1.0)
-uniform sampler2D backbuffer; // previous scene
-
-const float PI = 3.1415926;
-
-vec3 hsv(float h, float s, float v){
-    vec4 t = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(fract(vec3(h) + t.xyz) * 6.0 - vec3(t.w));
-    return v * mix(vec3(t.x), clamp(p - vec3(t.x), 0.0, 1.0), s);
-}
-
-void main(){
-    vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / resolution;
-    vec3 line = vec3(0.0);
-    for(float fi = 0.0; fi < 50.0; ++fi){
-        float offset = fi * PI / 100.0;
-        float value = 1.0 + sin(time * fi * 0.15 + 0.1) * 0.5;
-        float timer = time * fi * 0.01;
-        vec3  color = hsv((fi + time) * 0.0175, 1.0, value);
-        line += 0.0025 / abs(p.y + sin(p.x * 1.0 + timer + offset) * 0.75) * color;
-    }
-    gl_FragColor = vec4(line, 1.0);
-}`;
+const DEFAULT_SOURCE = `#define t time
+precision lowp float;uniform float t;void main(){vec2 u=gl_FragCoord.xy;u.y+=t*3e2;float d,k=1e2;vec3 c=vec3(0);for(int i=0;i<3;i++){d=floor(mod(u.x,k)/k*3.),c+=clamp(mod(d+vec3(2,1,0),3.)-1.,0.,1.),u*=-mat2(.5,-.866,.866,.5);}gl_FragColor=vec4(c,1);}`;
 
 
