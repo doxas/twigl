@@ -5,11 +5,13 @@ import {Fragmen} from './fragmen.js';
 
 let editor = null;
 let canvas = null;
+let lineout = null;
 let fragmen = null;
 
 window.addEventListener('DOMContentLoaded', () => {
     editor = editorSetting();
     canvas = document.querySelector('#webgl');
+    lineout = document.querySelector('#lineout');
     window.addEventListener('resize', resize, false);
     resize();
 
@@ -21,6 +23,14 @@ window.addEventListener('DOMContentLoaded', () => {
         escape: false
     };
     fragmen = new Fragmen(option).render(DEFAULT_SOURCE);
+    fragmen.onBuild((status, message) => {
+        lineout.classList.remove('warn');
+        lineout.classList.remove('error');
+        lineout.classList.add(status);
+        lineout.textContent = message;
+    });
+
+    lineout.textContent = ' > ready';
 }, false);
 
 function resize(){
@@ -56,7 +66,7 @@ function editorSetting(){
         timeoutId = setTimeout(() => {
             timeoutId = null;
             update(editor.getValue());
-        }, 500);
+        }, 1000);
     });
     setTimeout(() => {editor.gotoLine(1);}, 100);
     return editor;
