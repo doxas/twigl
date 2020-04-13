@@ -8,18 +8,47 @@
         <script src="./js/script.js"></script>
         <link rel="stylesheet" href="./css/style.css">
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-        <title>twigl.app - ⚡</title>
+        <title>⚡ twigl.app</title>
     </head>
     <body>
         <div id="wrap">
             <div id="canvaswrap">
                 <canvas id="webgl"></canvas>
             </div>
-            <div id="lineout">ready</div>
+            <div id="lineout">
+                <div id="counter"></div>
+                <div id="message"></div>
+            </div>
             <div id="editorwrap">
                 <pre id="editor"></pre>
                 <div id="menu">
-                    menu
+                    <div class="menublock">
+                        <h3>Mode</h3>
+                        <div class="menublockinner">
+                            <select>
+                                <option value="classic">classic</option>
+                                <option value="geek">geek</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="menublock">
+                        <h3>Twitter</h3>
+                        <div class="menublockinner">
+                            <div class="button">tweet</div>
+                        </div>
+                    </div>
+                    <div class="menublock">
+                        <h3>Download</h3>
+                        <div class="menublockinner">
+                            <div class="button">gif</div>
+                        </div>
+                    </div>
+                    <div class="menublock">
+                        <h3>Author</h3>
+                        <div class="menublockinner">
+                            <a href="" target="_blank">doxas</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
