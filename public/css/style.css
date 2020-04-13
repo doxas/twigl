@@ -98,7 +98,7 @@ body {
 }
 .menublock .menublockinner {
     font-size: 10px;
-    padding: 0px 15px 0px;
+    padding: 0px 12px 0px;
 }
 .menublockinner select {
     font-size: 16px;
@@ -124,7 +124,7 @@ body {
     color: white;
     font-size: 10px;
     margin: 5px 0px;
-    padding: 10px;
+    padding: 10px 5px;
     user-select: none;
     cursor: pointer;
 }
