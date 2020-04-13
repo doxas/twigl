@@ -218,6 +218,10 @@ void main(){
         this.fTemp = this.fFront;
         this.fFront = this.fBack;
         this.fBack = this.fTemp;
+
+        if(this.onDrawCallback != null){
+            this.onDrawCallback();
+        }
     }
 
     /**
@@ -333,6 +337,9 @@ void main(){
 
     onBuild(callback){
         this.onBuildCallback = callback;
+    }
+    onDraw(callback){
+        this.onDrawCallback = callback;
     }
 
     getTimeString(){
