@@ -1,10 +1,39 @@
 
 import 'whatwg-fetch';
 import Promise from 'promise-polyfill';
+import {Fragmen} from './fragmen.js';
+
+let editor = null;
+let canvas = null;
+let fragmen = null;
 
 window.addEventListener('DOMContentLoaded', () => {
-    const editor = editorSetting();
+    editor = editorSetting();
+    canvas = document.querySelector('#webgl');
+    window.addEventListener('resize', resize, false);
+    resize();
+
+    const option = {
+        target: canvas,
+        eventTarget: canvas,
+        mouse: true,
+        resize: true,
+        escape: false
+    };
+    fragmen = new Fragmen(option).render(DEFAULT_SOURCE);
 }, false);
+
+function resize(){
+    const canvas = document.querySelector('#webgl');
+    const bound = canvas.parentElement.getBoundingClientRect();
+    canvas.width = bound.width;
+    canvas.height = bound.height;
+}
+
+function update(source){
+    if(fragmen == null){return;}
+    fragmen.render(source);
+}
 
 function editorSetting(){
     const editor = ace.edit('editor');
@@ -14,10 +43,21 @@ function editorSetting(){
     editor.session.setMode('ace/mode/glsl');
     editor.session.setTabSize(2);
     editor.session.setUseSoftTabs(true);
+    editor.$blockScrolling = Infinity;
     editor.setShowPrintMargin(false);
     editor.setHighlightSelectedWord(true);
     editor.setValue(DEFAULT_SOURCE);
-    editor.$blockScrolling = Infinity;
+
+    let timeoutId = null;
+    editor.session.on('change', (evt) => {
+        if(timeoutId != null){
+            clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(() => {
+            timeoutId = null;
+            update(editor.getValue());
+        }, 500);
+    });
     setTimeout(() => {editor.gotoLine(1);}, 100);
     return editor;
 }
