@@ -46,11 +46,9 @@ window.addEventListener('DOMContentLoaded', () => {
         if(geek === true && source === DEFAULT_SOURCE){
             editor.setValue(DEFAULT_GEEK_SOURCE);
             setTimeout(() => {editor.gotoLine(1);}, 100);
-            fragmen.render(editor.getValue());
         }else if(geek !== true && source === DEFAULT_GEEK_SOURCE){
             editor.setValue(DEFAULT_SOURCE);
             setTimeout(() => {editor.gotoLine(1);}, 100);
-            fragmen.render(editor.getValue());
         }
     }, false);
     download.addEventListener('click', () => {
@@ -193,11 +191,11 @@ const DEFAULT_SOURCE = `precision highp float;
 uniform vec2 resolution;
 uniform vec2 mouse;
 uniform float time;
-void main(){vec2 p=(gl_FragCoord.xy*2.-resolution)/resolution-mouse;for(int i=0;i<8;++i){p.yx=abs(p)/abs(dot(p,p))-vec2(.8+sin(time*.2)*.3);}gl_FragColor=vec4(p,.5,1);}`;
+void main(){vec2 r=resolution;vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`;
 const DEFAULT_GEEK_SOURCE = `precision highp float;
 uniform vec2 r;
 uniform vec2 m;
 uniform float t;
-void main(){vec2 p=(gl_FragCoord.xy*2.-r)/r-m;for(int i=0;i<8;++i){p.yx=abs(p)/abs(dot(p,p))-vec2(.8+sin(t*.2)*.3);}gl_FragColor=vec4(p,.5,1);}`;
+void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`;
 
 
