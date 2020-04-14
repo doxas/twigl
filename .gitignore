@@ -1,6 +1,5 @@
 public/js/script.js
 package-lock.json
-webpack.config.js
 /node_modules
 /.firebase
 .firebaserc
