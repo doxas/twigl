@@ -23,6 +23,7 @@ export class Fragmen {
         this.mouse = false;
         this.mousePosition = null;
         this.escape = false;
+        this.geek = false;
         this.run = false;
         this.startTime = 0;
         this.nowTime = 0;
@@ -170,13 +171,23 @@ void main(){
             }
             return;
         }
+        let resolution = 'resolution';
+        let mouse = 'mouse';
+        let time = 'time';
+        let backbuffer = 'backbuffer';
+        if(this.geek === true){
+            resolution = 'r';
+            mouse = 'm';
+            time = 't';
+            backbuffer = 'b';
+        }
         this.program = program;
         this.gl.useProgram(this.program);
         this.uniLocation = {};
-        this.uniLocation.resolution = this.gl.getUniformLocation(this.program, 'resolution');
-        this.uniLocation.mouse = this.gl.getUniformLocation(this.program, 'mouse');
-        this.uniLocation.time = this.gl.getUniformLocation(this.program, 'time');
-        this.uniLocation.sampler = this.gl.getUniformLocation(this.program, 'backbuffer');
+        this.uniLocation.resolution = this.gl.getUniformLocation(this.program, resolution);
+        this.uniLocation.mouse = this.gl.getUniformLocation(this.program, mouse);
+        this.uniLocation.time = this.gl.getUniformLocation(this.program, time);
+        this.uniLocation.sampler = this.gl.getUniformLocation(this.program, backbuffer);
         this.attLocation = this.gl.getAttribLocation(this.program, 'p');
         this.run = true;
         this.mousePosition = [0.0, 0.0];
