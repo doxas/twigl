@@ -107,9 +107,11 @@ void main(){
     gl_FragColor = texture2D(texture, vTexCoord);
 }`;
         this.postProgram = this.gl.createProgram();
-        this.createShader(this.postProgram, 0, this.postVS);
-        this.createShader(this.postProgram, 1, this.postFS);
+        let vs = this.createShader(this.postProgram, 0, this.postVS);
+        let fs = this.createShader(this.postProgram, 1, this.postFS);
         this.gl.linkProgram(this.postProgram);
+        this.gl.deleteShader(vs);
+        this.gl.deleteShader(fs);
         this.postUniLocation = {};
         this.postUniLocation.texture = this.gl.getUniformLocation(this.postProgram, 'texture');
         this.postAttLocation = this.gl.getAttribLocation(this.postProgram, 'position');
@@ -159,9 +161,19 @@ void main(){
      */
     reset(){
         this.rect();
-        const program = this.gl.createProgram();
-        if(!this.createShader(program, 0, this.VS) || !this.createShader(program, 1, this.FS)){return;}
+        let program = this.gl.createProgram();
+        let vs = this.createShader(program, 0, this.VS);
+        if(vs === false){
+            return;
+        }
+        let fs = this.createShader(program, 1, this.FS);
+        if(fs === false){
+            this.gl.deleteShader(vs);
+            return;
+        }
         this.gl.linkProgram(program);
+        this.gl.deleteShader(vs);
+        this.gl.deleteShader(fs);
         if(!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)){
             let msg = this.gl.getProgramInfoLog(program);
             console.warn(msg);
@@ -169,6 +181,7 @@ void main(){
                 const t = this.getTimeString();
                 this.onBuildCallback('error', ` > [ ${t} ] ${msg}`);
             }
+            program = null;
             return;
         }
         let resolution = 'resolution';
@@ -181,6 +194,7 @@ void main(){
             time = 't';
             backbuffer = 'b';
         }
+        if(this.program != null){this.gl.deleteProgram(this.program);}
         this.program = program;
         this.gl.useProgram(this.program);
         this.uniLocation = {};
@@ -243,7 +257,7 @@ void main(){
      * @return {boolean} succeeded or not
      */
     createShader(p, i, j){
-        if(!this.gl){return;}
+        if(!this.gl){return false;}
         const k = this.gl.createShader(this.gl.VERTEX_SHADER - i);
         this.gl.shaderSource(k, j);
         this.gl.compileShader(k);
@@ -262,7 +276,7 @@ void main(){
         this.gl.attachShader(p, k);
         const l = this.gl.getShaderInfoLog(k);
         if(l !== ''){console.info('shader info: ' + l);}
-        return true;
+        return k;
     }
 
     /**
