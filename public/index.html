@@ -8,7 +8,31 @@
         <script src="./js/script.js"></script>
         <link rel="stylesheet" href="./css/style.css">
         <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-        <title>⚡ twigl.app</title>
+
+        <!-- The core Firebase JS SDK is always required and must be listed first -->
+        <script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-app.js"></script>
+
+        <!-- TODO: Add SDKs for Firebase products that you want to use https://firebase.google.com/docs/web/setup#available-libraries -->
+        <script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-analytics.js"></script>
+
+        <script>
+            // Your web app's Firebase configuration
+            var firebaseConfig = {
+                apiKey: "AIzaSyAcRObIHeZUmCt_X3FEzLdBJzUDYTVRte8",
+                authDomain: "twigl-f67a0.firebaseapp.com",
+                databaseURL: "https://twigl-f67a0.firebaseio.com",
+                projectId: "twigl-f67a0",
+                storageBucket: "twigl-f67a0.appspot.com",
+                messagingSenderId: "653821260349",
+                appId: "1:653821260349:web:17e2128ca9a60f2c7ff054",
+                measurementId: "G-WHMVELFNCW"
+            };
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            firebase.analytics();
+        </script>
+
+        <title>⚡ twigl.app ⚡</title>
     </head>
     <body>
         <div id="wrap">
@@ -36,11 +60,14 @@
                         <div class="menublockinner">
                             <select id="frameselect">
                                 <option value="60">60 frame</option>
+                                <option value="94">94 frame</option>
                                 <option value="120" selected>120 frame</option>
                                 <option value="180">180 frame</option>
+                                <option value="188">188 frame</option>
                                 <option value="240">240 frame</option>
                                 <option value="300">300 frame</option>
                                 <option value="360">360 frame</option>
+                                <option value="376">376 frame</option>
                             </select>
                             <select id="sizeselect">
                                 <option value="128x128">128 x 128</option>
