@@ -11,13 +11,13 @@ let message = null;
 let mode = null;
 let frames = null;
 let size = null;
-let tweet = null;
 let download = null;
 
 let latestStatus = 'success';
 let isEncoding = false;
 
 let fragmen = null;
+let geek = false;
 const FRAGMEN_OPTION = {
     target: null,
     eventTarget: null,
@@ -35,10 +35,24 @@ window.addEventListener('DOMContentLoaded', () => {
     mode = document.querySelector('#modeselect');
     frames = document.querySelector('#frameselect');
     size = document.querySelector('#sizeselect');
-    tweet = document.querySelector('#tweet');
     download = document.querySelector('#downloadgif');
     window.addEventListener('resize', resize, false);
     resize();
+
+    mode.addEventListener('change', () => {
+        const source = editor.getValue();
+        geek = mode.value !== 'classic';
+        fragmen.geek = geek;
+        if(geek === true && source === DEFAULT_SOURCE){
+            editor.setValue(DEFAULT_GEEK_SOURCE);
+            setTimeout(() => {editor.gotoLine(1);}, 100);
+            fragmen.render(editor.getValue());
+        }else if(geek !== true && source === DEFAULT_GEEK_SOURCE){
+            editor.setValue(DEFAULT_SOURCE);
+            setTimeout(() => {editor.gotoLine(1);}, 100);
+            fragmen.render(editor.getValue());
+        }
+    }, false);
     download.addEventListener('click', () => {
         if(
             download.classList.contains('disabled') === true ||
@@ -53,20 +67,6 @@ window.addEventListener('DOMContentLoaded', () => {
             const h = parseInt(s[1]);
             captureGif(f, w, h);
         }, 100);
-    }, false);
-    tweet.addEventListener('click', () => {
-        // const anchor = document.createElement('a');
-        // let source = editor.getValue();
-        // source = source.replace(/\n\r/g, '%0A');
-        // source = source.replace(/\n/g, '%0A');
-        // source = source.replace(/\r/g, '%0A');
-        // anchor.setAttribute('href', `https://twitter.com/intent/tweet?text=${source}&hashtags=つぶやきGLSL`);
-        // anchor.setAttribute('rel', 'nofollow');
-        // anchor.onClick = () => {
-        //     window.open(encodeURI(decodeURI(anchor.href)),'twwindow','width=550, height=450, personalbar=0, toolbar=0, scrollbars=1');
-        //     return false;
-        // };
-        // anchor.click();
     }, false);
 
     const option = Object.assign(FRAGMEN_OPTION, {
@@ -166,7 +166,8 @@ function captureGif(frame = 120, width = 256, height = 256){
         target: captureCanvas,
         eventTarget: captureCanvas,
     });
-    const frag = new Fragmen(option);
+    let frag = new Fragmen(option);
+    frag.geek = geek;
     let frameCount = 0;
     frag.onDraw(() => {
         if(frameCount < frame){
@@ -188,7 +189,15 @@ function captureGif(frame = 120, width = 256, height = 256){
     frag.render(editor.getValue());
 }
 
-const DEFAULT_SOURCE = `#define t time
-precision lowp float;uniform float t;void main(){vec2 u=gl_FragCoord.xy;u.y+=t*3e2;float d,k=1e2;vec3 c=vec3(0);for(int i=0;i<3;i++){d=floor(mod(u.x,k)/k*3.),c+=clamp(mod(d+vec3(2,1,0),3.)-1.,0.,1.),u*=-mat2(.5,-.866,.866,.5);}gl_FragColor=vec4(c,1);}`;
+const DEFAULT_SOURCE = `precision highp float;
+uniform vec2 resolution;
+uniform vec2 mouse;
+uniform float time;
+void main(){vec2 p=(gl_FragCoord.xy*2.-resolution)/resolution-mouse;for(int i=0;i<8;++i){p.yx=abs(p)/abs(dot(p,p))-vec2(.8+sin(time*.2)*.3);}gl_FragColor=vec4(p,.5,1);}`;
+const DEFAULT_GEEK_SOURCE = `precision highp float;
+uniform vec2 r;
+uniform vec2 m;
+uniform float t;
+void main(){vec2 p=(gl_FragCoord.xy*2.-r)/r-m;for(int i=0;i<8;++i){p.yx=abs(p)/abs(dot(p,p))-vec2(.8+sin(t*.2)*.3);}gl_FragColor=vec4(p,.5,1);}`;
 
 
