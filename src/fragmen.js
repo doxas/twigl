@@ -204,6 +204,7 @@ void main(){
         this.gl.deleteShader(fs);
         if(!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)){
             let msg = this.gl.getProgramInfoLog(program);
+            msg = this.formatErrorMessage(msg);
             console.warn(msg);
             if(this.onBuildCallback != null){
                 const t = this.getTimeString();
@@ -292,6 +293,7 @@ void main(){
         const t = this.getTimeString();
         if(!this.gl.getShaderParameter(k, this.gl.COMPILE_STATUS)){
             let msg = this.gl.getShaderInfoLog(k);
+            msg = this.formatErrorMessage(msg);
             console.warn(msg);
             if(this.onBuildCallback != null){
                 this.onBuildCallback('error', ` > [ ${t} ] ${msg}`);
@@ -414,6 +416,23 @@ void main(){
             // エラー分表示の際の行数を合わせるため、ここは1行である必要アリ。末尾の `\n` を忘れずに！
             const preinsert = 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;\n';
             return preinsert + code;
+        }
+    }
+
+    /**
+     * エラー文を表示する前にフォーマットする。
+     * 実際やっているのは、ModeがGeekerのときに行を1つ上げているだけ。
+     * @param { string } message
+     * @private
+     */
+    formatErrorMessage(message){
+        if(this.mode === FragmenMode.Classic || this.mode === FragmenMode.Geek){
+            return message;
+        }else{
+            return message.replace(/^ERROR: (\d+):(\d)/gm, (...args) => {
+                const line = parseInt(args[2]) - 1;
+                return `ERROR: ${args[1]}:${line}`;
+            });
         }
     }
 }
