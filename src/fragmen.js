@@ -411,6 +411,7 @@ void main(){
         if(this.mode === FragmenMode.Classic || this.mode === FragmenMode.Geek){
             return code;
         }else{
+            // エラー分表示の際の行数を合わせるため、ここは1行である必要アリ。末尾の `\n` を忘れずに！
             const preinsert = 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;\n';
             return preinsert + code;
         }
