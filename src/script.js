@@ -27,17 +27,9 @@ const FRAGMEN_OPTION = {
     escape: false
 };
 // 既定のソース（classic mode）
-const DEFAULT_SOURCE = `precision highp float;
-uniform vec2 resolution;
-uniform vec2 mouse;
-uniform float time;
-void main(){vec2 r=resolution;vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`;
+const DEFAULT_SOURCE = 'void main(){vec2 r=resolution;vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}gl_FragColor=vec4(p,.2,1);}';
 // 既定のソース（geek mode）
-const DEFAULT_GEEK_SOURCE = `precision highp float;
-uniform vec2 r;
-uniform vec2 m;
-uniform float t;
-void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`;
+const DEFAULT_GEEK_SOURCE = 'void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}';
 
 window.addEventListener('DOMContentLoaded', () => {
     // Ace editor 関連の初期化

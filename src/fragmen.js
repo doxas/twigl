@@ -23,6 +23,10 @@ export class Fragmen {
         this.mouse = false;
         this.mousePosition = null;
         this.escape = false;
+
+        /**
+         * 「ギークモード」、 `true` のときに、uniformで渡す変数名を短くします。
+         */
         this.geek = false;
         this.run = false;
         this.startTime = 0;
@@ -259,7 +263,8 @@ void main(){
     createShader(p, i, j){
         if(!this.gl){return false;}
         const k = this.gl.createShader(this.gl.VERTEX_SHADER - i);
-        this.gl.shaderSource(k, j);
+        const fragCode = this.getShaderPreinsert() + j;
+        this.gl.shaderSource(k, fragCode);
         this.gl.compileShader(k);
         const t = this.getTimeString();
         if(!this.gl.getShaderParameter(k, this.gl.COMPILE_STATUS)){
@@ -372,6 +377,18 @@ void main(){
         const h = (new Array(2).join('0') + d.getHours()).substr(-2, 2);
         const m = (new Array(2).join('0') + d.getMinutes()).substr(-2, 2);
         return `${h}:${m}`;
+    }
+
+    /**
+     * シェーダ前に挿入するコードを返します。
+     * @private
+     */
+    getShaderPreinsert() {
+        // エラーメッセージの行数を正確に出すため、ここのコードは1行であるべき。
+        // 末尾に `\n` を挿入するのを忘れずに！
+        return this.geek
+            ? 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;\n'
+            : 'precision highp float;uniform vec2 resolution;uniform vec2 mouse;uniform float time;\n';
     }
 }
 
