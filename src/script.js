@@ -1,7 +1,7 @@
 
 import 'whatwg-fetch';
 import Promise from 'promise-polyfill';
-import {Fragmen} from './fragmen.js';
+import {Fragmen, FragmenMode} from './fragmen.js';
 
 let editor   = null; // Ace editor のインスタンス
 let canvas   = null; // スクリーン
@@ -13,10 +13,10 @@ let frames   = null; // render frame select
 let size     = null; // resolution select
 let download = null; // download button
 
-let latestStatus = 'success'; // 直近のステータス
-let isEncoding   = false;     // エンコード中かどうか
-let geek         = false;     // geek モードかどうか
-let fragmen      = null;      // fragmen.js のインスタンス
+let latestStatus = 'success';               // 直近のステータス
+let isEncoding   = false;                   // エンコード中かどうか
+let currentMode  = FragmenMode.Classic;     // 現在のFragmenモード
+let fragmen      = null;                    // fragmen.js のインスタンス
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -26,10 +26,20 @@ const FRAGMEN_OPTION = {
     resize: true,
     escape: false
 };
-// 既定のソース（classic mode）
-const DEFAULT_SOURCE = 'void main(){vec2 r=resolution;vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}gl_FragColor=vec4(p,.2,1);}';
-// 既定のソース（geek mode）
-const DEFAULT_GEEK_SOURCE = 'void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}';
+
+const modeDefaultSourceMap = {
+    [FragmenMode.Classic]: `precision highp float;
+uniform vec2 resolution;
+uniform vec2 mouse;
+uniform float time;
+void main(){vec2 r=resolution;vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`,
+    [FragmenMode.Geek]: `precision highp float;
+uniform vec2 r;
+uniform vec2 m;
+uniform float t;
+void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`,
+    [FragmenMode.Geeker]: 'void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}'
+}
 
 window.addEventListener('DOMContentLoaded', () => {
     // Ace editor 関連の初期化
@@ -51,15 +61,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // モード変更時の処理
     mode.addEventListener('change', () => {
+        const defaultSourceInPrevMode = modeDefaultSourceMap[currentMode];
+
         const source = editor.getValue();
-        geek = mode.value !== 'classic';
-        fragmen.geek = geek;
+        currentMode = parseInt(mode.value);
+        fragmen.mode = currentMode;
+
         // 既定のソースと同じならモードに応じた既定のソースに書き換える
-        if(geek === true && source === DEFAULT_SOURCE){
-            editor.setValue(DEFAULT_GEEK_SOURCE);
-            setTimeout(() => {editor.gotoLine(1);}, 100);
-        }else if(geek !== true && source === DEFAULT_GEEK_SOURCE){
-            editor.setValue(DEFAULT_SOURCE);
+        if(source === defaultSourceInPrevMode){
+            const defaultSource = modeDefaultSourceMap[currentMode];
+            editor.setValue(defaultSource);
             setTimeout(() => {editor.gotoLine(1);}, 100);
         }
     }, false);
@@ -110,10 +121,10 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
     // デフォルトのメッセージを出力
-    counter.textContent = `${DEFAULT_SOURCE.length} char`;
+    counter.textContent = `${modeDefaultSourceMap[currentMode].length} char`;
     message.textContent = ' > ready';
     // レンダリング開始
-    fragmen.render(DEFAULT_SOURCE);
+    fragmen.render(modeDefaultSourceMap[currentMode]);
 }, false);
 
 /**
@@ -148,7 +159,7 @@ function editorSetting(){
     editor.$blockScrolling = Infinity;
     editor.setShowPrintMargin(false);
     editor.setHighlightSelectedWord(true);
-    editor.setValue(DEFAULT_SOURCE);
+    editor.setValue(modeDefaultSourceMap[currentMode]);
 
     // editor の内容が変化した際のリスナーを設定
     let timeoutId = null;
@@ -213,7 +224,7 @@ function captureGif(frame = 180, width = 512, height = 256){
     });
     // モードを揃えて新しい fragmen のインスタンスを生成
     let frag = new Fragmen(option);
-    frag.geek = geek;
+    frag.mode = currentMode;
     // 引数の指定フレーム数分レンダリングし GIF を生成
     let frameCount = 0;
     frag.onDraw(() => {

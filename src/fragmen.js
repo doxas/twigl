@@ -1,3 +1,25 @@
+/**
+ * Fragmenのモードを定義するenum
+ */
+export const FragmenMode = {};
+
+/**
+ * Classicモード。
+ * なんの変哲もないふつうのシェーダコードが書ける。
+ */
+FragmenMode.Classic = 0;
+
+/**
+ * Geekモード。
+ * uniform変数の名前が1文字になる。
+ */
+FragmenMode.Geek = 1;
+
+/**
+ * Geekerモード。
+ * Geekモードの変更に加え、pecision宣言とuniform宣言が必要なくなる。
+ */
+FragmenMode.Geeker = 2;
 
 export class Fragmen {
     /**
@@ -25,9 +47,11 @@ export class Fragmen {
         this.escape = false;
 
         /**
-         * 「ギークモード」、 `true` のときに、uniformで渡す変数名を短くします。
+         * このFragmenの現在のモード。
+         * モードについての詳細は {@link FragmenMode} を参照してください。
          */
-        this.geek = false;
+        this.mode = FragmenMode.Classic;
+
         this.run = false;
         this.startTime = 0;
         this.nowTime = 0;
@@ -192,7 +216,7 @@ void main(){
         let mouse = 'mouse';
         let time = 'time';
         let backbuffer = 'backbuffer';
-        if(this.geek === true){
+        if(this.mode === FragmenMode.Geek || this.mode === FragmenMode.Geeker){
             resolution = 'r';
             mouse = 'm';
             time = 't';
@@ -263,8 +287,7 @@ void main(){
     createShader(p, i, j){
         if(!this.gl){return false;}
         const k = this.gl.createShader(this.gl.VERTEX_SHADER - i);
-        const fragCode = this.getShaderPreinsert() + j;
-        this.gl.shaderSource(k, fragCode);
+        this.gl.shaderSource(k, this.preprocessCode(j));
         this.gl.compileShader(k);
         const t = this.getTimeString();
         if(!this.gl.getShaderParameter(k, this.gl.COMPILE_STATUS)){
@@ -380,15 +403,17 @@ void main(){
     }
 
     /**
-     * シェーダ前に挿入するコードを返します。
+     * コードをコンパイラに渡す前に下ごしらえをします。
+     * 実際やっているのは、ModeがGeekerのときにprecision宣言とuniform宣言を挿入しているだけ。
      * @private
      */
-    getShaderPreinsert() {
-        // エラーメッセージの行数を正確に出すため、ここのコードは1行であるべき。
-        // 末尾に `\n` を挿入するのを忘れずに！
-        return this.geek
-            ? 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;\n'
-            : 'precision highp float;uniform vec2 resolution;uniform vec2 mouse;uniform float time;\n';
+    preprocessCode(code){
+        if(this.mode === FragmenMode.Classic || this.mode === FragmenMode.Geek){
+            return code;
+        }else{
+            const preinsert = 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;\n';
+            return preinsert + code;
+        }
     }
 }
 
