@@ -7,7 +7,7 @@
         <script src="./js/CCapture.all.min.js"></script>
         <script src="./js/script.js"></script>
         <link rel="stylesheet" href="./css/style.css">
-        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
         <title>⚡ twigl.app</title>
     </head>
     <body>
@@ -22,23 +22,17 @@
             <div id="editorwrap">
                 <pre id="editor"></pre>
                 <div id="menu">
-                    <div class="menublock" style="display: none">
-                        <h3>Mode[WIP]</h3>
+                    <div class="menublock">
+                        <h3 title="name of uniform variable is minified on the geek mode">Variable mode</h3>
                         <div class="menublockinner">
-                            <select id="modeselect" disabled>
+                            <select id="modeselect">
                                 <option value="classic">classic</option>
                                 <option value="geek">geek</option>
                             </select>
                         </div>
                     </div>
-                    <div class="menublock" style="display: none">
-                        <h3>Twitter</h3>
-                        <div class="menublockinner">
-                            <a href="https://twitter.com/intent/tweet?text=hoge&hashtags=つぶやきGLSL" rel=”nofollow” onClick="window.open(encodeURI(decodeURI(this.href)),'twwindow','width=550, height=450, personalbar=0, toolbar=0, scrollbars=1'); return false;"><div id="tweet" class="button">tweet</div></a>
-                        </div>
-                    </div>
                     <div class="menublock">
-                        <h3>Download</h3>
+                        <h3 title="">Download</h3>
                         <div class="menublockinner">
                             <select id="frameselect">
                                 <option value="60">60 frame</option>
