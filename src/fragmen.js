@@ -14,6 +14,11 @@ export class Fragmen {
      * @type {number}
      */
     static get MODE_GEEKER(){return 2;}
+    /**
+     * ギーカーモード時に先頭に付与されるフラグメントシェーダのコード
+     * @type {string}
+     */
+    static get GEEKER_CHUNK(){return 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;\n';}
 
     /**
      * constructor of fragmen.js
@@ -25,46 +30,138 @@ export class Fragmen {
      * @property {boolean} [option.resize=false] - resize event enable
      */
     constructor(option){
-        this.target = null;
-        this.eventTarget = null;
-        this.canvas = null;
-        this.gl = null;
-        this.source = '';
-        this.resize = false;
-        this.width = 0;
-        this.height = 0;
-        this.mouse = false;
-        this.mousePosition = null;
-        this.escape = false;
-
         /**
-         * このFragmenの現在のモード。
+         * WebGL コンテキストに紐づく canvas の挿入先となるエレメント
+         * @type {HTMLElement}
+         */
+        this.target = null;
+        /**
+         * マウスイベントの対象となるエレメント（もしくは window）
+         * @type {window|HTMLElement}
+         */
+        this.eventTarget = null;
+        /**
+         * WebGL コンテキストに紐づく canvas
+         * @type {HTMLCanvasElement}
+         */
+        this.canvas = null;
+        /**
+         * WebGL のレンダリングコンテキスト
+         * @type {WebGLRenderingContext}
+         */
+        this.gl = null;
+        /**
+         * リサイズが発生したかどうかのフラグ
+         * @type {boolean}
+         */
+        this.resize = false;
+        /**
+         * コンテキストの幅
+         * @type {number}
+         */
+        this.width  = 0;
+        /**
+         * コンテキストの高さ
+         * @type {number}
+         */
+        this.height = 0;
+        /**
+         * マウスカーソルの座標
+         * @type {Array.<number>}
+         */
+        this.mousePosition = [0.0, 0.0];
+        /**
+         * 現在設定されているモード
+         * @type {number}
          */
         this.mode = Fragmen.MODE_CLASSIC;
-
+        /**
+         * 実行中かどうかのフラグ
+         * @type {boolean}
+         */
         this.run = false;
+        /**
+         * レンダリングを開始した時点でのタイムスタンプ
+         * @type {number}
+         */
         this.startTime = 0;
+        /**
+         * レンダリング開始からの経過時間（秒）
+         * @type {number}
+         */
         this.nowTime = 0;
+        /**
+         * シェーダプログラム
+         * @type {WebGLProgram}
+         */
         this.program = null;
+        /**
+         * uniform ロケーション
+         * @type {object}
+         */
         this.uniLocation = null;
+        /**
+         * attribute ロケーション
+         * @type {object}
+         */
         this.attLocation = null;
+        /**
+         * 頂点シェーダのソースコード
+         * @type {string}
+         */
         this.VS = '';
+        /**
+         * フラグメントシェーダのソースコード
+         * @type {string}
+         */
         this.FS = '';
+        /**
+         * 転写用シェーダのプログラム
+         * @type {WebGLProgram}
+         */
         this.postProgram = null;
+        /**
+         * 転写用シェーダの uniform ロケーション
+         * @type {object}
+         */
         this.postUniLocation = null;
+        /**
+         * 転写用シェーダの attribute ロケーション
+         * @type {object}
+         */
         this.postAttLocation = null;
+        /**
+         * 転写用シェーダの頂点シェーダのソースコード
+         * @type {string}
+         */
         this.postVS = '';
+        /**
+         * 転写用シェーダのフラグメントシェーダのソースコード
+         * @type {string}
+         */
         this.postFS = '';
+        /**
+         * バッファリング用フレームバッファ
+         * @type {WebGLFrameBuffer}
+         */
         this.fFront = null;
+        /**
+         * バッファリング用フレームバッファ
+         * @type {WebGLFrameBuffer}
+         */
         this.fBack = null;
+        /**
+         * バッファリング用フレームバッファ
+         * @type {WebGLFrameBuffer}
+         */
         this.fTemp = null;
-        // bind method
-        this.render = this.render.bind(this);
-        this.rect = this.rect.bind(this);
-        this.reset = this.reset.bind(this);
-        this.draw = this.draw.bind(this);
+        // self binding
+        this.render    = this.render.bind(this);
+        this.rect      = this.rect.bind(this);
+        this.reset     = this.reset.bind(this);
+        this.draw      = this.draw.bind(this);
         this.mouseMove = this.mouseMove.bind(this);
-        this.keyDown = this.keyDown.bind(this);
+        this.keyDown   = this.keyDown.bind(this);
         // initial call
         this.init(option);
     }
@@ -101,7 +198,6 @@ export class Fragmen {
             this.eventTarget.addEventListener('mousemove', this.mouseMove, false);
         }
         if(option.hasOwnProperty('escape') && option.escape === true){
-            this.escape = true;
             window.addEventListener('keydown', this.keyDown, false);
         }
         if(option.hasOwnProperty('resize') && option.resize === true){
@@ -197,7 +293,7 @@ void main(){
             msg = this.formatErrorMessage(msg);
             console.warn(msg);
             if(this.onBuildCallback != null){
-                const t = this.getTimeString();
+                const t = getTimeString();
                 this.onBuildCallback('error', ` > [ ${t} ] ${msg}`);
             }
             program = null;
@@ -273,14 +369,14 @@ void main(){
      * @param {WebGLProgram} p - target program object
      * @param {number} i - 0 or 1, 0 is vertex shader compile mode
      * @param {string} j - shader source
-     * @return {boolean} succeeded or not
+     * @return {boolean|WebGLShader} compiled shader object or false
      */
     createShader(p, i, j){
         if(!this.gl){return false;}
         const k = this.gl.createShader(this.gl.VERTEX_SHADER - i);
         this.gl.shaderSource(k, this.preprocessCode(j));
         this.gl.compileShader(k);
-        const t = this.getTimeString();
+        const t = getTimeString();
         if(!this.gl.getShaderParameter(k, this.gl.COMPILE_STATUS)){
             let msg = this.gl.getShaderInfoLog(k);
             msg = this.formatErrorMessage(msg);
@@ -304,11 +400,9 @@ void main(){
      * @param {number} width - set to framebuffer width
      * @param {number} height - set to framebuffer height
      * @return {object} custom object
-     * <ul>
-     *   <li> f {WebGLFramebuffer}
-     *   <li> d {WebGLRenderbuffer}
-     *   <li> t {WebGLTexture}
-     * </ul>
+     * @property {WebGLFramebuffer} f
+     * @property {WebGLRenderbuffer} d
+     * @property {WebGLTexture} t
      */
     createFramebuffer(width, height){
         const frameBuffer = this.gl.createFramebuffer();
@@ -380,39 +474,37 @@ void main(){
         this.run = (eve.keyCode !== 27);
     }
 
+    /**
+     * ビルド完了時に呼ばれるコールバックを登録する
+     * @param {function}
+     */
     onBuild(callback){
         this.onBuildCallback = callback;
     }
+    /**
+     * 描画完了時に呼ばれるコールバックを登録する
+     * @param {function}
+     */
     onDraw(callback){
         this.onDrawCallback = callback;
     }
 
-    getTimeString(){
-        const d = new Date();
-        const h = (new Array(2).join('0') + d.getHours()).substr(-2, 2);
-        const m = (new Array(2).join('0') + d.getMinutes()).substr(-2, 2);
-        return `${h}:${m}`;
-    }
-
     /**
-     * コードをコンパイラに渡す前に下ごしらえをします。
-     * 実際やっているのは、ModeがGeekerのときにprecision宣言とuniform宣言を挿入しているだけ。
+     * this.mode が MODE_GEEKER だった場合のみソースコードを結合する
      * @private
+     * @param {string} code - 対象となるシェーダのソースコード
      */
     preprocessCode(code){
         if(this.mode === Fragmen.MODE_CLASSIC || this.mode === Fragmen.MODE_GEEK){
             return code;
         }else{
-            // エラー分表示の際の行数を合わせるため、ここは1行である必要アリ。末尾の `\n` を忘れずに！
-            const preinsert = 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;\n';
-            return preinsert + code;
+            return Fragmen.GEEKER_CHUNK + code;
         }
     }
 
     /**
-     * エラー文を表示する前にフォーマットする。
-     * 実際やっているのは、ModeがGeekerのときに行を1つ上げているだけ。
-     * @param { string } message
+     * this.mode が MODE_GEEKER だった場合エラー行番号をインクリメントする
+     * @param {string} message
      * @private
      */
     formatErrorMessage(message){
@@ -425,5 +517,16 @@ void main(){
             });
         }
     }
+}
+
+/**
+ * 時刻を常に２桁に揃える
+ * @return {string}
+ */
+function getTimeString(){
+    const d = new Date();
+    const h = (new Array(2).join('0') + d.getHours()).substr(-2, 2);
+    const m = (new Array(2).join('0') + d.getMinutes()).substr(-2, 2);
+    return `${h}:${m}`;
 }
 

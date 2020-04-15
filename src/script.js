@@ -13,10 +13,10 @@ let frames   = null; // render frame select
 let size     = null; // resolution select
 let download = null; // download button
 
-let latestStatus = 'success';               // 直近のステータス
-let isEncoding   = false;                   // エンコード中かどうか
-let currentMode  = Fragmen.MODE_CLASSIC;     // 現在のFragmenモード
-let fragmen      = null;                    // fragmen.js のインスタンス
+let latestStatus = 'success';            // 直近のステータス
+let isEncoding   = false;                // エンコード中かどうか
+let currentMode  = Fragmen.MODE_CLASSIC; // 現在のFragmenモード
+let fragmen      = null;                 // fragmen.js のインスタンス
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -27,6 +27,7 @@ const FRAGMEN_OPTION = {
     escape: false
 };
 
+// 各モードの既定のソースコード
 const modeDefaultSourceMap = {
     [Fragmen.MODE_CLASSIC]: `precision highp float;
 uniform vec2 resolution;
@@ -246,5 +247,4 @@ function captureGif(frame = 180, width = 512, height = 256){
     capture.start();
     frag.render(editor.getValue());
 }
-
 
