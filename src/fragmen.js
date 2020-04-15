@@ -1,15 +1,28 @@
-
 export class Fragmen {
     /**
+     * resolution, mouse, time, backbuffer の各種 uniform 定義で動作するクラシックモード
+     * @type {number}
+     */
+    static get MODE_CLASSIC(){return 0;}
+    /**
+     * r, m, t, b の省略形 uniform 定義で動作するギークモード
+     * @type {number}
+     */
+    static get MODE_GEEK(){return 1;}
+    /**
+     * キークモードの特性に加え、precision と uniform 変数宣言部分を省略したギーカーモード
+     * @type {number}
+     */
+    static get MODE_GEEKER(){return 2;}
+
+    /**
      * constructor of fragmen.js
-     * @param {object} option - options
-     * <ul>
-     *   <li> {HTMLElement} target - insert canvas to
-     *   <li> {HTMLElement} [eventTarget=target] - event target element or window
-     *   <li> {boolean} [mouse=false] - mouse event enable
-     *   <li> {boolean} [escape=false] - keydown event enable
-     *   <li> {boolean} [resize=false] - resize event enable
-     * </ul>
+     * @param {object} option - オプション
+     * @property {HTMLElement} option.target - insert canvas to
+     * @property {HTMLElement} [option.eventTarget=target] - event target element or window
+     * @property {boolean} [option.mouse=false] - mouse event enable
+     * @property {boolean} [option.escape=false] - keydown event enable
+     * @property {boolean} [option.resize=false] - resize event enable
      */
     constructor(option){
         this.target = null;
@@ -23,7 +36,12 @@ export class Fragmen {
         this.mouse = false;
         this.mousePosition = null;
         this.escape = false;
-        this.geek = false;
+
+        /**
+         * このFragmenの現在のモード。
+         */
+        this.mode = Fragmen.MODE_CLASSIC;
+
         this.run = false;
         this.startTime = 0;
         this.nowTime = 0;
@@ -176,6 +194,7 @@ void main(){
         this.gl.deleteShader(fs);
         if(!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)){
             let msg = this.gl.getProgramInfoLog(program);
+            msg = this.formatErrorMessage(msg);
             console.warn(msg);
             if(this.onBuildCallback != null){
                 const t = this.getTimeString();
@@ -188,7 +207,7 @@ void main(){
         let mouse = 'mouse';
         let time = 'time';
         let backbuffer = 'backbuffer';
-        if(this.geek === true){
+        if(this.mode === Fragmen.MODE_GEEK || this.mode === Fragmen.MODE_GEEKER){
             resolution = 'r';
             mouse = 'm';
             time = 't';
@@ -259,11 +278,12 @@ void main(){
     createShader(p, i, j){
         if(!this.gl){return false;}
         const k = this.gl.createShader(this.gl.VERTEX_SHADER - i);
-        this.gl.shaderSource(k, j);
+        this.gl.shaderSource(k, this.preprocessCode(j));
         this.gl.compileShader(k);
         const t = this.getTimeString();
         if(!this.gl.getShaderParameter(k, this.gl.COMPILE_STATUS)){
             let msg = this.gl.getShaderInfoLog(k);
+            msg = this.formatErrorMessage(msg);
             console.warn(msg);
             if(this.onBuildCallback != null){
                 this.onBuildCallback('error', ` > [ ${t} ] ${msg}`);
@@ -372,6 +392,38 @@ void main(){
         const h = (new Array(2).join('0') + d.getHours()).substr(-2, 2);
         const m = (new Array(2).join('0') + d.getMinutes()).substr(-2, 2);
         return `${h}:${m}`;
+    }
+
+    /**
+     * コードをコンパイラに渡す前に下ごしらえをします。
+     * 実際やっているのは、ModeがGeekerのときにprecision宣言とuniform宣言を挿入しているだけ。
+     * @private
+     */
+    preprocessCode(code){
+        if(this.mode === Fragmen.MODE_CLASSIC || this.mode === Fragmen.MODE_GEEK){
+            return code;
+        }else{
+            // エラー分表示の際の行数を合わせるため、ここは1行である必要アリ。末尾の `\n` を忘れずに！
+            const preinsert = 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;\n';
+            return preinsert + code;
+        }
+    }
+
+    /**
+     * エラー文を表示する前にフォーマットする。
+     * 実際やっているのは、ModeがGeekerのときに行を1つ上げているだけ。
+     * @param { string } message
+     * @private
+     */
+    formatErrorMessage(message){
+        if(this.mode === Fragmen.MODE_CLASSIC || this.mode === Fragmen.MODE_GEEK){
+            return message;
+        }else{
+            return message.replace(/^ERROR: (\d+):(\d)/gm, (...args) => {
+                const line = parseInt(args[2]) - 1;
+                return `ERROR: ${args[1]}:${line}`;
+            });
+        }
     }
 }
 
