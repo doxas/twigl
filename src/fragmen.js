@@ -184,7 +184,7 @@ export class Fragmen {
             this.target.appendChild(this.canvas);
         }
         // init webgl context
-        this.gl = this.canvas.getContext('webgl', {preserveDrawingBuffer: true});
+        this.gl = this.canvas.getContext('webgl', {alpha: false, preserveDrawingBuffer: true});
         if(this.gl === null || this.gl === undefined){
             console.log('webgl unsupported');
             return;
