@@ -1,37 +1,28 @@
-/**
- * Fragmenのモードを定義するenum
- */
-export const FragmenMode = {};
-
-/**
- * Classicモード。
- * なんの変哲もないふつうのシェーダコードが書ける。
- */
-FragmenMode.Classic = 0;
-
-/**
- * Geekモード。
- * uniform変数の名前が1文字になる。
- */
-FragmenMode.Geek = 1;
-
-/**
- * Geekerモード。
- * Geekモードの変更に加え、pecision宣言とuniform宣言が必要なくなる。
- */
-FragmenMode.Geeker = 2;
-
 export class Fragmen {
     /**
+     * resolution, mouse, time, backbuffer の各種 uniform 定義で動作するクラシックモード
+     * @type {number}
+     */
+    static get MODE_CLASSIC(){return 0;}
+    /**
+     * r, m, t, b の省略形 uniform 定義で動作するギークモード
+     * @type {number}
+     */
+    static get MODE_GEEK(){return 1;}
+    /**
+     * キークモードの特性に加え、precision と uniform 変数宣言部分を省略したギーカーモード
+     * @type {number}
+     */
+    static get MODE_GEEKER(){return 2;}
+
+    /**
      * constructor of fragmen.js
-     * @param {object} option - options
-     * <ul>
-     *   <li> {HTMLElement} target - insert canvas to
-     *   <li> {HTMLElement} [eventTarget=target] - event target element or window
-     *   <li> {boolean} [mouse=false] - mouse event enable
-     *   <li> {boolean} [escape=false] - keydown event enable
-     *   <li> {boolean} [resize=false] - resize event enable
-     * </ul>
+     * @param {object} option - オプション
+     * @property {HTMLElement} option.target - insert canvas to
+     * @property {HTMLElement} [option.eventTarget=target] - event target element or window
+     * @property {boolean} [option.mouse=false] - mouse event enable
+     * @property {boolean} [option.escape=false] - keydown event enable
+     * @property {boolean} [option.resize=false] - resize event enable
      */
     constructor(option){
         this.target = null;
@@ -48,9 +39,8 @@ export class Fragmen {
 
         /**
          * このFragmenの現在のモード。
-         * モードについての詳細は {@link FragmenMode} を参照してください。
          */
-        this.mode = FragmenMode.Classic;
+        this.mode = Fragmen.MODE_CLASSIC;
 
         this.run = false;
         this.startTime = 0;
@@ -217,7 +207,7 @@ void main(){
         let mouse = 'mouse';
         let time = 'time';
         let backbuffer = 'backbuffer';
-        if(this.mode === FragmenMode.Geek || this.mode === FragmenMode.Geeker){
+        if(this.mode === Fragmen.MODE_GEEK || this.mode === Fragmen.MODE_GEEKER){
             resolution = 'r';
             mouse = 'm';
             time = 't';
@@ -410,7 +400,7 @@ void main(){
      * @private
      */
     preprocessCode(code){
-        if(this.mode === FragmenMode.Classic || this.mode === FragmenMode.Geek){
+        if(this.mode === Fragmen.MODE_CLASSIC || this.mode === Fragmen.MODE_GEEK){
             return code;
         }else{
             // エラー分表示の際の行数を合わせるため、ここは1行である必要アリ。末尾の `\n` を忘れずに！
@@ -426,7 +416,7 @@ void main(){
      * @private
      */
     formatErrorMessage(message){
-        if(this.mode === FragmenMode.Classic || this.mode === FragmenMode.Geek){
+        if(this.mode === Fragmen.MODE_CLASSIC || this.mode === Fragmen.MODE_GEEK){
             return message;
         }else{
             return message.replace(/^ERROR: (\d+):(\d)/gm, (...args) => {

@@ -1,7 +1,7 @@
 
 import 'whatwg-fetch';
 import Promise from 'promise-polyfill';
-import {Fragmen, FragmenMode} from './fragmen.js';
+import {Fragmen} from './fragmen.js';
 
 let editor   = null; // Ace editor のインスタンス
 let canvas   = null; // スクリーン
@@ -15,7 +15,7 @@ let download = null; // download button
 
 let latestStatus = 'success';               // 直近のステータス
 let isEncoding   = false;                   // エンコード中かどうか
-let currentMode  = FragmenMode.Classic;     // 現在のFragmenモード
+let currentMode  = Fragmen.MODE_CLASSIC;     // 現在のFragmenモード
 let fragmen      = null;                    // fragmen.js のインスタンス
 
 // fragmen.js 用のオプションの雛形
@@ -28,17 +28,17 @@ const FRAGMEN_OPTION = {
 };
 
 const modeDefaultSourceMap = {
-    [FragmenMode.Classic]: `precision highp float;
+    [Fragmen.MODE_CLASSIC]: `precision highp float;
 uniform vec2 resolution;
 uniform vec2 mouse;
 uniform float time;
 void main(){vec2 r=resolution;vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`,
-    [FragmenMode.Geek]: `precision highp float;
+    [Fragmen.MODE_GEEK]: `precision highp float;
 uniform vec2 r;
 uniform vec2 m;
 uniform float t;
 void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`,
-    [FragmenMode.Geeker]: 'void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}'
+    [Fragmen.MODE_GEEKER]: 'void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}'
 }
 
 window.addEventListener('DOMContentLoaded', () => {
