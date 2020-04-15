@@ -1,3 +1,25 @@
+/**
+ * Fragmenのモードを定義するenum
+ */
+export const FragmenMode = {};
+
+/**
+ * Classicモード。
+ * なんの変哲もないふつうのシェーダコードが書ける。
+ */
+FragmenMode.Classic = 0;
+
+/**
+ * Geekモード。
+ * uniform変数の名前が1文字になる。
+ */
+FragmenMode.Geek = 1;
+
+/**
+ * Geekerモード。
+ * Geekモードの変更に加え、pecision宣言とuniform宣言が必要なくなる。
+ */
+FragmenMode.Geeker = 2;
 
 export class Fragmen {
     /**
@@ -23,7 +45,13 @@ export class Fragmen {
         this.mouse = false;
         this.mousePosition = null;
         this.escape = false;
-        this.geek = false;
+
+        /**
+         * このFragmenの現在のモード。
+         * モードについての詳細は {@link FragmenMode} を参照してください。
+         */
+        this.mode = FragmenMode.Classic;
+
         this.run = false;
         this.startTime = 0;
         this.nowTime = 0;
@@ -176,6 +204,7 @@ void main(){
         this.gl.deleteShader(fs);
         if(!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)){
             let msg = this.gl.getProgramInfoLog(program);
+            msg = this.formatErrorMessage(msg);
             console.warn(msg);
             if(this.onBuildCallback != null){
                 const t = this.getTimeString();
@@ -188,7 +217,7 @@ void main(){
         let mouse = 'mouse';
         let time = 'time';
         let backbuffer = 'backbuffer';
-        if(this.geek === true){
+        if(this.mode === FragmenMode.Geek || this.mode === FragmenMode.Geeker){
             resolution = 'r';
             mouse = 'm';
             time = 't';
@@ -259,11 +288,12 @@ void main(){
     createShader(p, i, j){
         if(!this.gl){return false;}
         const k = this.gl.createShader(this.gl.VERTEX_SHADER - i);
-        this.gl.shaderSource(k, j);
+        this.gl.shaderSource(k, this.preprocessCode(j));
         this.gl.compileShader(k);
         const t = this.getTimeString();
         if(!this.gl.getShaderParameter(k, this.gl.COMPILE_STATUS)){
             let msg = this.gl.getShaderInfoLog(k);
+            msg = this.formatErrorMessage(msg);
             console.warn(msg);
             if(this.onBuildCallback != null){
                 this.onBuildCallback('error', ` > [ ${t} ] ${msg}`);
@@ -372,6 +402,38 @@ void main(){
         const h = (new Array(2).join('0') + d.getHours()).substr(-2, 2);
         const m = (new Array(2).join('0') + d.getMinutes()).substr(-2, 2);
         return `${h}:${m}`;
+    }
+
+    /**
+     * コードをコンパイラに渡す前に下ごしらえをします。
+     * 実際やっているのは、ModeがGeekerのときにprecision宣言とuniform宣言を挿入しているだけ。
+     * @private
+     */
+    preprocessCode(code){
+        if(this.mode === FragmenMode.Classic || this.mode === FragmenMode.Geek){
+            return code;
+        }else{
+            // エラー分表示の際の行数を合わせるため、ここは1行である必要アリ。末尾の `\n` を忘れずに！
+            const preinsert = 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;\n';
+            return preinsert + code;
+        }
+    }
+
+    /**
+     * エラー文を表示する前にフォーマットする。
+     * 実際やっているのは、ModeがGeekerのときに行を1つ上げているだけ。
+     * @param { string } message
+     * @private
+     */
+    formatErrorMessage(message){
+        if(this.mode === FragmenMode.Classic || this.mode === FragmenMode.Geek){
+            return message;
+        }else{
+            return message.replace(/^ERROR: (\d+):(\d)/gm, (...args) => {
+                const line = parseInt(args[2]) - 1;
+                return `ERROR: ${args[1]}:${line}`;
+            });
+        }
     }
 }
 
