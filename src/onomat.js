@@ -70,9 +70,10 @@ uniform float sampleRate;
         if(!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)){
             let msg = this.gl.getProgramInfoLog(program);
             console.warn(msg);
+            const t = getTimeString();
             this.emit('build', {
                 status: 'error',
-                message: msg,
+                message: ` > [ ${t} ] ${msg}`,
                 source: source,
             });
             program = null;
@@ -100,9 +101,10 @@ uniform float sampleRate;
         this.gl.viewport(0, 0, Onomat.BUFFER_WIDTH, Onomat.BUFFER_HEIGHT);
 
         this.draw();
+        const t = getTimeString();
         this.emit('build', {
             status: 'success',
-            message: 'shader compile succeeded',
+            message: ` > [ ${t} ] shader compile succeeded`,
             source: source,
         });
     }
@@ -148,9 +150,10 @@ uniform float sampleRate;
         if(!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)){
             let msg = this.gl.getShaderInfoLog(shader);
             console.warn(msg);
+            const t = getTimeString();
             this.emit('build', {
                 status: 'error',
-                message: msg,
+                message: ` > [ ${t} ] ${msg}`,
                 source: source,
             });
             return false;
@@ -158,3 +161,16 @@ uniform float sampleRate;
         return shader;
     }
 }
+
+/**
+ * 時刻を常に２桁に揃える
+ * @return {string}
+ */
+function getTimeString(){
+    const d = new Date();
+    const h = (new Array(2).join('0') + d.getHours()).substr(-2, 2);
+    const m = (new Array(2).join('0') + d.getMinutes()).substr(-2, 2);
+    return `${h}:${m}`;
+}
+
+
