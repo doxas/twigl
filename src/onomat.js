@@ -2,6 +2,7 @@
 import EventEmitter3 from 'eventemitter3';
 
 export class Onomat extends EventEmitter3 {
+    static get EVENT(){return['build', 'play', 'stop'];}
     static get DURATION(){return 180;}
     static get BUFFER_WIDTH(){return 512;}
     static get BUFFER_HEIGHT(){return 512;}
@@ -99,6 +100,11 @@ uniform float sampleRate;
         this.gl.viewport(0, 0, Onomat.BUFFER_WIDTH, Onomat.BUFFER_HEIGHT);
 
         this.draw();
+        this.emit('build', {
+            status: 'success',
+            message: 'shader compile succeeded',
+            source: source,
+        });
     }
 
     draw(){
@@ -122,6 +128,7 @@ uniform float sampleRate;
         }
         if(this.isPlay === true){
             this.audioBufferSourceNode.stop();
+            this.emit('stop');
         }
         this.audioBufferSourceNode = this.audioCtx.createBufferSource();
         this.audioBufferSourceNode.onended = () => {this.isPlay = false;};
@@ -130,6 +137,7 @@ uniform float sampleRate;
         this.audioBufferSourceNode.loop = false;
         this.audioBufferSourceNode.start();
         this.isPlay = true;
+        this.emit('play');
     }
 
     createShader(source, isVertexShader){
