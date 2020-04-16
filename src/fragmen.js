@@ -46,6 +46,11 @@ export class Fragmen {
          */
         this.canvas = null;
         /**
+         * WebGL 2.0 で初期化できたかどうか
+         * @type {boolean}
+         */
+        this.isWebGL2 = false;
+        /**
          * WebGL のレンダリングコンテキスト
          * @type {WebGLRenderingContext}
          */
@@ -184,12 +189,17 @@ export class Fragmen {
             this.target.appendChild(this.canvas);
         }
         // init webgl context
-        this.gl = this.canvas.getContext('webgl', {alpha: false, preserveDrawingBuffer: true});
-        if(this.gl === null || this.gl === undefined){
+        const opt = {alpha: false, preserveDrawingBuffer: true};
+        this.gl = this.canvas.getContext('webgl2', opt);
+        this.isWebGL2 = this.gl != null;
+        if(this.isWebGL2 !== true){
+            this.gl = this.canvas.getContext('webgl', opt);
+            this.gl.getExtension('OES_standard_derivatives');
+        }
+        if(this.gl == null){
             console.log('webgl unsupported');
             return;
         }
-        this.gl.getExtension('OES_standard_derivatives');
         // check event
         if(option.hasOwnProperty('eventTarget') && option.eventTarget !== null && option.eventTarget !== undefined){
             this.eventTarget = option.eventTarget;
