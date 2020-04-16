@@ -2,9 +2,10 @@
 import 'whatwg-fetch';
 import Promise from 'promise-polyfill';
 import {Fragmen} from './fragmen.js';
+import {Onomat} from './onomat.js';
 
-let editor   = null; // Ace editor のインスタンス
 let canvas   = null; // スクリーン
+let editor   = null; // Ace editor のインスタンス
 let lineout  = null; // ステータスバー DOM
 let counter  = null; // 文字数カウンター DOM
 let message  = null; // メッセージ DOM
@@ -13,10 +14,18 @@ let frames   = null; // render frame select
 let size     = null; // resolution select
 let download = null; // download button
 
+let audioWrap     = null; // サウンドシェーダペインのラッパー
+let audioEditor   = null; // Ace editor のインスタンス
+let audioLineout  = null; // ステータスバー DOM
+let audioCounter  = null; // 文字数カウンター DOM
+let audioMessage  = null; // メッセージ DOM
+let audioToggle   = null; // トグルボタン
+
 let latestStatus = 'success';            // 直近のステータス
 let isEncoding   = false;                // エンコード中かどうか
 let currentMode  = Fragmen.MODE_CLASSIC; // 現在のFragmenモード
 let fragmen      = null;                 // fragmen.js のインスタンス
+let onomat       = null;                 // onomat.js のインスタンス
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -43,9 +52,7 @@ void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    // Ace editor 関連の初期化
-    editor = editorSetting();
-    // その他の DOM への参照
+    // DOM への参照
     canvas   = document.querySelector('#webgl');
     lineout  = document.querySelector('#lineout');
     counter  = document.querySelector('#counter');
@@ -54,6 +61,36 @@ window.addEventListener('DOMContentLoaded', () => {
     frames   = document.querySelector('#frameselect');
     size     = document.querySelector('#sizeselect');
     download = document.querySelector('#downloadgif');
+
+    audioWrap    = document.querySelector('#audio');
+    audioLineout = document.querySelector('#lineoutaudio');
+    audioCounter = document.querySelector('#counteraudio');
+    audioMessage = document.querySelector('#messageaudio');
+    audioToggle  = document.querySelector('#audiotoggle');
+
+    // Ace editor 関連の初期化
+    let timeoutId = null;
+    editor = editorSetting('editor', modeDefaultSourceMap[currentMode], (evt) => {
+        // １秒以内の場合はタイマーをキャンセル
+        if(timeoutId != null){clearTimeout(timeoutId);}
+        timeoutId = setTimeout(() => {
+            timeoutId = null;
+            update(editor.getValue());
+        }, 1000);
+        // 文字数の出力
+        counter.textContent = `${editor.getValue().length} char`;
+    });
+    let audioTimeoutId = null;
+    audioEditor = editorSetting('editoraudio', Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT, (evt) => {
+        // １秒以内の場合はタイマーをキャンセル
+        if(audioTimeoutId != null){clearTimeout(audioTimeoutId);}
+        audioTimeoutId = setTimeout(() => {
+            audioTimeoutId = null;
+            updateAudio(audioEditor.getValue());
+        }, 1000);
+        // 文字数の出力
+        audioCounter.textContent = `${audioEditor.getValue().length} char`;
+    });
 
     // ウィンドウのリサイズ時
     window.addEventListener('resize', resize, false);
@@ -126,6 +163,30 @@ window.addEventListener('DOMContentLoaded', () => {
     message.textContent = ' > ready';
     // レンダリング開始
     fragmen.render(modeDefaultSourceMap[currentMode]);
+
+    // サウンドシェーダ関連
+    audioToggle.addEventListener('change', () => {
+        if(audioToggle.checked === true){
+            if(onomat == null){
+                onomat = new Onomat();
+                onomat.on('build', (res) => {
+                    audioLineout.classList.remove('warn');
+                    audioLineout.classList.remove('error');
+                    audioLineout.classList.add(res.status);
+                    audioMessage.textContent = res.message;
+                });
+                setTimeout(() => {
+                    updateAudio(audioEditor.getValue());
+                }, 500);
+            }
+            audioWrap.classList.remove('invisible');
+        }else{
+            audioWrap.classList.add('invisible');
+        }
+    }, false);
+    // デフォルトのメッセージを出力
+    audioCounter.textContent = `${modeDefaultSourceMap[currentMode].length} char`;
+    audioMessage.textContent = ' > ready';
 }, false);
 
 /**
@@ -147,37 +208,35 @@ function update(source){
 }
 
 /**
+ * シェーダのソースを更新
+ */
+function updateAudio(source){
+    if(onomat == null){return;}
+    onomat.render(source);
+}
+
+/**
  * Ace editor の初期設定
  */
-function editorSetting(){
-    const editor = ace.edit('editor');
-    editor.setTheme('ace/theme/merbivore_soft');
-    editor.session.setOption('indentedSoftWrap', false);
-    editor.session.setUseWrapMode(true);
-    editor.session.setMode('ace/mode/glsl');
-    editor.session.setTabSize(2);
-    editor.session.setUseSoftTabs(true);
-    editor.$blockScrolling = Infinity;
-    editor.setShowPrintMargin(false);
-    editor.setHighlightSelectedWord(true);
-    editor.setValue(modeDefaultSourceMap[currentMode]);
+function editorSetting(id, source, onChange){
+    const edit = ace.edit(id);
+    edit.setTheme('ace/theme/merbivore_soft');
+    edit.session.setOption('indentedSoftWrap', false);
+    edit.session.setUseWrapMode(true);
+    edit.session.setMode('ace/mode/glsl');
+    edit.session.setTabSize(2);
+    edit.session.setUseSoftTabs(true);
+    edit.$blockScrolling = Infinity;
+    edit.setShowPrintMargin(false);
+    edit.setHighlightSelectedWord(true);
+    edit.setValue(source);
 
     // editor の内容が変化した際のリスナーを設定
-    let timeoutId = null;
-    editor.session.on('change', (evt) => {
-        // １秒以内の場合はタイマーをキャンセル
-        if(timeoutId != null){clearTimeout(timeoutId);}
-        timeoutId = setTimeout(() => {
-            timeoutId = null;
-            update(editor.getValue());
-        }, 1000);
-        // 文字数の出力
-        counter.textContent = `${editor.getValue().length} char`;
-    });
+    edit.session.on('change', onChange);
 
     // １行目にフォーカスしておく
-    setTimeout(() => {editor.gotoLine(1);}, 100);
-    return editor;
+    setTimeout(() => {edit.gotoLine(1);}, 100);
+    return edit;
 }
 
 /**
