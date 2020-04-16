@@ -90,7 +90,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 1000);
         // 文字数の出力
         audioCounter.textContent = `${audioEditor.getValue().length} char`;
-    });
+    }, 'cobalt');
 
     // ウィンドウのリサイズ時
     window.addEventListener('resize', resize, false);
@@ -185,7 +185,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }, false);
     // デフォルトのメッセージを出力
-    audioCounter.textContent = `${modeDefaultSourceMap[currentMode].length} char`;
+    audioCounter.textContent = `${Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT.length} char`;
     audioMessage.textContent = ' > ready';
 }, false);
 
@@ -218,9 +218,9 @@ function updateAudio(source){
 /**
  * Ace editor の初期設定
  */
-function editorSetting(id, source, onChange){
+function editorSetting(id, source, onChange, theme = 'merbivore_soft'){
     const edit = ace.edit(id);
-    edit.setTheme('ace/theme/merbivore_soft');
+    edit.setTheme(`ace/theme/${theme}`);
     edit.session.setOption('indentedSoftWrap', false);
     edit.session.setUseWrapMode(true);
     edit.session.setMode('ace/mode/glsl');
