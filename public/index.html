@@ -41,12 +41,23 @@
             <div id="canvaswrap">
                 <canvas id="webgl"></canvas>
             </div>
-            <div id="lineout">
-                <div id="counter"></div>
-                <div id="message"></div>
-            </div>
             <div id="editorwrap">
-                <pre id="editor"></pre>
+                <div id="interface">
+                    <div id="main" class="editorblock">
+                        <div id="lineout" class="lineout">
+                            <div id="counter" class="counter"></div>
+                            <div id="message" class="message"></div>
+                        </div>
+                        <pre id="editor" class="editor"></pre>
+                    </div>
+                    <div id="audio" class="editorblock">
+                        <div id="lineoutaudio" class="lineout">
+                            <div id="counteraudio" class="counter"></div>
+                            <div id="messageaudio" class="message"></div>
+                        </div>
+                        <pre id="editoraudio" class="editor invisible"></pre>
+                    </div>
+                </div>
                 <div id="menu">
                     <div class="menublock">
                         <h3 title="classic: An ordinary shader editor.
@@ -58,6 +69,17 @@ geeker: geek mode + you don't have to define precision and uniform variables by 
                                 <option value="1">geek</option>
                                 <option value="2">geeker</option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="menublock">
+                        <h3 title="respect Shadertoy" style="cursor: help;">Sound Shader</h3>
+                        <div class="menublockinner">
+                            <div id="audiotogglewrap">
+                                <label>
+                                    <input id="audiotoggle" class="toggle" type="checkbox">
+                                    <div class="togglebutton"></div>
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="menublock">

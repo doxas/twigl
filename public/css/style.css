@@ -27,9 +27,9 @@ body {
 }
 #canvaswrap {
     width: 100%;
-    height: calc(100% - 24px - 480px);
+    height: calc(100% - 480px);
 }
-#lineout {
+.lineout {
     background: rgb(17,17,17);
     background: linear-gradient(90deg, rgba(17,17,17,1) 80%, rgba(64,224,208,1) 100%);
     color: turquoise;
@@ -41,17 +41,17 @@ body {
     min-height: 24px;
     max-height: 24px;
 }
-#lineout.warn {
+.lineout.warn {
     background: rgb(17,17,17);
-    background: linear-gradient(90deg, rgba(17,17,17,1) 80%, rgba(218,165,32,1) 100%);
+    background: linear-gradient(90deg, rgba(17,17,17,1) 90%, rgba(218,165,32,1) 100%);
     color: orangered;
 }
-#lineout.error {
+.lineout.error {
     background: rgb(17,17,17);
-    background: linear-gradient(90deg, rgba(17,17,17,1) 80%, rgba(255,20,147,1) 100%);
+    background: linear-gradient(90deg, rgba(17,17,17,1) 90%, rgba(255,20,147,1) 100%);
     color: deeppink;
 }
-#counter {
+.counter {
     border-right: 1px solid #333;
     color: whitesmoke;
     text-align: center;
@@ -59,10 +59,27 @@ body {
     max-width: 160px;
     height: 100%;
 }
-#message {
+.message {
     padding: 0px 20px;
     width: 100%;
     height: 100%;
+}
+.editor {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 24px;
+    letter-spacing: 1px;
+    line-height: 150%;
+    width: 100%;
+    height: calc(100% - 24px);
+    display: block;
+}
+.editorblock {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.editorblock.invisible {
+    display: none;
 }
 #editorwrap {
     width: 100%;
@@ -71,30 +88,30 @@ body {
     display: flex;
     flex-direction: row;
 }
-#editor {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 24px;
-    letter-spacing: 1px;
-    line-height: 150%;
+#interface {
     width: 100%;
-    height: 100%;
+    min-height: 480px;
+    max-height: 480px;
+    display: flex;
+    flex-direction: column;
 }
 #menu {
     background: rgb(17,17,17);
     color: whitesmoke;
     min-width: 180px;
     max-width: 180px;
+    height: 100%;
 }
 #menu .menublock {
-    padding: 5px;
+    padding: 0px 5px;
 }
 .menublock + .menublock {
-    margin: 8px 0px 0px;
+    margin: 5px 0px 0px;
 }
 .menublock h3 {
     color: turquoise;
     font-size: 20px;
-    padding: 10px 5px 5px;
+    padding: 5px;
 }
 .menublock .menublockinner {
     font-size: 16px;
@@ -136,5 +153,44 @@ body {
     background-color: #555;
     color: silver;
     cursor: default;
+}
+
+#audiotogglewrap,
+#audiotogglewrap label {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+.toggle {
+    display: none;
+}
+.togglebutton,
+input[type=checkbox] + .togglebutton {
+    background-color: gray;
+    border-radius: 20px;
+    margin: 5px auto;
+    width: 65px;
+    height: 30px;
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+input[type=checkbox]:checked + .togglebutton {
+    background-color: turquoise;
+    transition: background-color 0.2s ease;
+}
+input[type=checkbox] + .togglebutton::before {
+    background-color: whitesmoke;
+    content: ' ';
+    border-radius: 20px;
+    margin: 0px calc(100% - 30px) 0px 0px;
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    position: absolute;
+    transition: margin 0.2s ease;
+}
+input[type=checkbox]:checked + .togglebutton::before {
+    margin: 0px 0px 0px calc(100% - 30px);
+    transition: margin 0.2s ease;
 }
 
