@@ -20,12 +20,15 @@ let audioLineout  = null; // ステータスバー DOM
 let audioCounter  = null; // 文字数カウンター DOM
 let audioMessage  = null; // メッセージ DOM
 let audioToggle   = null; // トグルボタン
+let audioPlayIcon = null; // 再生ボタン
+let audioStopIcon = null; // 停止ボタン
 
-let latestStatus = 'success';            // 直近のステータス
-let isEncoding   = false;                // エンコード中かどうか
-let currentMode  = Fragmen.MODE_CLASSIC; // 現在のFragmenモード
-let fragmen      = null;                 // fragmen.js のインスタンス
-let onomat       = null;                 // onomat.js のインスタンス
+let latestStatus      = 'success';            // 直近のステータス
+let latestAudioStatus = 'success';            // 直近のステータス（サウンドシェーダ）
+let isEncoding        = false;                // エンコード中かどうか
+let currentMode       = Fragmen.MODE_CLASSIC; // 現在のFragmenモード
+let fragmen           = null;                 // fragmen.js のインスタンス
+let onomat            = null;                 // onomat.js のインスタンス
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -62,11 +65,13 @@ window.addEventListener('DOMContentLoaded', () => {
     size     = document.querySelector('#sizeselect');
     download = document.querySelector('#downloadgif');
 
-    audioWrap    = document.querySelector('#audio');
-    audioLineout = document.querySelector('#lineoutaudio');
-    audioCounter = document.querySelector('#counteraudio');
-    audioMessage = document.querySelector('#messageaudio');
-    audioToggle  = document.querySelector('#audiotoggle');
+    audioWrap     = document.querySelector('#audio');
+    audioLineout  = document.querySelector('#lineoutaudio');
+    audioCounter  = document.querySelector('#counteraudio');
+    audioMessage  = document.querySelector('#messageaudio');
+    audioToggle   = document.querySelector('#audiotoggle');
+    audioPlayIcon = document.querySelector('#playicon');
+    audioStopIcon = document.querySelector('#stopicon');
 
     // Ace editor 関連の初期化
     let timeoutId = null;
@@ -170,18 +175,43 @@ window.addEventListener('DOMContentLoaded', () => {
             if(onomat == null){
                 onomat = new Onomat();
                 onomat.on('build', (res) => {
+                    latestAudioStatus = res.status;
                     audioLineout.classList.remove('warn');
                     audioLineout.classList.remove('error');
                     audioLineout.classList.add(res.status);
                     audioMessage.textContent = res.message;
                 });
                 setTimeout(() => {
-                    updateAudio(audioEditor.getValue());
+                    updateAudio(audioEditor.getValue(), true);
                 }, 500);
             }
             audioWrap.classList.remove('invisible');
+            audioPlayIcon.classList.remove('disabled');
+            audioStopIcon.classList.remove('disabled');
         }else{
             audioWrap.classList.add('invisible');
+            audioPlayIcon.classList.add('disabled');
+            audioStopIcon.classList.add('disabled');
+        }
+        editor.resize();
+        audioEditor.resize();
+    }, false);
+    audioPlayIcon.addEventListener('click', () => {
+        if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
+        updateAudio(audioEditor.getValue(), true);
+    }, false);
+    audioStopIcon.addEventListener('click', () => {
+        if(audioToggle.checked !== true){return;}
+        onomat.stop();
+    }, false);
+    window.addEventListener('keydown', (evt) => {
+        if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
+        if(evt.key === 'Enter' && evt.altKey === true){
+            if(evt.ctrlKey === true){
+                onomat.stop();
+            }else{
+                updateAudio(audioEditor.getValue(), true);
+            }
         }
     }, false);
     // デフォルトのメッセージを出力
@@ -210,9 +240,9 @@ function update(source){
 /**
  * シェーダのソースを更新
  */
-function updateAudio(source){
+function updateAudio(source, force){
     if(onomat == null){return;}
-    onomat.render(source);
+    onomat.render(source, force);
 }
 
 /**
