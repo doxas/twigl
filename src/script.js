@@ -39,21 +39,6 @@ const FRAGMEN_OPTION = {
     escape: false
 };
 
-// 各モードの既定のソースコード
-const modeDefaultSourceMap = {
-    [Fragmen.MODE_CLASSIC]: `precision highp float;
-uniform vec2 resolution;
-uniform vec2 mouse;
-uniform float time;
-void main(){vec2 r=resolution;vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`,
-    [Fragmen.MODE_GEEK]: `precision highp float;
-uniform vec2 r;
-uniform vec2 m;
-uniform float t;
-void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`,
-    [Fragmen.MODE_GEEKER]: 'void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}'
-}
-
 window.addEventListener('DOMContentLoaded', () => {
     // DOM への参照
     canvas   = document.querySelector('#webgl');
@@ -73,9 +58,11 @@ window.addEventListener('DOMContentLoaded', () => {
     audioPlayIcon = document.querySelector('#playicon');
     audioStopIcon = document.querySelector('#stopicon');
 
+    const fragmenDefaultSource = Fragmen.DEFAULT_SOURCE;
+
     // Ace editor 関連の初期化
     let timeoutId = null;
-    editor = editorSetting('editor', modeDefaultSourceMap[currentMode], (evt) => {
+    editor = editorSetting('editor', fragmenDefaultSource[currentMode], (evt) => {
         // １秒以内の場合はタイマーをキャンセル
         if(timeoutId != null){clearTimeout(timeoutId);}
         timeoutId = setTimeout(() => {
@@ -104,7 +91,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // モード変更時の処理
     mode.addEventListener('change', () => {
-        const defaultSourceInPrevMode = modeDefaultSourceMap[currentMode];
+        const defaultSourceInPrevMode = fragmenDefaultSource[currentMode];
 
         const source = editor.getValue();
         currentMode = parseInt(mode.value);
@@ -112,7 +99,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         // 既定のソースと同じならモードに応じた既定のソースに書き換える
         if(source === defaultSourceInPrevMode){
-            const defaultSource = modeDefaultSourceMap[currentMode];
+            const defaultSource = fragmenDefaultSource[currentMode];
             editor.setValue(defaultSource);
             setTimeout(() => {editor.gotoLine(1);}, 100);
         }
@@ -168,10 +155,17 @@ window.addEventListener('DOMContentLoaded', () => {
         fragmen.setFrequency(onomat.getFrequencyFloat());
     });
     // デフォルトのメッセージを出力
-    counter.textContent = `${modeDefaultSourceMap[currentMode].length} char`;
+    counter.textContent = `${fragmenDefaultSource[currentMode].length} char`;
     message.textContent = ' > ready';
     // レンダリング開始
-    fragmen.render(modeDefaultSourceMap[currentMode]);
+    fragmen.render(fragmenDefaultSource[currentMode]);
+
+    // WebGL 2.0 に対応しているかどうかによりドロップダウンリストの状態を変更
+    if(fragmen.isWebGL2 !== true){
+        for(let i = 0; i < mode.children.length; ++i){
+            mode.children[i].disabled = Fragmen.MODE_WITH_ES_300.includes(i);
+        }
+    }
 
     // サウンドシェーダ関連
     audioToggle.addEventListener('change', () => {
