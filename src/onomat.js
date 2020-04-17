@@ -9,19 +9,19 @@ export class Onomat extends EventEmitter3 {
     static get BUFFER_HEIGHT(){return 512;}
     static get VERTEX_SHADER_SOURCE(){return 'attribute vec3 p;void main(){gl_Position=vec4(p,1.);}'};
     static get FRAGMENT_SHADER_SOURCE_DEFAULT(){return `vec2 mainSound(float time){
-    return vec2(sin(6.2831*440.*time)*exp(-3.*time));
+  return vec2(sin(6.2831*440.*time)*exp(-3.*time));
 }`;};
     static get FRAGMENT_SHADER_SOURCE_HEADER(){return `precision highp float;
 uniform float blockOffset;
 uniform float sampleRate;
 `;}
     static get FRAGMENT_SHADER_SOURCE_FOOTER(){return `void main(){
-   float time = blockOffset + ((gl_FragCoord.x - 0.5) + (gl_FragCoord.y - 0.5) * 512.0) / sampleRate;
-   vec2 y = mainSound(time);
-   vec2 v = floor((0.5 + 0.5 * y) * 65536.0);
-   vec2 l = mod(v, 256.0) / 255.0;
-   vec2 h = floor(v / 256.0) / 255.0;
-   gl_FragColor = vec4(l.x, h.x, l.y, h.y);
+  float time = blockOffset + ((gl_FragCoord.x - 0.5) + (gl_FragCoord.y - 0.5) * 512.0) / sampleRate;
+  vec2 y = mainSound(time);
+  vec2 v = floor((0.5 + 0.5 * y) * 65536.0);
+  vec2 l = mod(v, 256.0) / 255.0;
+  vec2 h = floor(v / 256.0) / 255.0;
+  gl_FragColor = vec4(l.x, h.x, l.y, h.y);
 }`;}
 
     constructor(){
