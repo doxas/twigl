@@ -111,6 +111,11 @@ export class Fragmen {
          */
         this.attLocation = null;
         /**
+         * Onomat.js からの周波数の入力値
+         * @type {number}
+         */
+        this.frequency = 0;
+        /**
          * 頂点シェーダのソースコード
          * @type {string}
          */
@@ -312,11 +317,13 @@ void main(){
         let resolution = 'resolution';
         let mouse = 'mouse';
         let time = 'time';
+        let sound = 'sound';
         let backbuffer = 'backbuffer';
         if(this.mode === Fragmen.MODE_GEEK || this.mode === Fragmen.MODE_GEEKER){
             resolution = 'r';
             mouse = 'm';
             time = 't';
+            sound = 's';
             backbuffer = 'b';
         }
         if(this.program != null){this.gl.deleteProgram(this.program);}
@@ -326,6 +333,7 @@ void main(){
         this.uniLocation.resolution = this.gl.getUniformLocation(this.program, resolution);
         this.uniLocation.mouse = this.gl.getUniformLocation(this.program, mouse);
         this.uniLocation.time = this.gl.getUniformLocation(this.program, time);
+        this.uniLocation.sound = this.gl.getUniformLocation(this.program, sound);
         this.uniLocation.sampler = this.gl.getUniformLocation(this.program, backbuffer);
         this.attLocation = this.gl.getAttribLocation(this.program, 'p');
         this.run = true;
@@ -351,6 +359,7 @@ void main(){
         this.gl.uniform2fv(this.uniLocation.mouse, this.mousePosition);
         this.gl.uniform1f(this.uniLocation.time, this.nowTime);
         this.gl.uniform2fv(this.uniLocation.resolution, [this.width, this.height]);
+        this.gl.uniform1f(this.uniLocation.sound, this.frequency);
         this.gl.uniform1i(this.uniLocation.sampler, 0);
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
 
@@ -497,6 +506,14 @@ void main(){
      */
     onDraw(callback){
         this.onDrawCallback = callback;
+    }
+
+    /**
+     * 周波数を更新する
+     * @param {number} frequency - 周波数（正確ではないがここでは音量の意味）
+     */
+    setFrequency(frequency){
+        this.frequency = frequency;
     }
 
     /**
