@@ -1,13 +1,17 @@
 
 # twigl
 
-twigl.app
+twigl.app is GLSL code editor on the web.
+
+⚡ [twigl\.app](https://twigl.app/) ⚡
+
+<img src="./resource/capture.jpg" style="max-width: 100%;">
 
 ## get started
 
 ```
 $ npm install
-$ npm run start
+$ npm start
 ```
 
 ## credit
@@ -18,8 +22,9 @@ $ npm run start
 
 [Ace \- The High Performance Code Editor for the Web](https://ace.c9.io/)
 
+[Shadertoy BETA](https://www.shadertoy.com/)
+
 ## license
 
 MIT licensed.
-
 
