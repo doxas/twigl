@@ -18,7 +18,7 @@ export class Fragmen {
      * ギーカーモード時に先頭に付与されるフラグメントシェーダのコード
      * @type {string}
      */
-    static get GEEKER_CHUNK(){return 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform sampler2D b;\n';}
+    static get GEEKER_CHUNK(){return 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float s;uniform sampler2D b;\n';}
 
     /**
      * constructor of fragmen.js
