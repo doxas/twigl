@@ -169,8 +169,8 @@ input[type=checkbox] + .togglebutton {
     background-color: gray;
     border-radius: 20px;
     margin: 5px auto;
-    width: 65px;
-    height: 30px;
+    width: 50px;
+    height: 24px;
     position: relative;
     transition: background-color 0.2s ease;
 }
@@ -182,15 +182,39 @@ input[type=checkbox] + .togglebutton::before {
     background-color: whitesmoke;
     content: ' ';
     border-radius: 20px;
-    margin: 0px calc(100% - 30px) 0px 0px;
-    width: 30px;
-    height: 30px;
+    margin: 0px calc(100% - 24px) 0px 0px;
+    width: 24px;
+    height: 24px;
     display: inline-block;
     position: absolute;
     transition: margin 0.2s ease;
 }
 input[type=checkbox]:checked + .togglebutton::before {
-    margin: 0px 0px 0px calc(100% - 30px);
+    margin: 0px 0px 0px calc(100% - 24px);
     transition: margin 0.2s ease;
+}
+#playiconwrap {
+    margin: 5px 0px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+.playicon {
+    margin: 0px 8px;
+    min-width: 32px;
+    max-width: 32px;
+    opacity: 0.7;
+    transition: opacity 0.1s ease;
+    cursor: pointer;
+}
+.playicon:hover {
+    opacity: 1.0;
+    transition: opacity 0.1s ease;
+}
+.playicon.disabled,
+.playicon.disabled:hover {
+    opacity: 0.3;
+    transition: opacity 0.1s ease;
+    cursor: default;
 }
 
