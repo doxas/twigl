@@ -59,9 +59,10 @@ uniform float sampleRate;
         this.audioCtx = new AudioContext();
     }
 
-    render(source){
+    render(source, draw = false){
         const fragment = `${Onomat.FRAGMENT_SHADER_SOURCE_HEADER}\n${source}\n${Onomat.FRAGMENT_SHADER_SOURCE_FOOTER}`;
         this.fs = this.createShader(fragment, false);
+        if(this.fs == null || this.fs === false){return;}
         let program = this.gl.createProgram();
         this.gl.attachShader(program, this.vs);
         this.gl.attachShader(program, this.fs);
@@ -78,7 +79,16 @@ uniform float sampleRate;
             });
             program = null;
             return;
+        }else{
+            const t = getTimeString();
+            this.emit('build', {
+                status: 'success',
+                message: ` > [ ${t} ] shader compile succeeded`,
+                source: source,
+            });
         }
+
+        if(draw !== true){return;}
 
         if(this.program != null){this.gl.deleteProgram(this.program);}
         this.program = program;
@@ -101,12 +111,6 @@ uniform float sampleRate;
         this.gl.viewport(0, 0, Onomat.BUFFER_WIDTH, Onomat.BUFFER_HEIGHT);
 
         this.draw();
-        const t = getTimeString();
-        this.emit('build', {
-            status: 'success',
-            message: ` > [ ${t} ] shader compile succeeded`,
-            source: source,
-        });
     }
 
     draw(){
@@ -130,6 +134,7 @@ uniform float sampleRate;
         }
         if(this.isPlay === true){
             this.audioBufferSourceNode.stop();
+            this.isPlay = false;
             this.emit('stop');
         }
         this.audioBufferSourceNode = this.audioCtx.createBufferSource();
@@ -140,6 +145,14 @@ uniform float sampleRate;
         this.audioBufferSourceNode.start();
         this.isPlay = true;
         this.emit('play');
+    }
+
+    stop(){
+        if(this.isPlay === true){
+            this.audioBufferSourceNode.stop();
+            this.isPlay = false;
+            this.emit('stop');
+        }
     }
 
     createShader(source, isVertexShader){
