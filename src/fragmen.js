@@ -15,10 +15,66 @@ export class Fragmen {
      */
     static get MODE_GEEKER(){return 2;}
     /**
+     * classic の ES 3.0 版
+     * @type {number}
+     */
+    static get MODE_CLASSIC_300(){return 3;}
+    /**
+     * geek の ES 3.0 版
+     * @type {number}
+     */
+    static get MODE_GEEK_300(){return 4;}
+    /**
+     * geeker の ES 3.0 版
+     * @type {number}
+     */
+    static get MODE_GEEKER_300(){return 5;}
+    /**
+     * 各種のデフォルトのソースコード
+     * @type {Array.<string>}
+     */
+    static get DEFAULT_SOURCE(){
+        const classic = `precision highp float;
+uniform vec2 resolution;
+uniform vec2 mouse;
+uniform float time;
+void main(){vec2 r=resolution,p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`;
+        const geek = `precision highp float;
+uniform vec2 r;
+uniform vec2 m;
+uniform float t;
+void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`;
+        const geeker = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`;
+        const classic300 = `precision highp float;
+uniform vec2 resolution;
+uniform vec2 mouse;
+uniform float time;
+out vec4 outColor;
+void main(){vec2 r=resolution,p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}outColor=vec4(p,.2,1);}`;
+        const geek300 = `precision highp float;
+uniform vec2 r;
+uniform vec2 m;
+uniform float t;
+out vec4 o;
+void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p,.2,1);}`;
+        const geeker300 = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p,.2,1);}`;
+        return [classic, geek, geeker, classic300, geek300, geeker300];
+    }
+    /**
+     * GLSL ES 3.0 の場合に付与されるバージョンディレクティブ
+     * @type {string}
+     */
+    static get ES_300_CHUNK(){return '#version 300 es\n';}
+    /**
      * ギーカーモード時に先頭に付与されるフラグメントシェーダのコード
      * @type {string}
      */
     static get GEEKER_CHUNK(){return 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float s;uniform sampler2D b;\n';}
+    /**
+     * ギーカーモード + ES 3.0 の場合に付与される out 修飾子付き変数のコード
+     * @type {string}
+     */
+    static get GEEKER_OUT_CHUNK(){return 'out vec4 o;\n';}
 
     /**
      * constructor of fragmen.js
@@ -291,11 +347,11 @@ void main(){
     reset(){
         this.rect();
         let program = this.gl.createProgram();
-        let vs = this.createShader(program, 0, this.VS);
+        let vs = this.createShader(program, 0, this.preprocessVertexCode(this.VS));
         if(vs === false){
             return;
         }
-        let fs = this.createShader(program, 1, this.FS);
+        let fs = this.createShader(program, 1, this.preprocessFragmentCode(this.FS));
         if(fs === false){
             this.gl.deleteShader(vs);
             return;
@@ -315,15 +371,20 @@ void main(){
             return;
         }
         let resolution = 'resolution';
-        let mouse = 'mouse';
-        let time = 'time';
-        let sound = 'sound';
+        let mouse      = 'mouse';
+        let time       = 'time';
+        let sound      = 'sound';
         let backbuffer = 'backbuffer';
-        if(this.mode === Fragmen.MODE_GEEK || this.mode === Fragmen.MODE_GEEKER){
+        if(
+            this.mode === Fragmen.MODE_GEEK ||
+            this.mode === Fragmen.MODE_GEEKER ||
+            this.mode === Fragmen.MODE_GEEK_300 ||
+            this.mode === Fragmen.MODE_GEEKER_300
+        ){
             resolution = 'r';
-            mouse = 'm';
-            time = 't';
-            sound = 's';
+            mouse      = 'm';
+            time       = 't';
+            sound      = 's';
             backbuffer = 'b';
         }
         if(this.program != null){this.gl.deleteProgram(this.program);}
@@ -393,7 +454,7 @@ void main(){
     createShader(p, i, j){
         if(!this.gl){return false;}
         const k = this.gl.createShader(this.gl.VERTEX_SHADER - i);
-        this.gl.shaderSource(k, this.preprocessCode(j));
+        this.gl.shaderSource(k, j);
         this.gl.compileShader(k);
         const t = getTimeString();
         if(!this.gl.getShaderParameter(k, this.gl.COMPILE_STATUS)){
@@ -517,32 +578,66 @@ void main(){
     }
 
     /**
-     * this.mode が MODE_GEEKER だった場合のみソースコードを結合する
+     * this.mode により適切にコードを変換する
      * @private
-     * @param {string} code - 対象となるシェーダのソースコード
+     * @param {string} source - 対象となる頂点シェーダのソースコード
      */
-    preprocessCode(code){
-        if(this.mode === Fragmen.MODE_CLASSIC || this.mode === Fragmen.MODE_GEEK){
-            return code;
-        }else{
-            return Fragmen.GEEKER_CHUNK + code;
+    preprocessVertexCode(source){
+        switch(this.mode){
+            case Fragmen.MODE_CLASSIC_300:
+            case Fragmen.MODE_GEEK_300:
+            case Fragmen.MODE_GEEKER_300:
+                return Fragmen.ES_300_CHUNK + source.replace(/attribute/g, 'in');
+            default:
+                return source;
         }
     }
 
     /**
-     * this.mode が MODE_GEEKER だった場合エラー行番号をインクリメントする
+     * this.mode により適切にコードを変換する
+     * @private
+     * @param {string} code - 対象となるフラグメントシェーダのソースコード
+     */
+    preprocessFragmentCode(code){
+        let chunk300 = '';
+        let chunkOut = '';
+        switch(this.mode){
+            case Fragmen.MODE_GEEKER:
+                chunkOut = Fragmen.GEEKER_CHUNK;
+                break;
+            case Fragmen.MODE_CLASSIC_300:
+            case Fragmen.MODE_GEEK_300:
+                chunk300 = Fragmen.ES_300_CHUNK;
+                break;
+            case Fragmen.MODE_GEEKER_300:
+                chunk300 = Fragmen.ES_300_CHUNK;
+                chunkOut = Fragmen.GEEKER_CHUNK.substr(0, Fragmen.GEEKER_CHUNK.length - 1) + Fragmen.GEEKER_OUT_CHUNK;
+                break;
+        }
+        return chunk300 + chunkOut + code;
+    }
+
+    /**
+     * this.mode に応じてエラー行番号をインクリメントする
      * @param {string} message
      * @private
      */
     formatErrorMessage(message){
-        if(this.mode === Fragmen.MODE_CLASSIC || this.mode === Fragmen.MODE_GEEK){
-            return message;
-        }else{
-            return message.replace(/^ERROR: (\d+):(\d)/gm, (...args) => {
-                const line = parseInt(args[2]) - 1;
-                return `ERROR: ${args[1]}:${line}`;
-            });
+        let dec = 0;
+        switch(this.mode){
+            case Fragmen.MODE_GEEKER:
+            case Fragmen.MODE_CLASSIC_300:
+            case Fragmen.MODE_GEEK_300:
+                dec += 1;
+                break;
+            case Fragmen.MODE_GEEKER_300:
+                dec += 2;
+                break;
         }
+        return message.replace(/^ERROR: (\d+):(\d)/gm, (...args) => {
+            const line = parseInt(args[2]) - dec;
+            return `ERROR: ${args[1]}:${line}`;
+        });
     }
 }
 
