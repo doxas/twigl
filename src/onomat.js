@@ -2,7 +2,8 @@
 import EventEmitter3 from 'eventemitter3';
 
 export class Onomat extends EventEmitter3 {
-    static get EVENT(){return['build', 'play', 'stop'];}
+    static get EVENT(){return ['build', 'play', 'stop'];}
+    static get FFT_SIZE(){return 16;}
     static get DURATION(){return 180;}
     static get BUFFER_WIDTH(){return 512;}
     static get BUFFER_HEIGHT(){return 512;}
@@ -37,6 +38,8 @@ uniform float sampleRate;
         this.uniLocation = null;
         this.audioCtx = null;
         this.audioBufferSourceNode = null;
+        this.audioAnalyserNode = null;
+        this.audioFrequencyBitCount = 0;
         this.isPlay = false;
 
         this.init();
@@ -138,13 +141,33 @@ uniform float sampleRate;
             this.emit('stop');
         }
         this.audioBufferSourceNode = this.audioCtx.createBufferSource();
-        this.audioBufferSourceNode.onended = () => {this.isPlay = false;};
-        this.audioBufferSourceNode.connect(this.audioCtx.destination);
+        this.audioAnalyserNode = this.audioCtx.createAnalyser();
+        this.audioAnalyserNode.smoothingTimeConstant = 0.8;
+        this.audioAnalyserNode.fftSize = Onomat.FFT_SIZE * 2;
+        this.audioFrequencyBitCount = this.audioAnalyserNode.frequencyBinCount;
+
+        this.audioBufferSourceNode.connect(this.audioAnalyserNode);
+        this.audioAnalyserNode.connect(this.audioCtx.destination);
         this.audioBufferSourceNode.buffer = buffer;
         this.audioBufferSourceNode.loop = false;
         this.audioBufferSourceNode.start();
         this.isPlay = true;
         this.emit('play');
+    }
+
+    getFrequency(){
+        if(this.isPlay !== true){return;}
+        const array = new Uint8Array(this.audioFrequencyBitCount);
+        this.audioAnalyserNode.getByteFrequencyData(array);
+        return array;
+    }
+    getFrequencyFloat(){
+        if(this.isPlay !== true){return;}
+        const array = this.getFrequency();
+        const freq = array.reduce((accumu, current) => {
+            return accumu + current;
+        });
+        return Math.min(Math.max(freq / (Onomat.FFT_SIZE * 255) - 0.15, 0.0) / 0.85, 1.0);
     }
 
     stop(){
