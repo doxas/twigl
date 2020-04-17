@@ -163,6 +163,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 download.classList.remove('disabled');
         }
     });
+    fragmen.onDraw(() => {
+        if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
+        fragmen.setFrequency(onomat.getFrequencyFloat());
+    });
     // デフォルトのメッセージを出力
     counter.textContent = `${modeDefaultSourceMap[currentMode].length} char`;
     message.textContent = ' > ready';
