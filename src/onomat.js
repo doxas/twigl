@@ -58,12 +58,36 @@ uniform float sampleRate;
             console.log('webgl unsupported');
             return;
         }
-        this.vs = this.createShader(Onomat.VERTEX_SHADER_SOURCE, true);
+        this.vs = this.createShader(this.versionDirective(this.attributeDirective(Onomat.VERTEX_SHADER_SOURCE)), true);
         this.audioCtx = new AudioContext();
     }
 
+    versionDirective(source){
+        if(this.isWebGL2 === true){
+            return `#version 300 es\n${source}\nout vec4 outColor;\n`;
+        }else{
+            return source;
+        }
+    }
+    attributeDirective(source){
+        if(this.isWebGL2 === true){
+            return source.replace(/attribute/, 'in');
+        }else{
+            return source;
+        }
+    }
+    outDirective(source){
+        if(this.isWebGL2 === true){
+            return source.replace(/gl_FragColor/, 'outColor');
+        }else{
+            return source;
+        }
+    }
+
     render(source, draw = false){
-        const fragment = `${Onomat.FRAGMENT_SHADER_SOURCE_HEADER}\n${source}\n${Onomat.FRAGMENT_SHADER_SOURCE_FOOTER}`;
+        const header = this.versionDirective(Onomat.FRAGMENT_SHADER_SOURCE_HEADER);
+        const footer = this.outDirective(Onomat.FRAGMENT_SHADER_SOURCE_FOOTER);
+        const fragment = `${header}\n${source}\n${footer}`;
         this.fs = this.createShader(fragment, false);
         if(this.fs == null || this.fs === false){return;}
         let program = this.gl.createProgram();
