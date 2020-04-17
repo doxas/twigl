@@ -8,7 +8,7 @@ export class Onomat extends EventEmitter3 {
     static get BUFFER_HEIGHT(){return 512;}
     static get VERTEX_SHADER_SOURCE(){return 'attribute vec3 p;void main(){gl_Position=vec4(p,1.);}'};
     static get FRAGMENT_SHADER_SOURCE_DEFAULT(){return `vec2 mainSound(float time){
-    return vec2(sin(6.2831 * 440.0 * time) * exp(-3.0*time));
+    return vec2(sin(6.2831*440.*time)*exp(-3.*time));
 }`;};
     static get FRAGMENT_SHADER_SOURCE_HEADER(){return `precision highp float;
 uniform float blockOffset;
