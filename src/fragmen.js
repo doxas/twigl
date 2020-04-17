@@ -1,5 +1,10 @@
 export class Fragmen {
     /**
+     * ES 3.0 専用モードの一覧
+     * @type {Array.<number>}
+     */
+    static get MODE_WITH_ES_300(){return [3, 4, 5];}
+    /**
      * resolution, mouse, time, backbuffer の各種 uniform 定義で動作するクラシックモード
      * @type {number}
      */
