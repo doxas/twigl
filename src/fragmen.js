@@ -402,10 +402,12 @@ void main(){
         this.uniLocation.sound = this.gl.getUniformLocation(this.program, sound);
         this.uniLocation.sampler = this.gl.getUniformLocation(this.program, backbuffer);
         this.attLocation = this.gl.getAttribLocation(this.program, 'p');
-        this.run = true;
         this.mousePosition = [0.0, 0.0];
         this.startTime = Date.now();
-        this.draw();
+        if(!this.run){
+            this.run = true;
+            this.draw();
+        }
     }
 
     /**
