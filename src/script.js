@@ -82,7 +82,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 1000);
         // 文字数の出力
         audioCounter.textContent = `${audioEditor.getValue().length} char`;
-    }, 'cobalt');
+    });
 
     // ウィンドウのリサイズ時
     window.addEventListener('resize', resize, false);
@@ -246,7 +246,7 @@ function updateAudio(source, force){
 /**
  * Ace editor の初期設定
  */
-function editorSetting(id, source, onChange, theme = 'merbivore_soft'){
+function editorSetting(id, source, onChange, theme = 'chaos'){
     const edit = ace.edit(id);
     edit.setTheme(`ace/theme/${theme}`);
     edit.session.setOption('indentedSoftWrap', false);
@@ -257,6 +257,7 @@ function editorSetting(id, source, onChange, theme = 'merbivore_soft'){
     edit.$blockScrolling = Infinity;
     edit.setShowPrintMargin(false);
     edit.setHighlightSelectedWord(true);
+    // edit.setShowInvisibles(true);
     edit.setValue(source);
 
     // editor の内容が変化した際のリスナーを設定
