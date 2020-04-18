@@ -43,26 +43,26 @@ export class Fragmen {
 uniform vec2 resolution;
 uniform vec2 mouse;
 uniform float time;
-void main(){vec2 r=resolution,p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`;
+void main(){vec2 r=resolution,p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}gl_FragColor=vec4(p.xxy,1);}`;
         const geek = `precision highp float;
 uniform vec2 r;
 uniform vec2 m;
 uniform float t;
-void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`;
-        const geeker = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p,.2,1);}`;
+void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p.xxy,1);}`;
+        const geeker = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p.xxy,1);}`;
         const classic300 = `precision highp float;
 uniform vec2 resolution;
 uniform vec2 mouse;
 uniform float time;
 out vec4 outColor;
-void main(){vec2 r=resolution,p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}outColor=vec4(p,.2,1);}`;
+void main(){vec2 r=resolution,p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}outColor=vec4(p.xxy,1);}`;
         const geek300 = `precision highp float;
 uniform vec2 r;
 uniform vec2 m;
 uniform float t;
 out vec4 o;
-void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p,.2,1);}`;
-        const geeker300 = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p,.2,1);}`;
+void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p.xxy,1);}`;
+        const geeker300 = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p.xxy,1);}`;
         return [classic, geek, geeker, classic300, geek300, geeker300];
     }
     /**
