@@ -58,13 +58,13 @@ uniform float sampleRate;
             console.log('webgl unsupported');
             return;
         }
-        this.vs = this.createShader(this.versionDirective(this.attributeDirective(Onomat.VERTEX_SHADER_SOURCE)), true);
+        this.vs = this.createShader(this.versionDirective(this.attributeDirective(Onomat.VERTEX_SHADER_SOURCE), false), true);
         this.audioCtx = new AudioContext();
     }
 
-    versionDirective(source){
+    versionDirective(source, addOutColor = true){
         if(this.isWebGL2 === true){
-            return `#version 300 es\n${source}\nout vec4 outColor;\n`;
+            return `#version 300 es\n${source}\n${addOutColor === true ? 'out vec4 outColor;\n' : ''}`;
         }else{
             return source;
         }
