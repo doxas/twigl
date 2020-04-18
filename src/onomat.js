@@ -101,7 +101,7 @@ uniform float sampleRate;
             const t = getTimeString();
             this.emit('build', {
                 status: 'error',
-                message: ` > [ ${t} ] ${msg}`,
+                message: ` ● [ ${t} ] ${msg}`,
                 source: source,
             });
             program = null;
@@ -110,7 +110,7 @@ uniform float sampleRate;
             const t = getTimeString();
             this.emit('build', {
                 status: 'success',
-                message: ` > [ ${t} ] shader compile succeeded`,
+                message: ` ● [ ${t} ] shader compile succeeded`,
                 source: source,
             });
         }
@@ -213,7 +213,7 @@ uniform float sampleRate;
             const t = getTimeString();
             this.emit('build', {
                 status: 'error',
-                message: ` > [ ${t} ] ${msg}`,
+                message: ` ● [ ${t} ] ${msg}`,
                 source: source,
             });
             return false;
