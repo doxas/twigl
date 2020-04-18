@@ -95,7 +95,7 @@ window.addEventListener('DOMContentLoaded', () => {
             update(editor.getValue());
         }, 1000);
         // 文字数の出力
-        counter.textContent = `${editor.getValue().length} char`;
+        counter.textContent = `${editor.getValue().length}`;
     });
     let audioTimeoutId = null;
     audioEditor = editorSetting('editoraudio', Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT, (evt) => {
@@ -106,7 +106,7 @@ window.addEventListener('DOMContentLoaded', () => {
             updateAudio(audioEditor.getValue());
         }, 1000);
         // 文字数の出力
-        audioCounter.textContent = `${audioEditor.getValue().length} char`;
+        audioCounter.textContent = `${audioEditor.getValue().length}`;
     });
 
     // ウィンドウのリサイズ時
@@ -180,8 +180,8 @@ window.addEventListener('DOMContentLoaded', () => {
         fragmen.setFrequency(onomat.getFrequencyFloat());
     });
     // デフォルトのメッセージを出力
-    counter.textContent = `${currentSource.length} char`;
-    message.textContent = ' > ready';
+    counter.textContent = `${currentSource.length}`;
+    message.textContent = ' ● ready';
     // レンダリング開始
     fragmen.mode = currentMode;
     fragmen.render(currentSource);
@@ -239,8 +239,8 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }, false);
     // デフォルトのメッセージを出力
-    audioCounter.textContent = `${Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT.length} char`;
-    audioMessage.textContent = ' > ready';
+    audioCounter.textContent = `${Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT.length}`;
+    audioMessage.textContent = ' ● ready';
 }, false);
 
 /**
