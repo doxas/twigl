@@ -26,9 +26,12 @@ let audioStopIcon = null; // 停止ボタン
 let latestStatus      = 'success';            // 直近のステータス
 let latestAudioStatus = 'success';            // 直近のステータス（サウンドシェーダ）
 let isEncoding        = false;                // エンコード中かどうか
-let currentMode       = Fragmen.MODE_CLASSIC; // 現在のFragmenモード
+let currentMode       = Fragmen.MODE_CLASSIC; // 現在の Fragmen モード
+let currentSource     = '';                   // 直近のソースコード
 let fragmen           = null;                 // fragmen.js のインスタンス
 let onomat            = null;                 // onomat.js のインスタンス
+
+let urlParameter = null;
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -60,9 +63,31 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const fragmenDefaultSource = Fragmen.DEFAULT_SOURCE;
 
+    // URL
+    urlParameter = getParameter();
+    urlParameter.forEach((value, key) => {
+        console.log(key, value);
+        switch(key){
+            case 'mode':
+                currentMode = parseInt(value);
+                break;
+            case 'source':
+                currentSource = value;
+                break;
+        }
+    });
+    if(fragmenDefaultSource[currentMode] != null){
+        mode.selectedIndex = currentMode;
+    }else{
+        currentMode = Fragmen.MODE_CLASSIC;
+    }
+    if(currentSource === ''){
+        currentSource = fragmenDefaultSource[currentMode];
+    }
+
     // Ace editor 関連の初期化
     let timeoutId = null;
-    editor = editorSetting('editor', fragmenDefaultSource[currentMode], (evt) => {
+    editor = editorSetting('editor', currentSource, (evt) => {
         // １秒以内の場合はタイマーをキャンセル
         if(timeoutId != null){clearTimeout(timeoutId);}
         timeoutId = setTimeout(() => {
@@ -155,10 +180,11 @@ window.addEventListener('DOMContentLoaded', () => {
         fragmen.setFrequency(onomat.getFrequencyFloat());
     });
     // デフォルトのメッセージを出力
-    counter.textContent = `${fragmenDefaultSource[currentMode].length} char`;
+    counter.textContent = `${currentSource.length} char`;
     message.textContent = ' > ready';
     // レンダリング開始
-    fragmen.render(fragmenDefaultSource[currentMode]);
+    fragmen.mode = currentMode;
+    fragmen.render(currentSource);
 
     // WebGL 2.0 に対応しているかどうかによりドロップダウンリストの状態を変更
     if(fragmen.isWebGL2 !== true){
@@ -334,5 +360,9 @@ function captureGif(frame = 180, width = 512, height = 256){
     download.textContent = 'generate...';
     capture.start();
     frag.render(editor.getValue());
+}
+
+function getParameter(){
+    return new URL(document.location).searchParams;
 }
 
