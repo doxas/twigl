@@ -64,9 +64,9 @@ body {
     height: 100%;
 }
 .editor {
-    font-family: 'Source Code Pro', monospace;
-    font-size: 24px;
-    letter-spacing: 2px;
+    font-family: 'Overpass Mono', monospace;
+    font-size: 17px;
+    letter-spacing: 1px;
     line-height: 130%;
     width: 100%;
     height: calc(100% - 30px);
