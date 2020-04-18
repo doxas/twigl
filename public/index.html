@@ -9,7 +9,8 @@
         <script src="./js/script.js?v=2020041802"></script>
         <link rel="shortcut icon" href="./resource/favicon.ico" type="image/x-icon">
         <link rel="stylesheet" href="./css/style.css">
-        <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
 
         <!-- The core Firebase JS SDK is always required and must be listed first -->
         <script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-app.js"></script>
@@ -60,9 +61,9 @@
                 </div>
                 <div id="menu">
                     <div class="menublock">
-                        <h3 title="classic: An ordinary shader editor.
+                        <div class="h3wrap"><h3 title="classic: An ordinary shader editor.
 geek: Uniform variables become a single character.
-geeker: geek mode + you don't have to define precision and uniform variables by yourself." style="cursor: help;">Regulation</h3>
+geeker: geek mode + you don't have to define precision and uniform variables by yourself." style="cursor: help;">Regulation</h3></div>
                         <div class="menublockinner">
                             <select id="modeselect">
                                 <option value="0">classic</option>
@@ -75,7 +76,24 @@ geeker: geek mode + you don't have to define precision and uniform variables by 
                         </div>
                     </div>
                     <div class="menublock">
-                        <h3 title="generate animation GIF" style="cursor: help;">Download</h3>
+                        <div class="h3wrap">
+                            <h3 title="respect Shadertoy" style="cursor: help;">Sound Shader</h3>
+                            <div id="audiotogglewrap">
+                                <label>
+                                    <input id="audiotoggle" class="toggle" type="checkbox">
+                                    <div class="togglebutton"></div>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="menublockinner">
+                            <div id="playiconwrap">
+                                <img id="playicon" class="playicon disabled" src="./resource/play.svg" alt="play" title="Alt + Enter">
+                                <img id="stopicon" class="playicon disabled" src="./resource/stop.svg" alt="stop" title="Alt + Ctrl + Enter">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="menublock">
+                        <div class="h3wrap"><h3 title="generate animation GIF" style="cursor: help;">Export</h3></div>
                         <div class="menublockinner">
                             <select id="frameselect">
                                 <option value="60">60 frames</option>
@@ -102,34 +120,14 @@ geeker: geek mode + you don't have to define precision and uniform variables by 
                                 <option value="2048x1024">2048 x 1024</option>
                                 <option value="2048x2048">2048 x 2048</option>
                             </select>
-                            <div id="downloadgif" class="button">gif</div>
+                            <div id="downloadgif" class="button">Download GIF</div>
                         </div>
                     </div>
                     <div class="menublock">
-                        <h3 title="respect Shadertoy" style="cursor: help;">Sound Shader</h3>
-                        <div class="menublockinner">
-                            <div id="audiotogglewrap">
-                                <label>
-                                    <input id="audiotoggle" class="toggle" type="checkbox">
-                                    <div class="togglebutton"></div>
-                                </label>
-                            </div>
-                            <div id="playiconwrap">
-                                <img id="playicon" class="playicon disabled" src="./resource/play.svg" alt="play" title="Alt + Enter">
-                                <img id="stopicon" class="playicon disabled" src="./resource/stop.svg" alt="stop" title="Alt + Ctrl + Enter">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="menublock">
-                        <h3>Author</h3>
-                        <div class="menublockinner">
-                            <a href="https://twitter.com/h_doxas" target="_blank">doxas</a>
-                        </div>
-                    </div>
-                    <div class="menublock">
-                        <h3>GitHub</h3>
-                        <div class="menublockinner">
-                            <a href="https://github.com/doxas/twigl" target="_blank">doxas/twigl</a>
+                        <div class="h3wrap"><h3>Author / GitHub</h3></div>
+                        <div id="links" class="menublockinner">
+                            <a href="https://twitter.com/h_doxas" target="_blank" id="twitter">doxas</a>
+                            <a href="https://github.com/doxas/twigl" target="_blank" id="github">twigl</a>
                         </div>
                     </div>
                 </div>

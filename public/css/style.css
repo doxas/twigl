@@ -12,7 +12,7 @@ html, body {
     overflow: hidden;
 }
 body {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: 'Nunito', sans-serif;
     position: relative;
 }
 #wrap {
@@ -30,47 +30,46 @@ body {
     height: calc(100% - 480px);
 }
 .lineout {
-    background: rgb(17,17,17);
-    background: linear-gradient(90deg, rgba(17,17,17,1) 80%, rgba(64,224,208,1) 100%);
-    color: turquoise;
+    background-color: #111;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    color: #1DA1F2;
     font-size: 14px;
-    line-height: 24px;
+    line-height: 28px;
     padding: 0px 10px;
     width: 100%;
     display: flex;
-    min-height: 24px;
-    max-height: 24px;
+    min-height: 28px;
+    max-height: 28px;
 }
 .lineout.warn {
-    background: rgb(17,17,17);
-    background: linear-gradient(90deg, rgba(17,17,17,1) 90%, rgba(218,165,32,1) 100%);
     color: orangered;
 }
 .lineout.error {
-    background: rgb(17,17,17);
-    background: linear-gradient(90deg, rgba(17,17,17,1) 90%, rgba(255,20,147,1) 100%);
-    color: deeppink;
+    color: #FF517B;
 }
 .counter {
-    border-right: 1px solid #333;
+    border-right: 1px solid black;
     color: whitesmoke;
+    font-size: 20px;
+    font-weight: bold;
     text-align: center;
-    min-width: 160px;
-    max-width: 160px;
+    min-width: 120px;
+    max-width: 120px;
     height: 100%;
 }
 .message {
-    padding: 0px 20px;
+    padding: 0px 10px;
     width: 100%;
     height: 100%;
 }
 .editor {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: 'Source Code Pro', monospace;
     font-size: 24px;
-    letter-spacing: 1px;
-    line-height: 150%;
+    letter-spacing: 2px;
+    line-height: 130%;
     width: 100%;
-    height: calc(100% - 24px);
+    height: calc(100% - 30px);
     display: block;
 }
 .editorblock {
@@ -98,55 +97,98 @@ body {
 #menu {
     background: rgb(17,17,17);
     color: whitesmoke;
-    min-width: 180px;
-    max-width: 180px;
+    min-width: 220px;
+    max-width: 220px;
     height: 100%;
 }
 #menu .menublock {
-    padding: 0px 5px;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
 }
-.menublock + .menublock {
-    margin: 5px 0px 0px;
+.h3wrap {
+    display: flex;
+    flex-direction: row;
 }
 .menublock h3 {
-    color: turquoise;
-    font-size: 20px;
+    background-color: #222;
+    color: #999999;
+    font-size: 14px;
     padding: 5px;
+    width: 100%;
+    height: 30px;
 }
 .menublock .menublockinner {
     font-size: 16px;
-    padding: 0px 12px 0px;
+    padding: 8px 15px;
 }
 .menublockinner select {
+    background-color: #2E2E2E;
+    border: 0px;
+    color: whitesmoke;
     font-size: 16px;
-    padding: 5px;
+    margin: 2px;
+    padding: 8px;
     width: 100%;
 }
 .menublockinner a,
 .menublockinner a:visited {
-    color: crimson;
+    color: whitesmoke;
+    text-align: center;
     text-decoration: none;
     font-weight: bold;
     margin: 5px 0px;
     width: 100%;
-    display: block;
+    height: 22px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    opacity: 0.7;
 }
 .menublockinner a:hover {
-    text-decoration: underline;
+    color: #1DA1F2;
+    opacity: 1.0;
 }
+#twitter::before {
+    content: ' ';
+    background-image: url('../resource/twitter.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    margin: auto 5px auto 0px;
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+}
+#twitter:hover::before {
+    background-image: url('../resource/twitterblue.svg');
+}
+#github::before {
+    content: ' ';
+    background-image: url('../resource/github.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    margin: auto 7px auto 0px;
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+}
+#github:hover::before {
+    background-image: url('../resource/githubblue.svg');
+}
+
 .menublockinner .button {
-    background-color: #333;
-    border: 1px solid whitesmoke;
-    border-radius: 5px;
-    color: white;
+    background-color: #1DA1F2;
+    border: 0px;
+    border-radius: 20px;
+    color: whitesmoke;
     font-size: 16px;
-    margin: 5px 0px;
-    padding: 10px 5px;
+    text-align: center;
+    margin: 2px 0px;
+    padding: 6px 5px;
     user-select: none;
     cursor: pointer;
 }
 .menublockinner .button:hover {
-    background-color: turquoise;
+    background-color: #1DA1F2;
 }
 .menublockinner .button.disabled:hover,
 .menublockinner .button.disabled {
@@ -154,9 +196,17 @@ body {
     color: silver;
     cursor: default;
 }
+#links {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
 
 #audiotogglewrap,
 #audiotogglewrap label {
+    background-color: #222;
+    min-width: 50px;
+    max-width: 50px;
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -166,41 +216,41 @@ body {
 }
 .togglebutton,
 input[type=checkbox] + .togglebutton {
-    background-color: gray;
+    background-color: black;
     border-radius: 20px;
-    margin: 5px auto;
-    width: 50px;
-    height: 24px;
+    margin: 6px auto;
+    width: 32px;
+    height: 16px;
     position: relative;
     transition: background-color 0.2s ease;
+    cursor: pointer;
 }
 input[type=checkbox]:checked + .togglebutton {
-    background-color: turquoise;
+    background-color: #1DA1F2;
     transition: background-color 0.2s ease;
 }
 input[type=checkbox] + .togglebutton::before {
-    background-color: whitesmoke;
+    background-color: #ddd;
     content: ' ';
     border-radius: 20px;
-    margin: 0px calc(100% - 24px) 0px 0px;
-    width: 24px;
-    height: 24px;
+    margin: 0px calc(100% - 16px) 0px 0px;
+    width: 16px;
+    height: 16px;
     display: inline-block;
     position: absolute;
     transition: margin 0.2s ease;
 }
 input[type=checkbox]:checked + .togglebutton::before {
-    margin: 0px 0px 0px calc(100% - 24px);
+    margin: 0px 0px 0px calc(100% - 16px);
     transition: margin 0.2s ease;
 }
 #playiconwrap {
     margin: 5px 0px;
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
 }
 .playicon {
-    margin: 0px 8px;
+    margin: 0px 5px;
     min-width: 32px;
     max-width: 32px;
     opacity: 0.7;
@@ -213,7 +263,7 @@ input[type=checkbox]:checked + .togglebutton::before {
 }
 .playicon.disabled,
 .playicon.disabled:hover {
-    opacity: 0.3;
+    opacity: 0.2;
     transition: opacity 0.1s ease;
     cursor: default;
 }
