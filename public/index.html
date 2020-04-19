@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <html>
-    <head>
+    <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# website: http://ogp.me/ns/websaite#">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta content="Have fun coding short, small, shaders!" name="description">
+        <meta content="twigl.app is an online editor for One tweet shader, with gif generator and sound shader." name="description">
+
+        <meta property="og:url" content="https://twigl.app">
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="twigl.app">
+        <meta property="og:description" content="twigl.app is an online editor for One tweet shader, with gif generator and sound shader.">
+        <meta property="og:site_name" content="twigl.app">
+        <meta property="og:image" content="/resource/ogp.png">
+
         <script src="./js/ace.js"></script>
         <script src="./js/CCapture.all.min.js"></script>
-        <script src="./js/script.js?v=2020041802"></script>
+        <script src="./js/script.js?v=2020041901"></script>
+
         <link rel="shortcut icon" href="./resource/favicon.ico" type="image/x-icon">
         <link rel="stylesheet" href="./css/style.css">
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
@@ -14,10 +23,8 @@
 
         <!-- The core Firebase JS SDK is always required and must be listed first -->
         <script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-app.js"></script>
-
         <!-- TODO: Add SDKs for Firebase products that you want to use https://firebase.google.com/docs/web/setup#available-libraries -->
         <script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-analytics.js"></script>
-
         <script>
             // Your web app's Firebase configuration
             var firebaseConfig = {
