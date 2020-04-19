@@ -186,7 +186,7 @@ window.addEventListener('DOMContentLoaded', () => {
         link.classList.add('disabled');
         generatePermamentLink()
         .then((json) => {
-            console.log('🍏', json);
+            copyToClipboard(json.link);
         })
         .finally(() => {
             link.classList.remove('disabled');
@@ -497,5 +497,14 @@ function setLayerVisible(visible){
     }else{
         layer.classList.remove('visible');
     }
+}
+
+function copyToClipboard(str){
+    const t = document.createElement('textarea');
+    t.value = str;
+    document.body.appendChild(t);
+    t.select();
+    document.execCommand('copy');
+    document.body.removeChild(t);
 }
 
