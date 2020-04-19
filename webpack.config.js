@@ -1,4 +1,5 @@
 
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 
@@ -8,6 +9,15 @@ const FB_DATABASE_URL        = '<your environment>';
 const FB_PROJECT_ID          = '<your environment>';
 const FB_STORAGE_BUCKET      = '<your environment>';
 const FB_MESSAGING_SENDER_ID = '<your environment>';
+
+// bitly api access token
+let BITLY_ACCESS_TOKEN = '';
+try {
+    BITLY_ACCESS_TOKEN = fs.readFileSync('./.bitly', {encoding: 'utf-8'});
+} catch(err) {
+    console.log('[ERR] `.bitly` not found.');
+}
+console.log(BITLY_ACCESS_TOKEN);
 
 module.exports = (env, argv) => {
     let devmode;
@@ -61,7 +71,8 @@ module.exports = (env, argv) => {
                 __FB_DATABASE_URL__:        JSON.stringify(FB_DATABASE_URL),
                 __FB_PROJECT_ID__:          JSON.stringify(FB_PROJECT_ID),
                 __FB_STORAGE_BUCKET__:      JSON.stringify(FB_STORAGE_BUCKET),
-                __FB_MESSAGING_SENDER_ID__: JSON.stringify(FB_MESSAGING_SENDER_ID)
+                __FB_MESSAGING_SENDER_ID__: JSON.stringify(FB_MESSAGING_SENDER_ID),
+                __BITLY_ACCESS_TOKEN__    : JSON.stringify(BITLY_ACCESS_TOKEN),
             })
         ],
         cache: true,
