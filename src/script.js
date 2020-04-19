@@ -341,7 +341,7 @@ function captureGif(frame = 180, width = 512, height = 256){
             if(range >= 1.0){
                 setTimeout(() => {
                     download.classList.remove('disabled');
-                    download.textContent = 'gif';
+                    download.textContent = 'Download GIF';
                     isEncoding = false;
                 }, 2000);
             }
