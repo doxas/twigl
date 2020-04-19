@@ -95,10 +95,6 @@ window.addEventListener('DOMContentLoaded', () => {
     if(currentAudioSource === ''){
         currentAudioSource = Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT;
     }
-    if(audioToggle.checked === true){
-        const result = confirm('This URL is a valid of sound shader.\nIt is OK play the audio?');
-        onomatSetting(result);
-    }
 
     // Ace editor 関連の初期化
     let timeoutId = null;
@@ -123,6 +119,10 @@ window.addEventListener('DOMContentLoaded', () => {
         // 文字数の出力
         audioCounter.textContent = `${audioEditor.getValue().length}`;
     });
+    if(audioToggle.checked === true){
+        const result = confirm('This URL is a valid of sound shader.\nIt is OK play the audio?');
+        onomatSetting(result);
+    }
 
     // ウィンドウのリサイズ時
     window.addEventListener('resize', resize, false);
