@@ -17,11 +17,11 @@ uniform float sampleRate;
 `;}
     static get FRAGMENT_SHADER_SOURCE_FOOTER(){return `void main(){
   float time = blockOffset + ((gl_FragCoord.x - 0.5) + (gl_FragCoord.y - 0.5) * 512.0) / sampleRate;
-  vec2 y = mainSound(time);
-  vec2 v = floor((0.5 + 0.5 * y) * 65536.0);
-  vec2 l = mod(v, 256.0) / 255.0;
-  vec2 h = floor(v / 256.0) / 255.0;
-  gl_FragColor = vec4(l.x, h.x, l.y, h.y);
+  vec2 XY = mainSound(time);
+  vec2 XV = floor((0.5 + 0.5 * XY) * 65536.0);
+  vec2 XL = mod(XV, 256.0) / 255.0;
+  vec2 XH = floor(XV / 256.0) / 255.0;
+  gl_FragColor = vec4(XL.x, XH.x, XL.y, XH.y);
 }`;}
 
     constructor(){
