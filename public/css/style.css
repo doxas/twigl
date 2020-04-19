@@ -190,13 +190,13 @@ body {
     color: whitesmoke;
     font-size: 16px;
     text-align: center;
-    margin: 2px 0px;
+    margin: 2px 0px 5px;
     padding: 6px 5px;
     user-select: none;
     cursor: pointer;
 }
 .menublockinner .button:hover {
-    background-color: #1DA1F2;
+    opacity: 0.8
 }
 .menublockinner .button.disabled:hover,
 .menublockinner .button.disabled {
