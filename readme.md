@@ -24,6 +24,8 @@ $ npm start
 
 [Shadertoy BETA](https://www.shadertoy.com/)
 
+interface design by [@iY0Yi](https://twitter.com/iY0Yi)
+
 ## license
 
 MIT licensed.
