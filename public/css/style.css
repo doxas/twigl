@@ -339,7 +339,3 @@ input[type=checkbox]:checked + .togglebutton::before {
     color: inherit;
 }
 
-#permanentlink {
-    display: none;
-}
-

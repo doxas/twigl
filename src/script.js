@@ -187,6 +187,7 @@ window.addEventListener('DOMContentLoaded', () => {
         generatePermamentLink()
         .then((json) => {
             copyToClipboard(json.link);
+            alert('Copied link to the clipboard!');
         })
         .finally(() => {
             link.classList.remove('disabled');
