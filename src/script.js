@@ -13,6 +13,8 @@ let mode     = null; // variable mode select
 let frames   = null; // render frame select
 let size     = null; // resolution select
 let download = null; // download button
+let layer    = null; // dialog layer
+let dialog   = null; // dialog message wrapper
 
 let audioWrap     = null; // サウンドシェーダペインのラッパー
 let audioEditor   = null; // Ace editor のインスタンス
@@ -54,6 +56,8 @@ window.addEventListener('DOMContentLoaded', () => {
     frames   = document.querySelector('#frameselect');
     size     = document.querySelector('#sizeselect');
     download = document.querySelector('#downloadgif');
+    layer    = document.querySelector('#layer');
+    dialog   = document.querySelector('#dialogmessage');
 
     audioWrap     = document.querySelector('#audio');
     audioLineout  = document.querySelector('#lineoutaudio');
@@ -68,13 +72,12 @@ window.addEventListener('DOMContentLoaded', () => {
     // URL
     urlParameter = getParameter();
     urlParameter.forEach((value, key) => {
-        console.log(key, value);
         switch(key){
             case 'mode':
                 currentMode = parseInt(value);
                 break;
             case 'sound':
-                audioToggle.checked = true;
+                audioToggle.checked = value === `true`;
                 break;
             case 'source':
                 currentSource = decodeURIComponent(value);
@@ -92,7 +95,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(currentSource === ''){
         currentSource = fragmenDefaultSource[currentMode];
     }
-    if(currentAudioSource === ''){
+    if(audioToggle.checked !== true || currentAudioSource === ''){
         currentAudioSource = Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT;
     }
 
@@ -120,8 +123,15 @@ window.addEventListener('DOMContentLoaded', () => {
         audioCounter.textContent = `${audioEditor.getValue().length}`;
     });
     if(audioToggle.checked === true){
-        const result = confirm('This URL is a valid of sound shader.\nIt is OK play the audio?');
-        onomatSetting(result);
+        showDialog('This URL is a valid of sound shader. It is OK play the audio?')
+        .then((result) => {
+            onomatSetting(result);
+            if(result === true){
+                update(editor.getValue());
+                counter.textContent = `${editor.getValue().length}`;
+                audioCounter.textContent = `${audioEditor.getValue().length}`;
+            }
+        });
     }
 
     // ウィンドウのリサイズ時
@@ -191,7 +201,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
     fragmen.onDraw(() => {
-        if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
+        if(onomat == null || audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
         fragmen.setFrequency(onomat.getFrequencyFloat());
     });
     // デフォルトのメッセージを出力
@@ -431,5 +441,40 @@ function generateUrl(url){
             return json;
         });
     });
+}
+
+function showDialog(message){
+    return new Promise((resolve) => {
+        dialog.textContent = message;
+        setLayerVisible(true);
+        const ok = document.querySelector('#dialogbuttonok');
+        const cancel = document.querySelector('#dialogbuttoncancel');
+        const okClick = () => {
+            ok.removeEventListener('click', okClick);
+            cancel.removeEventListener('click', cancelClick);
+            resolve(true);
+            hideDialog();
+        };
+        const cancelClick = () => {
+            ok.removeEventListener('click', okClick);
+            cancel.removeEventListener('click', cancelClick);
+            resolve(false);
+            hideDialog();
+        };
+        ok.addEventListener('click', okClick, false);
+        cancel.addEventListener('click', cancelClick, false);
+    });
+}
+
+function hideDialog(){
+    setLayerVisible(false);
+}
+
+function setLayerVisible(visible){
+    if(visible === true){
+        layer.classList.add('visible');
+    }else{
+        layer.classList.remove('visible');
+    }
 }
 
