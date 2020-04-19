@@ -23,13 +23,14 @@ let audioToggle   = null; // トグルボタン
 let audioPlayIcon = null; // 再生ボタン
 let audioStopIcon = null; // 停止ボタン
 
-let latestStatus      = 'success';            // 直近のステータス
-let latestAudioStatus = 'success';            // 直近のステータス（サウンドシェーダ）
-let isEncoding        = false;                // エンコード中かどうか
-let currentMode       = Fragmen.MODE_CLASSIC; // 現在の Fragmen モード
-let currentSource     = '';                   // 直近のソースコード
-let fragmen           = null;                 // fragmen.js のインスタンス
-let onomat            = null;                 // onomat.js のインスタンス
+let latestStatus       = 'success';            // 直近のステータス
+let latestAudioStatus  = 'success';            // 直近のステータス（サウンドシェーダ）
+let isEncoding         = false;                // エンコード中かどうか
+let currentMode        = Fragmen.MODE_CLASSIC; // 現在の Fragmen モード
+let currentSource      = '';                   // 直近のソースコード
+let currentAudioSource = '';                   // 直近の Sound Shader のソースコード
+let fragmen            = null;                 // fragmen.js のインスタンス
+let onomat             = null;                 // onomat.js のインスタンス
 
 let urlParameter = null;
 
@@ -40,7 +41,8 @@ const FRAGMEN_OPTION = {
     mouse: true,
     resize: true,
     escape: false
-};
+}
+const BASE_URL = 'https://twigl.app';
 
 window.addEventListener('DOMContentLoaded', () => {
     // DOM への参照
@@ -71,8 +73,14 @@ window.addEventListener('DOMContentLoaded', () => {
             case 'mode':
                 currentMode = parseInt(value);
                 break;
+            case 'sound':
+                audioToggle.checked = true;
+                break;
             case 'source':
-                currentSource = value;
+                currentSource = decodeURIComponent(value);
+                break;
+            case 'soundsource':
+                currentAudioSource = decodeURIComponent(value);
                 break;
         }
     });
@@ -83,6 +91,13 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     if(currentSource === ''){
         currentSource = fragmenDefaultSource[currentMode];
+    }
+    if(currentAudioSource === ''){
+        currentAudioSource = Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT;
+    }
+    if(audioToggle.checked === true){
+        const result = confirm('This URL is a valid of sound shader.\nIt is OK play the audio?');
+        onomatSetting(result);
     }
 
     // Ace editor 関連の初期化
@@ -98,7 +113,7 @@ window.addEventListener('DOMContentLoaded', () => {
         counter.textContent = `${editor.getValue().length}`;
     });
     let audioTimeoutId = null;
-    audioEditor = editorSetting('editoraudio', Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT, (evt) => {
+    audioEditor = editorSetting('editoraudio', currentAudioSource, (evt) => {
         // １秒以内の場合はタイマーをキャンセル
         if(audioTimeoutId != null){clearTimeout(audioTimeoutId);}
         audioTimeoutId = setTimeout(() => {
@@ -195,30 +210,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // サウンドシェーダ関連
     audioToggle.addEventListener('change', () => {
-        if(audioToggle.checked === true){
-            if(onomat == null){
-                onomat = new Onomat();
-                onomat.on('build', (res) => {
-                    latestAudioStatus = res.status;
-                    audioLineout.classList.remove('warn');
-                    audioLineout.classList.remove('error');
-                    audioLineout.classList.add(res.status);
-                    audioMessage.textContent = res.message;
-                });
-                setTimeout(() => {
-                    updateAudio(audioEditor.getValue(), true);
-                }, 500);
-            }
-            audioWrap.classList.remove('invisible');
-            audioPlayIcon.classList.remove('disabled');
-            audioStopIcon.classList.remove('disabled');
-        }else{
-            audioWrap.classList.add('invisible');
-            audioPlayIcon.classList.add('disabled');
-            audioStopIcon.classList.add('disabled');
-        }
-        editor.resize();
-        audioEditor.resize();
+        onomatSetting();
     }, false);
     audioPlayIcon.addEventListener('click', () => {
         if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
@@ -229,6 +221,9 @@ window.addEventListener('DOMContentLoaded', () => {
         onomat.stop();
     }, false);
     window.addEventListener('keydown', (evt) => {
+        if(evt.key === 'Enter' && evt.shiftKey === true){
+            generatePermamentLink();
+        }
         if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
         if(evt.key === 'Enter' && evt.altKey === true){
             if(evt.ctrlKey === true){
@@ -362,7 +357,79 @@ function captureGif(frame = 180, width = 512, height = 256){
     frag.render(editor.getValue());
 }
 
+function onomatSetting(play = true){
+    if(onomat == null){
+        onomat = new Onomat();
+        onomat.on('build', (res) => {
+            latestAudioStatus = res.status;
+            audioLineout.classList.remove('warn');
+            audioLineout.classList.remove('error');
+            audioLineout.classList.add(res.status);
+            audioMessage.textContent = res.message;
+        });
+        if(play === true){
+            setTimeout(() => {
+                updateAudio(audioEditor.getValue(), true);
+            }, 500);
+        }
+    }
+    if(audioToggle.checked === true){
+        audioWrap.classList.remove('invisible');
+        audioPlayIcon.classList.remove('disabled');
+        audioStopIcon.classList.remove('disabled');
+    }else{
+        audioWrap.classList.add('invisible');
+        audioPlayIcon.classList.add('disabled');
+        audioStopIcon.classList.add('disabled');
+    }
+    editor.resize();
+    audioEditor.resize();
+}
+
 function getParameter(){
     return new URL(document.location).searchParams;
+}
+
+function generatePermamentLink(){
+    let result = [];
+    if(latestStatus === 'success'){
+        result.push(`mode=${mode.value}`);
+        result.push(`source=${encodeURIComponent(editor.getValue())}`);
+        if(audioToggle.checked === true){
+            if(latestAudioStatus === 'success'){
+                result.push(`sound=true`);
+                result.push(`soundsource=${encodeURIComponent(audioEditor.getValue())}`);
+            }
+        }
+    }
+    if(result.length > 0){
+        const param = result.join('&');
+        generateUrl(`${BASE_URL}?${param}`)
+        .then((json) => {
+            console.log('🍑', json);
+        });
+    }
+}
+
+function generateUrl(url){
+    const endpoint = 'https://api-ssl.bitly.com/v4/shorten';
+    const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${__BITLY_ACCESS_TOKEN__}`
+    };
+    return new Promise((resolve, reject) => {
+        return fetch(endpoint, {
+            method: 'post',
+            headers, headers,
+            body: JSON.stringify({long_url: url}),
+        })
+        .then((res) => {
+            return res.json();
+        })
+        .then((json) => {
+            console.log(json);
+            return json;
+        });
+    });
 }
 
