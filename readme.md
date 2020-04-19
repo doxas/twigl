@@ -1,11 +1,11 @@
 
 # twigl
 
-twigl.app is GLSL code editor on the web.
+twigl.app is an online editor for One tweet shader, with gif generator and sound shader.
 
 ⚡ [twigl\.app](https://twigl.app/) ⚡
 
-<img src="./resource/capture.jpg" style="max-width: 100%;">
+<div style="width: 100%; text-align: center;"><img src="./resource/ogp.png" style="max-width: 100%;"></div>
 
 ## get started
 
