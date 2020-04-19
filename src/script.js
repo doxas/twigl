@@ -13,6 +13,7 @@ let mode     = null; // variable mode select
 let frames   = null; // render frame select
 let size     = null; // resolution select
 let download = null; // download button
+let link     = null; // generate link button
 let layer    = null; // dialog layer
 let dialog   = null; // dialog message wrapper
 
@@ -56,6 +57,7 @@ window.addEventListener('DOMContentLoaded', () => {
     frames   = document.querySelector('#frameselect');
     size     = document.querySelector('#sizeselect');
     download = document.querySelector('#downloadgif');
+    link     = document.querySelector('#permanentlink');
     layer    = document.querySelector('#layer');
     dialog   = document.querySelector('#dialogmessage');
 
@@ -178,6 +180,19 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 100);
     }, false);
 
+    // リンク生成ボタン
+    link.addEventListener('click', () => {
+        if(link.classList.contains('disabled') === true){return;}
+        link.classList.add('disabled');
+        generatePermamentLink()
+        .then((json) => {
+            console.log('🍏', json);
+        })
+        .finally(() => {
+            link.classList.remove('disabled');
+        });
+    }, false);
+
     // メインとなる fragmen のインスタンス
     const option = Object.assign(FRAGMEN_OPTION, {
         target: canvas,
@@ -195,9 +210,15 @@ window.addEventListener('DOMContentLoaded', () => {
             case 'warn':
             case 'error':
                 download.classList.add('disabled');
+                link.classList.add('disabled');
                 break;
             default:
                 download.classList.remove('disabled');
+                if(latestStatus === 'success' && latestAudioStatus === 'success'){
+                    link.classList.remove('disabled');
+                }else{
+                    link.classList.add('disabled');
+                }
         }
     });
     fragmen.onDraw(() => {
@@ -231,9 +252,6 @@ window.addEventListener('DOMContentLoaded', () => {
         onomat.stop();
     }, false);
     window.addEventListener('keydown', (evt) => {
-        if(evt.key === 'Enter' && evt.shiftKey === true){
-            generatePermamentLink();
-        }
         if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
         if(evt.key === 'Enter' && evt.altKey === true){
             if(evt.ctrlKey === true){
@@ -376,6 +394,11 @@ function onomatSetting(play = true){
             audioLineout.classList.remove('error');
             audioLineout.classList.add(res.status);
             audioMessage.textContent = res.message;
+            if(latestStatus === 'success' && latestAudioStatus === 'success'){
+                link.classList.remove('disabled');
+            }else{
+                link.classList.add('disabled');
+            }
         });
         if(play === true){
             setTimeout(() => {
@@ -401,24 +424,31 @@ function getParameter(){
 }
 
 function generatePermamentLink(){
-    let result = [];
-    if(latestStatus === 'success'){
-        result.push(`mode=${mode.value}`);
-        result.push(`source=${encodeURIComponent(editor.getValue())}`);
-        if(audioToggle.checked === true){
-            if(latestAudioStatus === 'success'){
-                result.push(`sound=true`);
-                result.push(`soundsource=${encodeURIComponent(audioEditor.getValue())}`);
+    return new Promise((resolve, reject) => {
+        let result = [];
+        if(latestStatus === 'success'){
+            result.push(`mode=${mode.value}`);
+            result.push(`source=${encodeURIComponent(editor.getValue())}`);
+            if(audioToggle.checked === true){
+                if(latestAudioStatus === 'success'){
+                    result.push(`sound=true`);
+                    result.push(`soundsource=${encodeURIComponent(audioEditor.getValue())}`);
+                }
             }
         }
-    }
-    if(result.length > 0){
-        const param = result.join('&');
-        generateUrl(`${BASE_URL}?${param}`)
-        .then((json) => {
-            console.log('🍑', json);
-        });
-    }
+        if(result.length > 0){
+            const param = result.join('&');
+            generateUrl(`${BASE_URL}?${param}`)
+            .then((res) => {
+                return res.json();
+            })
+            .then((json) => {
+                resolve(json);
+            });
+        }else{
+            reject();
+        }
+    });
 }
 
 function generateUrl(url){
@@ -427,19 +457,10 @@ function generateUrl(url){
         'Content-Type': 'application/json',
         Authorization: `Bearer ${__BITLY_ACCESS_TOKEN__}`
     };
-    return new Promise((resolve, reject) => {
-        return fetch(endpoint, {
-            method: 'post',
-            headers, headers,
-            body: JSON.stringify({long_url: url}),
-        })
-        .then((res) => {
-            return res.json();
-        })
-        .then((json) => {
-            console.log(json);
-            return json;
-        });
+    return fetch(endpoint, {
+        method: 'post',
+        headers, headers,
+        body: JSON.stringify({long_url: url}),
     });
 }
 
