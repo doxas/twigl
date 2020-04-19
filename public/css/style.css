@@ -276,3 +276,66 @@ input[type=checkbox]:checked + .togglebutton::before {
     cursor: default;
 }
 
+#layer {
+    background-color: rgba(32, 32, 32, 0.9);
+    width: 100%;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+#layer.visible {
+    display: flex;
+}
+#dialog {
+    background-color: #141414;
+    border-radius: 5px;
+    color: #f0f0f0;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+}
+#dialogmessagewrap {
+    border-bottom: 1px solid #222;
+    padding: 20px 20px 10px;
+}
+#dialogmessage {
+    font-size: 14px;
+    width: 200px;
+    min-height: 100px;
+    max-height: 100px;
+    overflow: auto;
+}
+#dialogbuttonwrap {
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+.dialogbutton {
+    border: 1px solid #333;
+    border-radius: 20px;
+    margin: 0px 0px 0px 8px;
+    padding: 3px 20px;
+    cursor: pointer;
+}
+#dialogbuttonok {
+    color: #1DA1F2;
+}
+#dialogbuttonok:hover {
+    background-color: #1DA1F2;
+    border: 1px solid #1DA1F2;
+    color: inherit;
+}
+#dialogbuttoncancel {
+    color: #FF517B;
+}
+#dialogbuttoncancel:hover {
+    background-color: #FF517B;
+    border: 1px solid #FF517B;
+    color: inherit;
+}
+
