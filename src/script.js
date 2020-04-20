@@ -35,7 +35,7 @@ let currentAudioSource = '';                   // 直近の Sound Shader のソ�
 let fragmen            = null;                 // fragmen.js のインスタンス
 let onomat             = null;                 // onomat.js のインスタンス
 
-let urlParameter = null;
+let urlParameter = null; // GET パラメータを解析するための searchParams オブジェクト
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -45,6 +45,7 @@ const FRAGMEN_OPTION = {
     resize: true,
     escape: false
 }
+// bitly にリクエストする際のベース URL
 const BASE_URL = 'https://twigl.app';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -69,9 +70,10 @@ window.addEventListener('DOMContentLoaded', () => {
     audioPlayIcon = document.querySelector('#playicon');
     audioStopIcon = document.querySelector('#stopicon');
 
+    // fragmen からデフォルトのソース一覧を取得
     const fragmenDefaultSource = Fragmen.DEFAULT_SOURCE;
 
-    // URL
+    // URL の GET パラメータの解析
     urlParameter = getParameter();
     urlParameter.forEach((value, key) => {
         switch(key){
@@ -89,14 +91,17 @@ window.addEventListener('DOMContentLoaded', () => {
                 break;
         }
     });
+    // URL パラメータより得たカレントモードが存在するか
     if(fragmenDefaultSource[currentMode] != null){
         mode.selectedIndex = currentMode;
     }else{
         currentMode = Fragmen.MODE_CLASSIC;
     }
+    // この時点でカレントソースが空である場合既定のソースを利用する
     if(currentSource === ''){
         currentSource = fragmenDefaultSource[currentMode];
     }
+    // audioToggle が checked ではないかサウンドシェーダのソースが空の場合既定のソースを利用する
     if(audioToggle.checked !== true || currentAudioSource === ''){
         currentAudioSource = Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT;
     }
@@ -124,10 +129,14 @@ window.addEventListener('DOMContentLoaded', () => {
         // 文字数の出力
         audioCounter.textContent = `${audioEditor.getValue().length}`;
     });
+    // audioToggle が checked である場合、URL からサウンドシェーダが有効化されている
     if(audioToggle.checked === true){
+        // まず自家製ダイアログを出しユーザーにクリック操作をさせる
         showDialog('This URL is a valid of sound shader. It is OK play the audio?')
         .then((result) => {
+            // ユーザーが OK, Cancel のいずれをクリックしたかのフラグを引数に与える
             onomatSetting(result);
+            // OK がクリックされた場合は文字数等を更新する
             if(result === true){
                 update(editor.getValue());
                 counter.textContent = `${editor.getValue().length}`;
@@ -254,6 +263,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }, false);
     window.addEventListener('keydown', (evt) => {
         if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
+        // Alt + Enter で再生、Ctrl をさらに付与すると停止
         if(evt.key === 'Enter' && evt.altKey === true){
             if(evt.ctrlKey === true){
                 onomat.stop();
@@ -386,9 +396,16 @@ function captureGif(frame = 180, width = 512, height = 256){
     frag.render(editor.getValue());
 }
 
+/**
+ * audioToggle の状態によりエディタの表示・非表示を切り替え、場合により Onomat の初期化を行う
+ * @param {boolean} [play=true] - そのまま再生まで行うかどうかのフラグ
+ */
 function onomatSetting(play = true){
+    // onomat のインスタンスが既に存在するかどうか
     if(onomat == null){
+        // 存在しない場合生成を試みる
         onomat = new Onomat();
+        // ビルド時のイベントを登録
         onomat.on('build', (res) => {
             latestAudioStatus = res.status;
             audioLineout.classList.remove('warn');
@@ -401,12 +418,14 @@ function onomatSetting(play = true){
                 link.classList.add('disabled');
             }
         });
+        // 再生まで行うよう引数で指定されている場合は再生処理をタイマーで登録
         if(play === true){
             setTimeout(() => {
                 updateAudio(audioEditor.getValue(), true);
             }, 500);
         }
     }
+    // 表示・非表示の切り替え
     if(audioToggle.checked === true){
         audioWrap.classList.remove('invisible');
         audioPlayIcon.classList.remove('disabled');
@@ -416,14 +435,23 @@ function onomatSetting(play = true){
         audioPlayIcon.classList.add('disabled');
         audioStopIcon.classList.add('disabled');
     }
+    // エディタのスクロールがおかしくならないようにリサイズ処理を呼んでおく
     editor.resize();
     audioEditor.resize();
 }
 
+/**
+ * searchParams を取得する
+ * @return {URLSearchParams}
+ */
 function getParameter(){
     return new URL(document.location).searchParams;
 }
 
+/**
+ * 現在の状態を再現するための URL パラメータを生成し短縮 URL を取得する
+ * @return {Promise} - 短縮 URL を取得すると解決する Promise
+ */
 function generatePermamentLink(){
     return new Promise((resolve, reject) => {
         let result = [];
@@ -437,6 +465,7 @@ function generatePermamentLink(){
                 }
             }
         }
+        // 何らかのパラメータが付与された場合 URL に結合する
         if(result.length > 0){
             const param = result.join('&');
             generateUrl(`${BASE_URL}?${param}`)
@@ -452,6 +481,11 @@ function generatePermamentLink(){
     });
 }
 
+/**
+ * パラメータの付与された「もととなる URL」から短縮 URL の取得を試みる
+ * @param {string} - もととなる URL
+ * @return {Promise}
+ */
 function generateUrl(url){
     const endpoint = 'https://api-ssl.bitly.com/v4/shorten';
     const headers = {
@@ -465,10 +499,17 @@ function generateUrl(url){
     });
 }
 
+/**
+ * 自家製ダイアログを表示する
+ * @param {string} message - 表示するメッセージ
+ * @return {Promise} - OK, Cancel のいずれかのボタンが押されたときに解決する Promise
+ */
 function showDialog(message){
     return new Promise((resolve) => {
+        // ダイアログ上にメッセージを設定しレイヤを表示する
         dialog.textContent = message;
         setLayerVisible(true);
+        // 各ボタンには、毎回イベントを設定してボタン押下時に解除する
         const ok = document.querySelector('#dialogbuttonok');
         const cancel = document.querySelector('#dialogbuttoncancel');
         const okClick = () => {
@@ -488,10 +529,17 @@ function showDialog(message){
     });
 }
 
+/**
+ * ダイアログ（及びレイヤ）を非表示にする
+ */
 function hideDialog(){
     setLayerVisible(false);
 }
 
+/**
+ * フロートレイヤの表示状態を設定する
+ * @param {boolean} visible - 表示するかどうかのフラグ
+ */
 function setLayerVisible(visible){
     if(visible === true){
         layer.classList.add('visible');
@@ -500,12 +548,18 @@ function setLayerVisible(visible){
     }
 }
 
+/**
+ * 引数から受け取った文字列をクリップボードにコピーする
+ * @param {string} str - コピーしたい文字列
+ */
 function copyToClipboard(str){
+    // textarea を生成して値を設定し文字列選択でコマンド発行
     const t = document.createElement('textarea');
     t.value = str;
     document.body.appendChild(t);
     t.select();
     document.execCommand('copy');
+    // body 配下から削除
     document.body.removeChild(t);
 }
 
