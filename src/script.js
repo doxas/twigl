@@ -84,10 +84,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 audioToggle.checked = value === `true`;
                 break;
             case 'source':
-                currentSource = decodeURIComponent(value);
+                currentSource = value;
                 break;
             case 'soundsource':
-                currentAudioSource = decodeURIComponent(value);
+                currentAudioSource = value;
                 break;
         }
     });
