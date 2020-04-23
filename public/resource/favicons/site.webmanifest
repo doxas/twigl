@@ -1,0 +1,19 @@
+{
+    "name": "Twigl",
+    "short_name": "Twigl",
+    "icons": [
+        {
+            "src": "https://twigl.app/resource/favicons/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://twigl.app/resource/favicons/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#141414",
+    "background_color": "#141414",
+    "display": "standalone"
+}
