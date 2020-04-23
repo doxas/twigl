@@ -29,6 +29,9 @@ body {
     width: 100%;
     height: calc(100% - 480px);
 }
+#canvaswrap.fullscreen {
+    height: 100%;
+}
 .lineout {
     background-color: #111;
     border-top: 1px solid black;
@@ -93,6 +96,9 @@ body {
     max-height: 480px;
     display: flex;
     flex-direction: row;
+}
+#editorwrap.invisible {
+    display: none;
 }
 #interface {
     width: 100%;
