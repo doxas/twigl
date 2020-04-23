@@ -4,18 +4,20 @@ import Promise from 'promise-polyfill';
 import {Fragmen} from './fragmen.js';
 import {Onomat} from './onomat.js';
 
-let canvas   = null; // スクリーン
-let editor   = null; // Ace editor のインスタンス
-let lineout  = null; // ステータスバー DOM
-let counter  = null; // 文字数カウンター DOM
-let message  = null; // メッセージ DOM
-let mode     = null; // variable mode select
-let frames   = null; // render frame select
-let size     = null; // resolution select
-let download = null; // download button
-let link     = null; // generate link button
-let layer    = null; // dialog layer
-let dialog   = null; // dialog message wrapper
+let canvas     = null; // スクリーン
+let editor     = null; // Ace editor のインスタンス
+let lineout    = null; // ステータスバー DOM
+let counter    = null; // 文字数カウンター DOM
+let message    = null; // メッセージ DOM
+let mode       = null; // variable mode select
+let frames     = null; // render frame select
+let size       = null; // resolution select
+let download   = null; // download button
+let link       = null; // generate link button
+let layer      = null; // dialog layer
+let dialog     = null; // dialog message wrapper
+let canvasWrap = null; // canvas を包んでいるラッパー DOM
+let editorWrap = null; // editor を包んでいるラッパー DOM
 
 let audioWrap     = null; // サウンドシェーダペインのラッパー
 let audioEditor   = null; // Ace editor のインスタンス
@@ -50,17 +52,19 @@ const BASE_URL = 'https://twigl.app';
 
 window.addEventListener('DOMContentLoaded', () => {
     // DOM への参照
-    canvas   = document.querySelector('#webgl');
-    lineout  = document.querySelector('#lineout');
-    counter  = document.querySelector('#counter');
-    message  = document.querySelector('#message');
-    mode     = document.querySelector('#modeselect');
-    frames   = document.querySelector('#frameselect');
-    size     = document.querySelector('#sizeselect');
-    download = document.querySelector('#downloadgif');
-    link     = document.querySelector('#permanentlink');
-    layer    = document.querySelector('#layer');
-    dialog   = document.querySelector('#dialogmessage');
+    canvas     = document.querySelector('#webgl');
+    lineout    = document.querySelector('#lineout');
+    counter    = document.querySelector('#counter');
+    message    = document.querySelector('#message');
+    mode       = document.querySelector('#modeselect');
+    frames     = document.querySelector('#frameselect');
+    size       = document.querySelector('#sizeselect');
+    download   = document.querySelector('#downloadgif');
+    link       = document.querySelector('#permanentlink');
+    layer      = document.querySelector('#layer');
+    dialog     = document.querySelector('#dialogmessage');
+    canvasWrap = document.querySelector('#canvaswrap');
+    editorWrap = document.querySelector('#editorwrap');
 
     audioWrap     = document.querySelector('#audio');
     audioLineout  = document.querySelector('#lineoutaudio');
@@ -146,7 +150,9 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     // ウィンドウのリサイズ時
-    window.addEventListener('resize', resize, false);
+    window.addEventListener('resize', () => {
+        resize();
+    }, false);
     // 最初に一回リサイズ相当の処理を行っておく
     resize();
 
@@ -275,6 +281,46 @@ window.addEventListener('DOMContentLoaded', () => {
     // デフォルトのメッセージを出力
     audioCounter.textContent = `${Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT.length}`;
     audioMessage.textContent = ' ● ready';
+
+    // フルスクリーン解除時に DOM を元に戻すためのリスナー
+    const onFullscreenChange = (evt) => {
+        if(
+            document.FullscreenElement == null &&
+            document.webkitFullscreenElement == null &&
+            document.msFullscreenElement == null
+        ){
+            // すべての要素が null だった場合、DOM 操作を行いエディタを表示させる
+            exitFullscreenMode();
+        }
+    };
+    // F11 ではなく、意図的なショートカットキー操作によってフルスクリーンへと移行するためのリスナー
+    const onFullscreenKeyDown = (evt) => {
+        if(evt.altKey === true && evt.ctrlKey === true && evt.key.toLowerCase() === `f`){
+            if(
+                document.FullscreenElement != null ||
+                document.webkitFullscreenElement != null ||
+                document.msFullscreenElement != null
+            ){
+                // この場合、絶対に JavaScript から fullscreen 化しているので強制的に戻せばよい
+                // ただし、イベントリスナーによって事後処理が自動的に行われることになるので
+                // 発火するのは document.exitFullsScreen までで、DOM はここでは操作しない
+                exitFullscreen();
+            }else{
+                // この場合、F11 で既に見た目上は fullscreen 化している可能性がある
+                // F11 の fullscreen は requestFullscreen 等で fullscreen 化したものとは
+                // 別物として扱われているが、いずれも Escape で解除できるため注意
+                requestFullscreenMode();
+            }
+        }
+    };
+    // API がサポートされている場合に限りフルスクリーン関連のリスナーを登録する
+    if(document.fullscreenEnabled === true){
+        document.addEventListener('fullscreenchange', onFullscreenChange, false);
+        window.addEventListener('keydown', onFullscreenKeyDown, false);
+    }else if(document.webkitFullscreenEnabled === true){
+        document.addEventListener('webkitfullscreenchange', onFullscreenChange, false);
+        window.addEventListener('keydown', onFullscreenKeyDown, false);
+    }
 }, false);
 
 /**
@@ -546,6 +592,62 @@ function setLayerVisible(visible){
     }else{
         layer.classList.remove('visible');
     }
+}
+
+/**
+ * フルスクリーンを解除する（DOM 操作はしない）
+ */
+function exitFullscreen(){
+    if(
+        document.fullscreenEnabled !== true &&
+        document.webkitFullscreenEnabled !== true
+    ){
+        return;
+    }
+    // 一度変数にキャッシュしたりすると Illegal invocation になるので直接呼ぶ
+    if(document.exitFullsScreen != null){
+        document.exitFullscreen();
+    }else if(document.webkitExitFullscreen != null){
+        document.webkitExitFullscreen();
+    }
+}
+
+/**
+ * フルスクリーンを解除後の DOM 操作とエディタ領域のリサイズのみを行う
+ */
+function exitFullscreenMode(){
+    canvasWrap.classList.remove('fullscreen');
+    editorWrap.classList.remove('invisible');
+    editor.resize();
+    audioEditor.resize();
+    resize();
+    fragmen.rect();
+}
+
+/**
+ * フルスクリーンモードへ移行しエディタ領域をリサイズする
+ */
+function requestFullscreenMode(){
+    if(
+        document.fullscreenEnabled !== true &&
+        document.webkitFullscreenEnabled !== true
+    ){
+        return;
+    }
+    // 一度変数にキャッシュしたりすると Illegal invocation になるので直接呼ぶ
+    if(document.body.requestFullscreen != null){
+        document.body.requestFullscreen();
+        canvasWrap.classList.add('fullscreen');
+        editorWrap.classList.add('invisible');
+    }else if(document.body.webkitRequestFullScreen != null){
+        document.body.webkitRequestFullScreen();
+        canvasWrap.classList.add('fullscreen');
+        editorWrap.classList.add('invisible');
+    }
+    editor.resize();
+    audioEditor.resize();
+    resize();
+    fragmen.rect();
 }
 
 /**
