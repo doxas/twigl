@@ -295,7 +295,7 @@ window.addEventListener('DOMContentLoaded', () => {
     };
     // F11 ではなく、意図的なショートカットキー操作によってフルスクリーンへと移行するためのリスナー
     const onFullscreenKeyDown = (evt) => {
-        if(evt.altKey === true && evt.ctrlKey === true && evt.key.toLowerCase() === `f`){
+        if(evt.altKey === true && evt.ctrlKey === true && (evt.key.toLowerCase() === 'f' || evt.key === 'ƒ')){
             if(
                 document.FullscreenElement != null ||
                 document.webkitFullscreenElement != null ||
