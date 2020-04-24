@@ -64,6 +64,7 @@ body {
     height: 100%;
     margin: -1px 0px 0px 0px;
     padding: 0px 5px 0px 0px;
+    user-select: none;
 }
 .counterchars {
     font-size: 12px;
