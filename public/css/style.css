@@ -12,7 +12,7 @@ html, body {
     overflow: hidden;
 }
 body {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Barlow', sans-serif;
     position: relative;
 }
 #wrap {
@@ -38,12 +38,12 @@ body {
     border-bottom: 1px solid black;
     color: #1DA1F2;
     font-size: 14px;
-    line-height: 28px;
+    line-height: 30px;
     padding: 0px 10px;
     width: 100%;
     display: flex;
-    min-height: 28px;
-    max-height: 28px;
+    min-height: 32px;
+    max-height: 32px;
 }
 .lineout.warn {
     color: orangered;
@@ -58,14 +58,15 @@ body {
     border-right: 1px solid black;
     color: whitesmoke;
     font-size: 20px;
-    font-weight: bold;
     text-align: center;
-    min-width: 120px;
-    max-width: 120px;
+    min-width: 100px;
+    max-width: 100px;
     height: 100%;
+    margin: -1px 0px 0px 0px;
+    padding: 0px 5px 0px 0px;
 }
 .counterchars {
-    font-size: 14px;
+    font-size: 12px;
     display: inline-block;
 }
 .message {
@@ -76,10 +77,10 @@ body {
 .editor {
     font-family: 'Overpass Mono', monospace;
     font-size: 17px;
-    letter-spacing: 1px;
+    letter-spacing: 0px;
     line-height: 130%;
     width: 100%;
-    height: calc(100% - 30px);
+    height: calc(100% - 32px);
     display: block;
 }
 .editorblock {
@@ -126,7 +127,7 @@ body {
     background-color: #222;
     color: #999999;
     font-size: 14px;
-    padding: 5px;
+    padding: 7px 9px;
     width: 100%;
     height: 30px;
 }
@@ -135,14 +136,31 @@ body {
     padding: 8px 15px;
 }
 .menublockinner select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
     background-color: #2E2E2E;
     border: 0px;
     color: whitesmoke;
     font-family: inherit;
     font-size: 16px;
-    margin: 2px;
-    padding: 8px;
+    margin: 2px 0px;
+    padding: 8px 5px 10px 10px;
     width: 100%;
+}
+select.dropdown {
+    background-image:
+        linear-gradient(45deg, transparent 50%, #999 50%),
+        linear-gradient(135deg, #999 50%, transparent 50%),
+        linear-gradient(to right, #3E3E3E, #3E3E3E);
+    background-position:
+        calc(100% - 19px) calc(1em + 1px),
+        calc(100% - 14px) calc(1em + 1px),
+        100% 0;
+    background-size:
+        4px 4px,
+        5px 4px,
+        2.3em 2.5em;
+    background-repeat: no-repeat;
 }
 .menublockinner a,
 .menublockinner a:visited {
@@ -197,7 +215,7 @@ body {
     font-size: 16px;
     text-align: center;
     margin: 2px 0px 5px;
-    padding: 6px 5px;
+    padding: 8px 5px 10px 5px;
     user-select: none;
     cursor: pointer;
 }
@@ -232,7 +250,7 @@ body {
 input[type=checkbox] + .togglebutton {
     background-color: black;
     border-radius: 20px;
-    margin: 6px auto;
+    margin: 7px auto;
     width: 32px;
     height: 16px;
     position: relative;
@@ -265,8 +283,8 @@ input[type=checkbox]:checked + .togglebutton::before {
 }
 .playicon {
     margin: 0px 5px;
-    min-width: 32px;
-    max-width: 32px;
+    min-width: 38px;
+    max-width: 38px;
     opacity: 0.7;
     transition: opacity 0.1s ease;
     cursor: pointer;
