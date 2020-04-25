@@ -1,6 +1,6 @@
 
 export class FireDB {
-    constructor(){
+    constructor(firebase){
         this.db = firebase.database();
     }
     createDirector(name){
@@ -24,6 +24,7 @@ export class FireDB {
             const channelKey = this.db.ref('channel').push().key;
             const payload = {};
             payload[`channel/${channelKey}`] = {
+                initialized: true,
                 directorId: directorId,
                 visual: 'unknown',
                 disc: 'unknown',
@@ -39,46 +40,52 @@ export class FireDB {
             };
             this.db.ref().update(payload)
             .then((res) => {
-                resolve({response: res});
+                resolve({
+                    response: res,
+                    channelId: channelKey,
+                });
             });
         });
     }
-    createStar(channel){
+    createStar(channelId){
         return new Promise((resolve) => {
-            const payload = {};
-            payload[channel] = {count: 0};
-            this.db.ref('star').set(payload)
+            const payload = {count: 0};
+            this.db.ref(`star/${channelId}`).set(payload)
             .then((res) => {
                 resolve({response: res});
             });
         });
     }
     updateChannelDirector(channelId, visual = 'unknown', disc = 'unknown'){
-        const payload = {};
-        if(visual !== 'unknown'){
-            payload.visual = visual;
-        }
-        if(disc !== 'unknown'){
-            payload.disc = disc;
-        }
-        this.db.ref(`channel/${channelId}`).update(payload)
-        .then((res) => {
-            resolve({response: res});
+        return new Promise((resolve) => {
+            const payload = {};
+            if(visual !== 'unknown'){
+                payload.visual = visual;
+            }
+            if(disc !== 'unknown'){
+                payload.disc = disc;
+            }
+            this.db.ref(`channel/${channelId}`).update(payload)
+            .then((res) => {
+                resolve({response: res});
+            });
         });
     }
     updateChannelData(directorId, channelId, graphicsData, soundData){
-        const payload = {
-            directorId: directorId,
-        };
-        if(graphicsData != null){
-            payload.graphics = graphicsData;
-        }
-        if(soundData != null){
-            payload.sound = soundData;
-        }
-        this.db.ref(`channel/${channelId}`).update(payload)
-        .then((res) => {
-            resolve({response: res});
+        return new Promise((resolve) => {
+            const payload = {
+                directorId: directorId,
+            };
+            if(graphicsData != null){
+                payload.graphics = graphicsData;
+            }
+            if(soundData != null){
+                payload.sound = soundData;
+            }
+            this.db.ref(`channel/${channelId}`).update(payload)
+            .then((res) => {
+                resolve({response: res});
+            });
         });
     }
 }
