@@ -3,6 +3,11 @@ import 'whatwg-fetch';
 import Promise from 'promise-polyfill';
 import {Fragmen} from './fragmen.js';
 import {Onomat} from './onomat.js';
+import {FireDB} from './firedb.js';
+
+import * as firebase from 'firebase/app';
+import 'firebase/database';
+import 'firebase/analytics';
 
 let canvas     = null; // スクリーン
 let editor     = null; // Ace editor のインスタンス
@@ -39,6 +44,8 @@ let onomat             = null;                 // onomat.js のインスタン�
 
 let urlParameter = null; // GET パラメータを解析するための searchParams オブジェクト
 
+let fire = null; // firebase
+
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
     target: null,
@@ -49,8 +56,24 @@ const FRAGMEN_OPTION = {
 }
 // bitly にリクエストする際のベース URL
 const BASE_URL = 'https://twigl.app';
+// firebase のコンフィグ
+const FIREBASE_CONFIG = {
+    apiKey: 'AIzaSyAcRObIHeZUmCt_X3FEzLdBJzUDYTVRte8',
+    authDomain: 'twigl-f67a0.firebaseapp.com',
+    databaseURL: 'https://twigl-f67a0.firebaseio.com',
+    projectId: 'twigl-f67a0',
+    storageBucket: 'twigl-f67a0.appspot.com',
+    messagingSenderId: '653821260349',
+    appId: '1:653821260349:web:17e2128ca9a60f2c7ff054',
+    measurementId: 'G-WHMVELFNCW'
+};
 
 window.addEventListener('DOMContentLoaded', () => {
+    // firebase の初期化
+    firebase.initializeApp(FIREBASE_CONFIG);
+    firebase.analytics();
+    // firebaseSetting();
+
     // DOM への参照
     canvas     = document.querySelector('#webgl');
     lineout    = document.querySelector('#lineout');
@@ -484,6 +507,52 @@ function onomatSetting(play = true){
     // エディタのスクロールがおかしくならないようにリサイズ処理を呼んでおく
     editor.resize();
     audioEditor.resize();
+}
+
+/**
+ * firebase の初期化を行う
+ * @return {Promise}
+ */
+function firebaseSetting(){
+    return new Promise((resolve, reject) => {
+        fire = new FireDB(firebase);
+        let directorId;
+        let channelId;
+        fire.createDirector('doxas')
+        .then((res) => {
+            console.log('🍆', res);
+            directorId = res.directorId;
+            return fire.createChannel(res.directorId);
+        })
+        .then((res) => {
+            console.log('👩', res);
+            channelId = res.channelId;
+            return fire.createStar(res.channelId);
+        })
+        .then((res) => {
+            console.log('🚀', res);
+            return fire.updateChannelDirector(channelId, directorId, directorId);
+        })
+        .then((res) => {
+            console.log('🌏', res);
+            return fire.updateChannelData(directorId, channelId, {
+                source: 'graphics',
+                cursor: '10|10',
+            }, {
+                source: 'sound',
+                cursor: '99|99',
+                play: 9,
+            });
+        })
+        .then((res) => {
+            console.log('🌠', res);
+            resolve();
+        })
+        .catch((err) => {
+            console.log('💣', err);
+            reject(err);
+        });
+    });
 }
 
 /**
