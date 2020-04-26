@@ -50,6 +50,7 @@ let urlParameter = null; // GET パラメータを解析するための searchPa
 
 let fire = null;              // firedb
 let currentDirectorId = null; // 自分自身のディレクター ID
+let friendDirectorId = null;  // 招待用のディレクター ID
 let currentChannelId = null;  // 自分自身がディレクターとなったチャンネルの ID
 let broadcastForm = null;     // 登録用フォームの実体
 let broadcastSetting = null;  // 登録用フォームの入力内容
@@ -74,6 +75,14 @@ const FIREBASE_CONFIG = {
     messagingSenderId: '653821260349',
     appId: '1:653821260349:web:17e2128ca9a60f2c7ff054',
     measurementId: 'G-WHMVELFNCW'
+};
+// 配信のアサイン設定
+const BROADCAST_ASSIGN = {
+    BOTH:            'both',
+    ONLY_GRAPHICS:   'onlygraphics',
+    INVITE_SOUND:    'invitesound',
+    ONLY_SOUND:      'onlysound',
+    INVITE_GRAPHICS: 'invitegraphics',
 };
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -395,16 +404,27 @@ window.addEventListener('DOMContentLoaded', () => {
     broadIcon.addEventListener('click', () => {
         showDialog('Do you want to start setting up a broadcast?')
         .then((isOk) => {
-            if(isOk === true){
-                // 配信用のフォームを生成
-                broadcastForm = generateBroadcastForm();
-                const directorName = broadcastForm.querySelector('.directorname');
-                setTimeout(() => {directorName.focus();}, 200);
-                return showDialog(broadcastForm);
-            }
+            return new Promise((resolve, reject) => {
+                if(isOk === true){
+                    // 配信用のフォームを生成
+                    broadcastForm = generateBroadcastForm();
+                    const directorName = broadcastForm.querySelector('.directorname');
+                    setTimeout(() => {directorName.focus();}, 200);
+                    showDialog(broadcastForm)
+                    .then((isOk) => {
+                        if(isOk === true){
+                            resolve();
+                        }else{
+                            reject('Broadcast settings were cancelled.');
+                        }
+                    });
+                }else{
+                    reject('Broadcast settings were cancelled.');
+                }
+            });
         })
-        .then((isOk) => {
-            if(isOk === true){
+        .then(() => {
+            return new Promise((resolve, reject) => {
                 // 入力内容を確認する
                 broadcastSetting = {
                     validation: true,
@@ -421,43 +441,98 @@ window.addEventListener('DOMContentLoaded', () => {
                 const inviteSound    = broadcastForm.querySelector('.assigninvitesound');
                 const sound          = broadcastForm.querySelector('.assignonlysound');
                 const inviteGraphics = broadcastForm.querySelector('.assigninvitegraphics');
-                if(both.checked           === true){broadcastSetting.assign = 'both';}
-                if(graphics.checked       === true){broadcastSetting.assign = 'onlygraphics';}
-                if(inviteSound.checked    === true){broadcastSetting.assign = 'invitesound';}
-                if(sound.checked          === true){broadcastSetting.assign = 'onlysound';}
-                if(inviteGraphics.checked === true){broadcastSetting.assign = 'invitegraphics';}
+                if(both.checked           === true){broadcastSetting.assign = BROADCAST_ASSIGN.BOTH;}
+                if(graphics.checked       === true){broadcastSetting.assign = BROADCAST_ASSIGN.ONLY_GRAPHICS;}
+                if(inviteSound.checked    === true){broadcastSetting.assign = BROADCAST_ASSIGN.INVITE_SOUND;}
+                if(sound.checked          === true){broadcastSetting.assign = BROADCAST_ASSIGN.ONLY_SOUND;}
+                if(inviteGraphics.checked === true){broadcastSetting.assign = BROADCAST_ASSIGN.INVITE_GRAPHICS;}
                 // 入力内容に問題なければ firebase 関連の初期化を行う
                 if(broadcastSetting.validation === true){
                     showDialog('please wait...', {
                         okDisable: true,
                         cancelDisable: true,
                     });
-                    return fire.createDirector(directorName.value);
+                    return fire.createDirector(directorName.value)
+                    .then((res) => {
+                        resolve(res);
+                    });
                 }else{
                     // 入力に不備があったら終了
-                    showDialog('screen name is blank', {
+                    showDialog('screen name is blank.', {
                         okVisible: false,
                         cancelLabel: 'ok',
                     });
+                    reject('screen name is blank.');
                 }
+            });
+        })
+        .then((res) => {
+            // ディレクター ID をキャッシュ
+            currentDirectorId = res.directorId;
+            return new Promise((resolve) => {
+                if(
+                    broadcastSetting.assign === BROADCAST_ASSIGN.INVITE_SOUND ||
+                    broadcastSetting.assign === BROADCAST_ASSIGN.INVITE_GRAPHICS
+                ){
+                    // 誰かに移譲するパターンの場合はもうひとつディレクターを作る
+                    fire.createDirector(currentDirectorId)
+                    .then((friendRes) => {
+                        friendDirectorId = friendRes.directorId;
+                        resolve();
+                    });
+                }else{
+                    // そうでない場合は即座に解決
+                    resolve();
+                }
+            });
+        })
+        .then(() => {
+            // チャンネルを生成
+            return fire.createChannel(currentDirectorId);
+        })
+        .then((res) => {
+            // チャンネル ID をキャッシュ
+            currentChannelId = res.channelId;
+            // チャンネルのスターを生成
+            return fire.createStar(currentChannelId);
+        })
+        .then(() => {
+            // チャンネルにディレクター情報を登録する
+            switch(broadcastSetting.assign){
+                case BROADCAST_ASSIGN.BOTH:
+                    return fire.updateChannelDirector(currentChannelId, currentDirectorId, currentDirectorId);
+                case BROADCAST_ASSIGN.ONLY_GRAPHICS:
+                    return fire.updateChannelDirector(currentChannelId, currentDirectorId, undefined);
+                case BROADCAST_ASSIGN.INVITE_SOUND:
+                    return fire.updateChannelDirector(currentChannelId, currentDirectorId, friendDirectorId);
+                case BROADCAST_ASSIGN.ONLY_SOUND:
+                    return fire.updateChannelDirector(currentChannelId, undefined, currentDirectorId);
+                case BROADCAST_ASSIGN.INVITE_GRAPHICS:
+                    return fire.updateChannelDirector(currentChannelId, friendDirectorId, currentDirectorId);
             }
         })
+        // TODO: 以下は仮でとりあえず更新できるか試してみたもの
+        //       ID が不正な場合は正しくエラーになるのだが catch できない模様
         // .then((res) => {
-        //     // ディレクター ID をキャッシュ
-        //     currentDirectorId = res.directorId;
-        //     // TODO: 誰かに移譲するパターンの場合はもうひとつディレクターを作り URL を生成
-        //     return fire.createChannel(currentDirectorId);
+        //     console.log('🌏', res);
+        //     return fire.updateChannelData(currentDirectorId + 'hogejayo', currentChannelId, {
+        //         source: 'graphics',
+        //         cursor: '10|10|10',
+        //     }, {
+        //         source: 'sound',
+        //         cursor: '99|99|99',
+        //         play: 99,
+        //     })
+        //     .catch(err => console.log('爆發', err));
         // })
-        // .then((res) => {
-        //     // チャンネル ID をキャッシュ
-        //     currentChannelId = res.channelId;
-        //     return fire.createStar(currentChannelId);
-        // })
-        // .then((res) => {
-        //     // TODO: 必要があればディレクターをセットする
-        //     currentChannelId = res.channelId;
-        //     return fire.createStar(currentChannelId);
-        // });
+        .then((res) => {
+            console.log('🌠', currentDirectorId, friendDirectorId);
+            showDialog('ここで URL とかが出るようにする＆フラグを立てておいて、再度ボタンが押された際に URL とかを出すようにする', {cancelVisible: false});
+        })
+        .catch((err) => {
+            console.log('💣', err);
+            showDialog(err, {cancelVisible: false});
+        });
     }, false);
 
 }, false);
