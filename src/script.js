@@ -54,6 +54,8 @@ let friendDirectorId = null;  // 招待用のディレクター ID
 let currentChannelId = null;  // 自分自身がディレクターとなったチャンネルの ID
 let broadcastForm = null;     // 登録用フォームの実体
 let broadcastSetting = null;  // 登録用フォームの入力内容
+let directionMode = null;     // 何に対するディレクターなのか
+let isOwner = null;           // チャンネルのオーナーなのかどうか
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -83,6 +85,12 @@ const BROADCAST_ASSIGN = {
     INVITE_SOUND:    'invitesound',
     ONLY_SOUND:      'onlysound',
     INVITE_GRAPHICS: 'invitegraphics',
+};
+// 何に対するディレクターなのか
+const BROADCAST_DIRECTION = {
+    BOTH:     'both',
+    GRAPHICS: 'graphics',
+    SOUND:    'sound',
 };
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -129,13 +137,37 @@ window.addEventListener('DOMContentLoaded', () => {
                 currentMode = parseInt(value);
                 break;
             case 'sound':
-                audioToggle.checked = value === `true`;
+                audioToggle.checked = value === 'true';
                 break;
             case 'source':
                 currentSource = value;
                 break;
             case 'soundsource':
                 currentAudioSource = value;
+                break;
+            case 'gd': // graphics director
+                currentDirectorId = value;
+                break;
+            case 'sd': // sound director
+                currentDirectorId = value;
+                break;
+            case 'fd': // friend director
+                friendDirectorId = value;
+                break;
+            case 'dm': // direction mode
+                directionMode = value;
+                let directionFlag = Object.keys(BROADCAST_DIRECTION).some((mode) => {
+                    return mode === value;
+                });
+                if(directionFlag !== true){
+                    directionMode = null;
+                }
+                break;
+            case 'ch': // channel
+                currentChannelId = value;
+                break;
+            case 'ow': // is owner
+                isOwner = value === 'true';
                 break;
         }
     });
@@ -518,6 +550,7 @@ window.addEventListener('DOMContentLoaded', () => {
         //     return fire.updateChannelData(currentDirectorId + 'hogejayo', currentChannelId, {
         //         source: 'graphics',
         //         cursor: '10|10|10',
+        //         mode: 1,
         //     }, {
         //         source: 'sound',
         //         cursor: '99|99|99',
