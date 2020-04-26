@@ -167,7 +167,10 @@ window.addEventListener('DOMContentLoaded', () => {
     // audioToggle が checked である場合、URL からサウンドシェーダが有効化されている
     if(audioToggle.checked === true){
         // まず自家製ダイアログを出しユーザーにクリック操作をさせる
-        showDialog('This URL is a valid of sound shader.\nIt is OK play the audio?')
+        showDialog('This URL is a valid of sound shader.\nIt is OK play the audio?', {
+            okLabel: 'yes',
+            cancelLabel: 'no',
+        })
         .then((result) => {
             // ユーザーが OK, Cancel のいずれをクリックしたかのフラグを引数に与える
             onomatSetting(result);
@@ -367,6 +370,17 @@ window.addEventListener('DOMContentLoaded', () => {
         // いずれでもない場合は API でフルスクリーン化することができないのでアイコンを消す
         fullIcon.classList.add('invisible');
     }
+
+    // information アイコンが押されたとき
+    // showDialog
+        showDialog('This URL is a valid of sound shader.\nIt is OK play the audio?', {
+            okVisible: true,
+            cancelVisible: true,
+            okDisable: false,
+            cancelDisable: false,
+            okLabel: 'yes',
+            cancelLabel: 'no',
+        })
 
     // TODO:
     // showDialog('Do you want to start setting up a broadcast?')
@@ -651,10 +665,25 @@ function generateUrl(url){
 /**
  * 自家製ダイアログを表示する
  * @param {string} message - 表示するメッセージ
- * @param {boolean} [disable=false] - ボタンに disabled を設定するかどうか
- * @return {Promise} - Ok, Cancel のいずれかのボタンが押されたときに解決する Promise
+ * @param {object}
+ * @property {string} [okLabel='ok'] - ok ボタンに表示する文字列
+ * @property {string} [cancelLabel='cancel'] - cancel ボタンに表示する文字列
+ * @property {boolean} [okVisible=true] - ok ボタンを表示するかどうか
+ * @property {boolean} [cancelVisible=true] - cancel ボタンを表示するかどうか
+ * @property {boolean} [okDisable=false] - ok ボタンに disabled を設定するかどうか
+ * @property {boolean} [cancelDisable=false] - cancel ボタンに disabled を設定するかどうか
+ * @return {Promise} - ok, cancel のいずれかのボタンが押されたときに解決する Promise
  */
-function showDialog(message, disable = false){
+function showDialog(message, option){
+    // ダイアログの各ボタンには、毎回イベントを設定してボタン押下時に解除する
+    const dialogOption = Object.assign({
+        okLabel: 'ok',
+        cancelLabel: 'cancel',
+        okVisible: true,
+        cancelVisible: true,
+        okDisable: false,
+        cancelDisable: false,
+    }, option);
     return new Promise((resolve) => {
         // ダイアログ上にメッセージを設定しレイヤを表示する
         while(dialog.firstChild != null){
@@ -666,31 +695,47 @@ function showDialog(message, disable = false){
             div.textContent = s;
             dialog.appendChild(div);
         });
-        setLayerVisible(true);
         const ok = document.querySelector('#dialogbuttonok');
         const cancel = document.querySelector('#dialogbuttoncancel');
-        if(disable === true){
+        // 表示されるラベルの設定
+        ok.textContent = dialogOption.okLabel;
+        cancel.textContent = dialogOption.cancelLabel;
+        // 可視化するかどうかの設定
+        if(dialogOption.okVisible === true){
+            ok.classList.remove('invisible');
+        }else{
+            ok.classList.add('invisible');
+        }
+        if(dialogOption.cancelVisible === true){
+            cancel.classList.remove('invisible');
+        }else{
+            cancel.classList.add('invisible');
+        }
+        // disabled かどうかとイベントの付与
+        if(dialogOption.okDisable === true){
             ok.classList.add('disabled');
-            cancel.classList.add('disabled');
         }else{
             ok.classList.remove('disabled');
-            cancel.classList.remove('disabled');
-            // 各ボタンには、毎回イベントを設定してボタン押下時に解除する
             const okClick = () => {
                 ok.removeEventListener('click', okClick);
-                cancel.removeEventListener('click', cancelClick);
                 resolve(true);
                 hideDialog();
             };
+            ok.addEventListener('click', okClick, false);
+        }
+        if(dialogOption.cancelDisable === true){
+            cancel.classList.add('disabled');
+        }else{
+            cancel.classList.remove('disabled');
             const cancelClick = () => {
-                ok.removeEventListener('click', okClick);
                 cancel.removeEventListener('click', cancelClick);
                 resolve(false);
                 hideDialog();
             };
-            ok.addEventListener('click', okClick, false);
             cancel.addEventListener('click', cancelClick, false);
         }
+
+        setLayerVisible(true);
     });
 }
 
