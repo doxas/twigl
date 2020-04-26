@@ -52,11 +52,12 @@ export class FireDB {
                 graphics: {
                     source: '',
                     cursor: '0|0|0', // row, column, scrollTop
+                    mode: 0,         // current mode of graphics
                 },
                 sound: {
                     source: '',
                     cursor: '0|0|0',
-                    play: 0,
+                    play: 0, // increment at sound play in director location
                 },
             };
             this.db.ref().update(payload)
