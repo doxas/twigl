@@ -389,6 +389,23 @@ input[type=checkbox]:checked + .togglebutton::before {
     max-height: 150px;
     overflow: auto;
 }
+#dialogmessage h3 {
+    border-bottom: 1px solid #444;
+    color: silver;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 15px 0px 8px;
+}
+#dialogmessage h3:first-child {
+    margin: 0px 0px 8px;
+}
+#dialogmessage a {
+    color: #1DA1F2;
+    text-decoration: none;
+}
+#dialogmessage a:hover {
+    text-decoration: underline;
+}
 #dialogbuttonwrap {
     padding: 20px 10px;
     display: flex;
