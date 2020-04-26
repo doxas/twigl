@@ -51,11 +51,11 @@ export class FireDB {
                 disc: 'unknown',
                 graphics: {
                     source: '',
-                    cursor: '0|0'
+                    cursor: '0|0|0', // row, column, scrollTop
                 },
                 sound: {
                     source: '',
-                    cursor: '0|0',
+                    cursor: '0|0|0',
                     play: 0,
                 },
             };
