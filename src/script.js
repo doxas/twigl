@@ -23,6 +23,10 @@ let layer      = null; // dialog layer
 let dialog     = null; // dialog message wrapper
 let canvasWrap = null; // canvas を包んでいるラッパー DOM
 let editorWrap = null; // editor を包んでいるラッパー DOM
+let iconColumn = null; // icon を包んでいるラッパー DOM
+let infoIcon   = null; // information icon
+let fullIcon   = null; // fullscreen icon
+let broadIcon  = null; // broadcast mode icon
 
 let audioWrap     = null; // サウンドシェーダペインのラッパー
 let audioEditor   = null; // Ace editor のインスタンス
@@ -88,6 +92,10 @@ window.addEventListener('DOMContentLoaded', () => {
     dialog     = document.querySelector('#dialogmessage');
     canvasWrap = document.querySelector('#canvaswrap');
     editorWrap = document.querySelector('#editorwrap');
+    iconColumn = document.querySelector('#globaliconcolumn');
+    infoIcon   = document.querySelector('#informationicon');
+    fullIcon   = document.querySelector('#fullscreenicon');
+    broadIcon  = document.querySelector('#broadcasticon');
 
     audioWrap     = document.querySelector('#audio');
     audioLineout  = document.querySelector('#lineoutaudio');
@@ -336,25 +344,40 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         }
     };
+    // アイコンが押されたとき
+    const onFullscreenRequest = () => {
+        if(
+            document.FullscreenElement == null ||
+            document.webkitFullscreenElement == null ||
+            document.msFullscreenElement == null
+        ){
+            requestFullscreenMode();
+        }
+    };
     // API がサポートされている場合に限りフルスクリーン関連のリスナーを登録する
     if(document.fullscreenEnabled === true){
         document.addEventListener('fullscreenchange', onFullscreenChange, false);
         window.addEventListener('keydown', onFullscreenKeyDown, false);
+        fullIcon.addEventListener('click', onFullscreenRequest, false);
     }else if(document.webkitFullscreenEnabled === true){
         document.addEventListener('webkitfullscreenchange', onFullscreenChange, false);
         window.addEventListener('keydown', onFullscreenKeyDown, false);
+        fullIcon.addEventListener('click', onFullscreenRequest, false);
+    }else{
+        // いずれでもない場合は API でフルスクリーン化することができないのでアイコンを消す
+        fullIcon.classList.add('invisible');
     }
 
     // TODO:
-    showDialog('Do you want to start setting up a broadcast?')
-    .then((isOk) => {
-        if(isOk === true){
-            showDialog('please wait...', true);
-            setTimeout(() => {
-                showDialog('thanks!');
-            }, 5000);
-        }
-    });
+    // showDialog('Do you want to start setting up a broadcast?')
+    // .then((isOk) => {
+    //     if(isOk === true){
+    //         showDialog('please wait...', true);
+    //         setTimeout(() => {
+    //             showDialog('thanks!');
+    //         }, 5000);
+    //     }
+    // });
 }, false);
 
 /**
@@ -714,6 +737,7 @@ function exitFullscreen(){
 function exitFullscreenMode(){
     canvasWrap.classList.remove('fullscreen');
     editorWrap.classList.remove('invisible');
+    iconColumn.classList.remove('invisible');
     editor.resize();
     audioEditor.resize();
     resize();
@@ -735,10 +759,12 @@ function requestFullscreenMode(){
         document.body.requestFullscreen();
         canvasWrap.classList.add('fullscreen');
         editorWrap.classList.add('invisible');
+        iconColumn.classList.add('invisible');
     }else if(document.body.webkitRequestFullScreen != null){
         document.body.webkitRequestFullScreen();
         canvasWrap.classList.add('fullscreen');
         editorWrap.classList.add('invisible');
+        iconColumn.classList.add('invisible');
     }
     editor.resize();
     audioEditor.resize();
