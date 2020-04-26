@@ -406,6 +406,25 @@ input[type=checkbox]:checked + .togglebutton::before {
 #dialogmessage a:hover {
     text-decoration: underline;
 }
+#dialogmessage input[type=text] {
+    background-color: inherit;
+    border: 0px;
+    border-bottom: 2px solid #222;
+    color: whitesmoke;
+    margin: 0px 8px;
+    padding: 5px;
+    width: calc(100% - 20px);
+}
+#dialogmessage label {
+    padding: 3px 0px 3px 10px;
+    display: block;
+}
+#dialogmessage label input[type=radio] {
+    vertical-align: bottom;
+}
+#dialogmessage label span {
+    margin: 0px 0px 0px 5px;
+}
 #dialogbuttonwrap {
     padding: 20px 10px;
     display: flex;
