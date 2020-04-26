@@ -48,14 +48,15 @@ let onomat             = null;                 // onomat.js のインスタン�
 
 let urlParameter = null; // GET パラメータを解析するための searchParams オブジェクト
 
-let fire = null;              // firedb
-let currentDirectorId = null; // 自分自身のディレクター ID
-let friendDirectorId = null;  // 招待用のディレクター ID
-let currentChannelId = null;  // 自分自身がディレクターとなったチャンネルの ID
-let broadcastForm = null;     // 登録用フォームの実体
-let broadcastSetting = null;  // 登録用フォームの入力内容
-let directionMode = null;     // 何に対するディレクターなのか
-let isOwner = null;           // チャンネルのオーナーなのかどうか
+let fire = null;                // firedb
+let currentDirectorId = null;   // 自分自身のディレクター ID
+let friendDirectorId = null;    // 招待用のディレクター ID
+let currentChannelId = null;    // 自分自身がディレクターとなったチャンネルの ID
+let broadcastForm = null;       // 登録用フォームの実体
+let broadcastSetting = null;    // 登録用フォームの入力内容
+let directionMode = null;       // 何に対するディレクターなのか
+let friendDirectionMode = null; // フレンドが何に対するディレクターなのか
+let isOwner = null;             // チャンネルのオーナーなのかどうか
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -530,16 +531,24 @@ window.addEventListener('DOMContentLoaded', () => {
         })
         .then(() => {
             // チャンネルにディレクター情報を登録する
+            // directionMode が both 以外のときに friendDirectionMode が設定される（つまりフレンドがいる）
             switch(broadcastSetting.assign){
                 case BROADCAST_ASSIGN.BOTH:
+                    directionMode = BROADCAST_DIRECTION.BOTH;
                     return fire.updateChannelDirector(currentChannelId, currentDirectorId, currentDirectorId);
                 case BROADCAST_ASSIGN.ONLY_GRAPHICS:
+                    directionMode = BROADCAST_DIRECTION.BOTH;
                     return fire.updateChannelDirector(currentChannelId, currentDirectorId, undefined);
                 case BROADCAST_ASSIGN.INVITE_SOUND:
+                    directionMode = BROADCAST_DIRECTION.GRAPHICS;
+                    friendDirectionMode = BROADCAST_DIRECTION.SOUND;
                     return fire.updateChannelDirector(currentChannelId, currentDirectorId, friendDirectorId);
                 case BROADCAST_ASSIGN.ONLY_SOUND:
+                    directionMode = BROADCAST_DIRECTION.BOTH;
                     return fire.updateChannelDirector(currentChannelId, undefined, currentDirectorId);
                 case BROADCAST_ASSIGN.INVITE_GRAPHICS:
+                    directionMode = BROADCAST_DIRECTION.SOUND;
+                    friendDirectionMode = BROADCAST_DIRECTION.GRAPHICS;
                     return fire.updateChannelDirector(currentChannelId, friendDirectorId, currentDirectorId);
             }
         })
@@ -560,11 +569,33 @@ window.addEventListener('DOMContentLoaded', () => {
         // })
         .then((res) => {
             console.log('🌠', currentDirectorId, friendDirectorId);
+            const currentState = [
+                `mode=${currentMode}`,
+                `dm=${directionMode}`,
+                `ch=${currentChannelId}`,
+                `ow=true`,
+            ];
+            switch(broadcastSetting.assign){
+                case BROADCAST_ASSIGN.BOTH:
+                case BROADCAST_ASSIGN.ONLY_GRAPHICS:
+                    currentState.push(`gd=${currentDirectorId}`);
+                    break;
+                case BROADCAST_ASSIGN.INVITE_SOUND:
+                    currentState.push(`gd=${currentDirectorId}`, `fd=${friendDirectorId}`);
+                    break;
+                case BROADCAST_ASSIGN.ONLY_SOUND:
+                    currentState.push(`sd=${currentDirectorId}`);
+                    break;
+                case BROADCAST_ASSIGN.INVITE_GRAPHICS:
+                    currentState.push(`sd=${currentDirectorId}`, `fd=${friendDirectorId}`);
+                    break;
+            }
+            history.replaceState('', '', `?${currentState.join('&')}`);
             showDialog('ここで URL とかが出るようにする＆フラグを立てておいて、再度ボタンが押された際に URL とかを出すようにする', {cancelVisible: false});
         })
         .catch((err) => {
             console.log('💣', err);
-            showDialog(err, {cancelVisible: false});
+            showDialog(err || 'Unknown Error', {cancelVisible: false});
         });
     }, false);
 
