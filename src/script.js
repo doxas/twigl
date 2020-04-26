@@ -371,16 +371,21 @@ window.addEventListener('DOMContentLoaded', () => {
         fullIcon.classList.add('invisible');
     }
 
-    // information アイコンが押されたとき
-    // showDialog
-        showDialog('This URL is a valid of sound shader.\nIt is OK play the audio?', {
+    // TODO: information アイコンが押されたとき
+    infoIcon.addEventListener('click', () => {
+        const infoWrap = document.createElement('div');
+        const infoHeader = document.createElement('h3');
+        infoHeader.textContent = 'information';
+        const infoCaption = document.createElement('div');
+        infoCaption.textContent = 'twigl.app is an online editor for One tweet shader, with gif generator and sound shader.';
+        infoWrap.appendChild(infoHeader);
+        infoWrap.appendChild(infoCaption);
+        showDialog(infoWrap, {
             okVisible: true,
-            cancelVisible: true,
-            okDisable: false,
-            cancelDisable: false,
-            okLabel: 'yes',
-            cancelLabel: 'no',
-        })
+            cancelVisible: false,
+            okLabel: 'close',
+        });
+    }, false);
 
     // TODO:
     // showDialog('Do you want to start setting up a broadcast?')
@@ -664,7 +669,7 @@ function generateUrl(url){
 
 /**
  * 自家製ダイアログを表示する
- * @param {string} message - 表示するメッセージ
+ * @param {string|HTMLElement} message - 表示するメッセージの文字列か append する DOM
  * @param {object}
  * @property {string} [okLabel='ok'] - ok ボタンに表示する文字列
  * @property {string} [cancelLabel='cancel'] - cancel ボタンに表示する文字列
@@ -689,12 +694,17 @@ function showDialog(message, option){
         while(dialog.firstChild != null){
             dialog.removeChild(dialog.firstChild);
         }
-        const sentence = message.split('\n');
-        sentence.forEach((s) => {
-            const div = document.createElement('div');
-            div.textContent = s;
-            dialog.appendChild(div);
-        });
+        // 文字列か DOM かによって分岐
+        if(message instanceof HTMLElement === true){
+            dialog.appendChild(message);
+        }else{
+            const sentence = message.split('\n');
+            sentence.forEach((s) => {
+                const div = document.createElement('div');
+                div.textContent = s;
+                dialog.appendChild(div);
+            });
+        }
         const ok = document.querySelector('#dialogbuttonok');
         const cancel = document.querySelector('#dialogbuttoncancel');
         // 表示されるラベルの設定
