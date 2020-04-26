@@ -159,7 +159,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // audioToggle が checked である場合、URL からサウンドシェーダが有効化されている
     if(audioToggle.checked === true){
         // まず自家製ダイアログを出しユーザーにクリック操作をさせる
-        showDialog('This URL is a valid of sound shader. It is OK play the audio?')
+        showDialog('This URL is a valid of sound shader.\nIt is OK play the audio?')
         .then((result) => {
             // ユーザーが OK, Cancel のいずれをクリックしたかのフラグを引数に与える
             onomatSetting(result);
@@ -344,6 +344,17 @@ window.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('webkitfullscreenchange', onFullscreenChange, false);
         window.addEventListener('keydown', onFullscreenKeyDown, false);
     }
+
+    // TODO:
+    showDialog('Do you want to start setting up a broadcast?')
+    .then((isOk) => {
+        if(isOk === true){
+            showDialog('please wait...', true);
+            setTimeout(() => {
+                showDialog('thanks!');
+            }, 5000);
+        }
+    });
 }, false);
 
 /**
@@ -617,30 +628,46 @@ function generateUrl(url){
 /**
  * 自家製ダイアログを表示する
  * @param {string} message - 表示するメッセージ
- * @return {Promise} - OK, Cancel のいずれかのボタンが押されたときに解決する Promise
+ * @param {boolean} [disable=false] - ボタンに disabled を設定するかどうか
+ * @return {Promise} - Ok, Cancel のいずれかのボタンが押されたときに解決する Promise
  */
-function showDialog(message){
+function showDialog(message, disable = false){
     return new Promise((resolve) => {
         // ダイアログ上にメッセージを設定しレイヤを表示する
-        dialog.textContent = message;
+        while(dialog.firstChild != null){
+            dialog.removeChild(dialog.firstChild);
+        }
+        const sentence = message.split('\n');
+        sentence.forEach((s) => {
+            const div = document.createElement('div');
+            div.textContent = s;
+            dialog.appendChild(div);
+        });
         setLayerVisible(true);
-        // 各ボタンには、毎回イベントを設定してボタン押下時に解除する
         const ok = document.querySelector('#dialogbuttonok');
         const cancel = document.querySelector('#dialogbuttoncancel');
-        const okClick = () => {
-            ok.removeEventListener('click', okClick);
-            cancel.removeEventListener('click', cancelClick);
-            resolve(true);
-            hideDialog();
-        };
-        const cancelClick = () => {
-            ok.removeEventListener('click', okClick);
-            cancel.removeEventListener('click', cancelClick);
-            resolve(false);
-            hideDialog();
-        };
-        ok.addEventListener('click', okClick, false);
-        cancel.addEventListener('click', cancelClick, false);
+        if(disable === true){
+            ok.classList.add('disabled');
+            cancel.classList.add('disabled');
+        }else{
+            ok.classList.remove('disabled');
+            cancel.classList.remove('disabled');
+            // 各ボタンには、毎回イベントを設定してボタン押下時に解除する
+            const okClick = () => {
+                ok.removeEventListener('click', okClick);
+                cancel.removeEventListener('click', cancelClick);
+                resolve(true);
+                hideDialog();
+            };
+            const cancelClick = () => {
+                ok.removeEventListener('click', okClick);
+                cancel.removeEventListener('click', cancelClick);
+                resolve(false);
+                hideDialog();
+            };
+            ok.addEventListener('click', okClick, false);
+            cancel.addEventListener('click', cancelClick, false);
+        }
     });
 }
 
