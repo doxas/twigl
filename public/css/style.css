@@ -404,6 +404,9 @@ input[type=checkbox]:checked + .togglebutton::before {
     cursor: pointer;
     user-select: none;
 }
+.dialogbutton.invisible {
+    display: none;
+}
 #dialogbuttonok {
     color: #1DA1F2;
 }
