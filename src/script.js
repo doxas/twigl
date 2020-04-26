@@ -48,7 +48,9 @@ let onomat             = null;                 // onomat.js のインスタン�
 
 let urlParameter = null; // GET パラメータを解析するための searchParams オブジェクト
 
-let fire = null; // firebase
+let fire = null;              // firedb
+let currentDirectorId = null; // 自分自身のディレクター ID
+let currentChannelId = null;  // 自分自身がディレクターとなったチャンネルの ID
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -76,7 +78,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // firebase の初期化
     firebase.initializeApp(FIREBASE_CONFIG);
     firebase.analytics();
-    // firebaseSetting();
+    fire = new FireDB(firebase);
 
     // DOM への参照
     canvas     = document.querySelector('#webgl');
@@ -387,16 +389,55 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }, false);
 
-    // TODO:
-    // showDialog('Do you want to start setting up a broadcast?')
-    // .then((isOk) => {
-    //     if(isOk === true){
-    //         showDialog('please wait...', true);
-    //         setTimeout(() => {
-    //             showDialog('thanks!');
-    //         }, 5000);
-    //     }
-    // });
+    // broadcast
+    broadIcon.addEventListener('click', () => {
+        showDialog('Do you want to start setting up a broadcast?')
+        .then((isOk) => {
+            if(isOk === true){
+                // TODO: ここで全部のパーツを入力させる
+                const inner = generateBroadcastForm();
+                const directorName = inner.querySelector('.directorname');
+                setTimeout(() => {directorName.focus();}, 200);
+                return showDialog(inner);
+            }
+        })
+        // .then((isOk) => {
+        //     if(isOk === true){
+        //         // TODO: ここでバリデーション
+        //         if(validation === true){
+        //             showDialog('please wait...', {
+        //                 okDisable: true,
+        //                 cancelDisable: true,
+        //             });
+        //             // バリデーションに問題がなければ firebase 側に処理を流す
+        //             return fire.createDirector('jockey');
+        //         }else{
+        //             // 入力に不備があったら終了
+        //             showDialog('invalid input!', {
+        //                 okVisible: false,
+        //                 cancelLabel: 'ok',
+        //             });
+        //         }
+        //     }
+        // })
+        // .then((res) => {
+        //     // ディレクター ID をキャッシュ
+        //     currentDirectorId = res.directorId;
+        //     // TODO: 誰かに移譲するパターンの場合はもうひとつディレクターを作り URL を生成
+        //     return fire.createChannel(currentDirectorId);
+        // })
+        // .then((res) => {
+        //     // チャンネル ID をキャッシュ
+        //     currentChannelId = res.channelId;
+        //     return fire.createStar(currentChannelId);
+        // })
+        // .then((res) => {
+        //     // TODO: 必要があればディレクターをセットする
+        //     currentChannelId = res.channelId;
+        //     return fire.createStar(currentChannelId);
+        // });
+    }, false);
+
 }, false);
 
 /**
@@ -562,50 +603,82 @@ function onomatSetting(play = true){
     audioEditor.resize();
 }
 
-/**
- * firebase の初期化を行う
- * @return {Promise}
- */
-function firebaseSetting(){
-    return new Promise((resolve, reject) => {
-        fire = new FireDB(firebase);
-        let directorId;
-        let channelId;
-        fire.createDirector('doxas')
-        .then((res) => {
-            console.log('🍆', res);
-            directorId = res.directorId;
-            return fire.createChannel(res.directorId);
-        })
-        .then((res) => {
-            console.log('👩', res);
-            channelId = res.channelId;
-            return fire.createStar(res.channelId);
-        })
-        .then((res) => {
-            console.log('🚀', res);
-            return fire.updateChannelDirector(channelId, directorId, directorId);
-        })
-        .then((res) => {
-            console.log('🌏', res);
-            return fire.updateChannelData(directorId, channelId, {
-                source: 'graphics',
-                cursor: '10|10',
-            }, {
-                source: 'sound',
-                cursor: '99|99',
-                play: 9,
-            });
-        })
-        .then((res) => {
-            console.log('🌠', res);
-            resolve();
-        })
-        .catch((err) => {
-            console.log('💣', err);
-            reject(err);
-        });
-    });
+function generateBroadcastForm(){
+    const wrap = document.createElement('div');
+
+    const directorNameHeader = document.createElement('h3');
+    directorNameHeader.textContent = 'screen name';
+    const directorNameInput = document.createElement('input');
+    directorNameInput.classList.add('directorname'); // screen name
+    directorNameInput.setAttribute('type', 'text');
+    directorNameInput.setAttribute('placeholder', 'your screen name or group name');
+    wrap.appendChild(directorNameHeader);
+    wrap.appendChild(directorNameInput);
+
+    const assignHeader = document.createElement('h3');
+    assignHeader.textContent = 'assign setting';
+    const assignCaption = document.createElement('div');
+    assignCaption.textContent = 'How do you assign them?';
+    wrap.appendChild(assignHeader);
+    wrap.appendChild(assignCaption);
+
+    const assignLabelBoth = document.createElement('label');
+    const assignCaptionBoth = document.createElement('span');
+    assignCaptionBoth.textContent = 'both (graphics, sound)';
+    const assignInputBoth = document.createElement('input');
+    assignInputBoth.classList.add('assignboth'); // both
+    assignInputBoth.setAttribute('type', 'radio');
+    assignInputBoth.setAttribute('name', 'assignment');
+    assignInputBoth.checked = true;
+    wrap.appendChild(assignLabelBoth);
+    assignLabelBoth.appendChild(assignInputBoth);
+    assignLabelBoth.appendChild(assignCaptionBoth);
+
+    const assignLabelGraphicsOnly = document.createElement('label');
+    const assignCaptionGraphicsOnly = document.createElement('span');
+    assignCaptionGraphicsOnly.textContent = 'only graphics';
+    const assignInputGraphicsOnly = document.createElement('input');
+    assignInputGraphicsOnly.classList.add('assigngraphicsonly'); // graphics only
+    assignInputGraphicsOnly.setAttribute('type', 'radio');
+    assignInputGraphicsOnly.setAttribute('name', 'assignment');
+    wrap.appendChild(assignLabelGraphicsOnly);
+    assignLabelGraphicsOnly.appendChild(assignInputGraphicsOnly);
+    assignLabelGraphicsOnly.appendChild(assignCaptionGraphicsOnly);
+
+    const assignLabelSoundToFriend = document.createElement('label');
+    const assignCaptionSoundToFriend = document.createElement('span');
+    assignCaptionSoundToFriend.textContent = 'graphics, and invite friend to sound';
+    const assignInputSoundToFriend = document.createElement('input');
+    assignInputSoundToFriend.classList.add('assigninvitesound'); // sound to friend
+    assignInputSoundToFriend.setAttribute('type', 'radio');
+    assignInputSoundToFriend.setAttribute('name', 'assignment');
+    wrap.appendChild(assignLabelSoundToFriend);
+    assignLabelSoundToFriend.appendChild(assignInputSoundToFriend);
+    assignLabelSoundToFriend.appendChild(assignCaptionSoundToFriend);
+
+    const assignLabelSoundOnly = document.createElement('label');
+    const assignCaptionSoundOnly = document.createElement('span');
+    assignCaptionSoundOnly.textContent = 'only sound';
+    const assignInputSoundOnly = document.createElement('input');
+    assignInputSoundOnly.classList.add('assignsoundonly'); // sound only
+    assignInputSoundOnly.setAttribute('type', 'radio');
+    assignInputSoundOnly.setAttribute('name', 'assignment');
+    wrap.appendChild(assignLabelSoundOnly);
+    assignLabelSoundOnly.appendChild(assignInputSoundOnly);
+    assignLabelSoundOnly.appendChild(assignCaptionSoundOnly);
+
+    const assignLabelGraphicsToFriend = document.createElement('label');
+    const assignCaptionGraphicsToFriend = document.createElement('span');
+    assignCaptionGraphicsToFriend.textContent = 'sound, and invite friend to graphics';
+    const assignInputGraphicsToFriend = document.createElement('input');
+    assignInputGraphicsToFriend.classList.add('assigninvitegraphics'); // graphics to friend
+    assignInputGraphicsToFriend.setAttribute('type', 'radio');
+    assignInputGraphicsToFriend.setAttribute('name', 'assignment');
+    wrap.appendChild(assignLabelGraphicsToFriend);
+    assignLabelGraphicsToFriend.appendChild(assignInputGraphicsToFriend);
+    assignLabelGraphicsToFriend.appendChild(assignCaptionGraphicsToFriend);
+
+    return wrap;
 }
 
 /**
