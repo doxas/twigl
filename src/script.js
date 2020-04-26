@@ -51,6 +51,8 @@ let urlParameter = null; // GET パラメータを解析するための searchPa
 let fire = null;              // firedb
 let currentDirectorId = null; // 自分自身のディレクター ID
 let currentChannelId = null;  // 自分自身がディレクターとなったチャンネルの ID
+let broadcastForm = null;     // 登録用フォームの実体
+let broadcastSetting = null;  // 登録用フォームの入力内容
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -394,32 +396,52 @@ window.addEventListener('DOMContentLoaded', () => {
         showDialog('Do you want to start setting up a broadcast?')
         .then((isOk) => {
             if(isOk === true){
-                // TODO: ここで全部のパーツを入力させる
-                const inner = generateBroadcastForm();
-                const directorName = inner.querySelector('.directorname');
+                // 配信用のフォームを生成
+                broadcastForm = generateBroadcastForm();
+                const directorName = broadcastForm.querySelector('.directorname');
                 setTimeout(() => {directorName.focus();}, 200);
-                return showDialog(inner);
+                return showDialog(broadcastForm);
             }
         })
-        // .then((isOk) => {
-        //     if(isOk === true){
-        //         // TODO: ここでバリデーション
-        //         if(validation === true){
-        //             showDialog('please wait...', {
-        //                 okDisable: true,
-        //                 cancelDisable: true,
-        //             });
-        //             // バリデーションに問題がなければ firebase 側に処理を流す
-        //             return fire.createDirector('jockey');
-        //         }else{
-        //             // 入力に不備があったら終了
-        //             showDialog('invalid input!', {
-        //                 okVisible: false,
-        //                 cancelLabel: 'ok',
-        //             });
-        //         }
-        //     }
-        // })
+        .then((isOk) => {
+            if(isOk === true){
+                // 入力内容を確認する
+                broadcastSetting = {
+                    validation: true,
+                    assign: 'both',
+                };
+                // スクリーンネーム、グループネームが空欄でないかどうか
+                const directorName = broadcastForm.querySelector('.directorname');
+                if(directorName.value === '' || directorName.value.replace(/\s/g, '') === ''){
+                    broadcastSetting.validation = false;
+                }
+                // どのラジオボタンを選択しているか
+                const both           = broadcastForm.querySelector('.assignboth');
+                const graphics       = broadcastForm.querySelector('.assignonlygraphics');
+                const inviteSound    = broadcastForm.querySelector('.assigninvitesound');
+                const sound          = broadcastForm.querySelector('.assignonlysound');
+                const inviteGraphics = broadcastForm.querySelector('.assigninvitegraphics');
+                if(both.checked           === true){broadcastSetting.assign = 'both';}
+                if(graphics.checked       === true){broadcastSetting.assign = 'onlygraphics';}
+                if(inviteSound.checked    === true){broadcastSetting.assign = 'invitesound';}
+                if(sound.checked          === true){broadcastSetting.assign = 'onlysound';}
+                if(inviteGraphics.checked === true){broadcastSetting.assign = 'invitegraphics';}
+                // 入力内容に問題なければ firebase 関連の初期化を行う
+                if(broadcastSetting.validation === true){
+                    showDialog('please wait...', {
+                        okDisable: true,
+                        cancelDisable: true,
+                    });
+                    return fire.createDirector(directorName.value);
+                }else{
+                    // 入力に不備があったら終了
+                    showDialog('screen name is blank', {
+                        okVisible: false,
+                        cancelLabel: 'ok',
+                    });
+                }
+            }
+        })
         // .then((res) => {
         //     // ディレクター ID をキャッシュ
         //     currentDirectorId = res.directorId;
@@ -603,6 +625,10 @@ function onomatSetting(play = true){
     audioEditor.resize();
 }
 
+/**
+ * 配信用フォームの部品を生成する
+ * @return {HTMLDivElement}
+ */
 function generateBroadcastForm(){
     const wrap = document.createElement('div');
 
@@ -638,7 +664,7 @@ function generateBroadcastForm(){
     const assignCaptionGraphicsOnly = document.createElement('span');
     assignCaptionGraphicsOnly.textContent = 'only graphics';
     const assignInputGraphicsOnly = document.createElement('input');
-    assignInputGraphicsOnly.classList.add('assigngraphicsonly'); // graphics only
+    assignInputGraphicsOnly.classList.add('assignonlygraphics'); // only graphics
     assignInputGraphicsOnly.setAttribute('type', 'radio');
     assignInputGraphicsOnly.setAttribute('name', 'assignment');
     wrap.appendChild(assignLabelGraphicsOnly);
@@ -660,7 +686,7 @@ function generateBroadcastForm(){
     const assignCaptionSoundOnly = document.createElement('span');
     assignCaptionSoundOnly.textContent = 'only sound';
     const assignInputSoundOnly = document.createElement('input');
-    assignInputSoundOnly.classList.add('assignsoundonly'); // sound only
+    assignInputSoundOnly.classList.add('assignonlysound'); // only sound
     assignInputSoundOnly.setAttribute('type', 'radio');
     assignInputSoundOnly.setAttribute('name', 'assignment');
     wrap.appendChild(assignLabelSoundOnly);
