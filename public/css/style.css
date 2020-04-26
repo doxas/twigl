@@ -410,7 +410,7 @@ input[type=checkbox]:checked + .togglebutton::before {
     background-color: inherit;
     border: 0px;
     border-bottom: 2px solid #222;
-    color: whitesmoke;
+    color: #1DA1F2;
     margin: 0px 8px;
     padding: 5px;
     width: calc(100% - 20px);
