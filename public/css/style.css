@@ -54,6 +54,9 @@ body {
     flex-direction: column;
     justify-content: flex-start;
 }
+#globaliconcolumn.invisible {
+    display: none;
+}
 .globaliconinner {
     background-color: rgba(64, 64, 64, 0.5);
     border-radius: 20px;
@@ -66,6 +69,9 @@ body {
     user-select: none;
     pointer-events: auto;
     cursor: pointer;
+}
+.globaliconinner.invisible {
+    display: none;
 }
 .globaliconinner + .globaliconinner {
     margin: 8px 0px 0px;
