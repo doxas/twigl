@@ -28,9 +28,58 @@ body {
 #canvaswrap {
     width: 100%;
     height: calc(100% - 480px);
+    position: relative;
+    overflow: hidden;
 }
 #canvaswrap.fullscreen {
     height: 100%;
+}
+#canvaswrap canvas {
+    position: absolute;
+}
+#globaliconwrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    overflow: hidden;
+    position: relative;
+    pointer-events: none;
+}
+#globaliconcolumn {
+    margin: 0px 0px 0px auto;
+    padding: 10px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.globaliconinner {
+    background-color: rgba(64, 64, 64, 0.5);
+    border-radius: 20px;
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    user-select: none;
+    pointer-events: auto;
+    cursor: pointer;
+}
+.globaliconinner + .globaliconinner {
+    margin: 8px 0px 0px;
+}
+.globaliconinner img {
+    margin: auto;
+    width: 100%;
+    opacity: 0.5;
+}
+.globaliconinner:hover {
+    background-color: rgba(64, 64, 64, 0.8);
+}
+.globaliconinner:hover img {
+    opacity: 0.8;
 }
 .lineout {
     background-color: #111;
@@ -329,9 +378,9 @@ input[type=checkbox]:checked + .togglebutton::before {
 }
 #dialogmessage {
     font-size: 14px;
-    width: 200px;
-    min-height: 100px;
-    max-height: 100px;
+    width: 300px;
+    min-height: 150px;
+    max-height: 150px;
     overflow: auto;
 }
 #dialogbuttonwrap {
@@ -343,9 +392,11 @@ input[type=checkbox]:checked + .togglebutton::before {
 .dialogbutton {
     border: 1px solid #333;
     border-radius: 20px;
+    line-height: 170%;
     margin: 0px 0px 0px 8px;
     padding: 3px 20px;
     cursor: pointer;
+    user-select: none;
 }
 #dialogbuttonok {
     color: #1DA1F2;
@@ -362,5 +413,15 @@ input[type=checkbox]:checked + .togglebutton::before {
     background-color: #FF517B;
     border: 1px solid #FF517B;
     color: inherit;
+}
+#dialogbuttonok.disabled,
+#dialogbuttoncancel.disabled,
+#dialogbuttonok.disabled:hover,
+#dialogbuttoncancel.disabled:hover,
+.dialogbutton.disabled {
+    background-color: #555;
+    border: 1px solid #555;
+    color: silver;
+    cursor: default;
 }
 
