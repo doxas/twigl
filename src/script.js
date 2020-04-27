@@ -569,29 +569,16 @@ window.addEventListener('DOMContentLoaded', () => {
         // })
         .then((res) => {
             console.log('🌠', currentDirectorId, friendDirectorId);
-            const currentState = [
-                `mode=${currentMode}`,
-                `dm=${directionMode}`,
-                `ch=${currentChannelId}`,
-                `ow=true`,
-            ];
-            switch(broadcastSetting.assign){
-                case BROADCAST_ASSIGN.BOTH:
-                case BROADCAST_ASSIGN.ONLY_GRAPHICS:
-                    currentState.push(`gd=${currentDirectorId}`);
-                    break;
-                case BROADCAST_ASSIGN.INVITE_SOUND:
-                    currentState.push(`gd=${currentDirectorId}`, `fd=${friendDirectorId}`);
-                    break;
-                case BROADCAST_ASSIGN.ONLY_SOUND:
-                    currentState.push(`sd=${currentDirectorId}`);
-                    break;
-                case BROADCAST_ASSIGN.INVITE_GRAPHICS:
-                    currentState.push(`sd=${currentDirectorId}`, `fd=${friendDirectorId}`);
-                    break;
-            }
-            history.replaceState('', '', `?${currentState.join('&')}`);
+            history.replaceState('', '', generateDirectorURL(
+                currentMode,
+                directionMode,
+                broadcastSetting.assign,
+                currentDirectorId,
+                currentChannelId,
+                friendDirectorId,
+            ));
             showDialog('ここで URL とかが出るようにする＆フラグを立てておいて、再度ボタンが押された際に URL とかを出すようにする', {cancelVisible: false});
+
         })
         .catch((err) => {
             console.log('💣', err);
@@ -903,6 +890,40 @@ function generateUrl(url){
         headers, headers,
         body: JSON.stringify({long_url: url}),
     });
+}
+
+/**
+ * ディレクター自身が復帰できる完全なディレクター URL を生成する
+ * @param {number} graphicsMode - 現在のグラフィックスのモード
+ * @param {string} directionMode - BROADCAST_DIRECTION に含まれるディレクションモード
+ * @param {string} assign - BROADCAST_ASSIGN に含まれるアサインの設定
+ * @param {string} directorId - ディレクター ID
+ * @param {string} channelId - チャンネル ID
+ * @param {string} friendId - フレンドに設定するディレクター ID
+ */
+function generateDirectorURL(graphicsMode, directionMode, assign, directorId, channelId, friendId){
+    const currentState = [
+        `mode=${graphicsMode}`,
+        `dm=${directionMode}`,
+        `ch=${channelId}`,
+        `ow=true`,
+    ];
+    switch(assign){
+        case BROADCAST_ASSIGN.BOTH:
+        case BROADCAST_ASSIGN.ONLY_GRAPHICS:
+            currentState.push(`gd=${directorId}`);
+            break;
+        case BROADCAST_ASSIGN.INVITE_SOUND:
+            currentState.push(`gd=${directorId}`, `fd=${friendId}`);
+            break;
+        case BROADCAST_ASSIGN.ONLY_SOUND:
+            currentState.push(`sd=${directorId}`);
+            break;
+        case BROADCAST_ASSIGN.INVITE_GRAPHICS:
+            currentState.push(`sd=${directorId}`, `fd=${friendId}`);
+            break;
+    }
+    return currentState.join('&');
 }
 
 /**
