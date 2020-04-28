@@ -521,7 +521,12 @@ window.addEventListener('DOMContentLoaded', () => {
         })
         .then(() => {
             // チャンネルを生成
-            return fire.createChannel(currentDirectorId);
+            return fire.createChannel(
+                currentDirectorId,
+                fragmenDefaultSource[currentMode],
+                currentMode,
+                Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT
+            );
         })
         .then((res) => {
             // チャンネル ID をキャッシュ

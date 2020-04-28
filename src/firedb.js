@@ -38,9 +38,12 @@ export class FireDB {
     /**
      * チャンネルを新規に生成する
      * @param {string} directorId - ディレクター ID
+     * @param {string} graphicsSource - グラフィックスソースの初期値
+     * @param {number} graphicsMode - グラフィックスモード
+     * @param {string} soundSource - サウンドソースの初期値
      * @return {Promise} realtime database にチャンネルを登録したら解決する Promise
      */
-    createChannel(directorId){
+    createChannel(directorId, graphicsSource, graphicsMode, soundSource){
         return new Promise((resolve) => {
             const channelKey = this.db.ref('channel').push().key;
             const payload = {};
@@ -50,12 +53,12 @@ export class FireDB {
                 visual: 'unknown',
                 disc: 'unknown',
                 graphics: {
-                    source: '',
-                    cursor: '0|0|0', // row, column, scrollTop
-                    mode: 0,         // current mode of graphics
+                    source: graphicsSource,
+                    cursor: '0|0|0',    // row, column, scrollTop
+                    mode: graphicsMode, // current mode of graphics
                 },
                 sound: {
-                    source: '',
+                    source: soundSource,
                     cursor: '0|0|0',
                     play: 0, // increment at sound play in director location
                 },
