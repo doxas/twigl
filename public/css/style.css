@@ -233,9 +233,12 @@ body {
     max-width: 220px;
     height: 100%;
 }
-#menu .menublock {
+.menublock {
     border-top: 1px solid black;
     border-left: 1px solid black;
+}
+.menublock.invisible {
+    display: none;
 }
 .h3wrap {
     display: flex;
