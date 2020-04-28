@@ -502,6 +502,8 @@ window.addEventListener('DOMContentLoaded', () => {
         .then((res) => {
             // ディレクター ID をキャッシュ
             currentDirectorId = res.directorId;
+            // フレンド用の変数を一度クリア
+            friendDirectorId = friendDirectionMode = null;
             return new Promise((resolve) => {
                 if(
                     broadcastSetting.assign === BROADCAST_ASSIGN.INVITE_SOUND ||
@@ -574,6 +576,9 @@ window.addEventListener('DOMContentLoaded', () => {
         // })
         .then((res) => {
             console.log('🌠', currentDirectorId, friendDirectorId);
+
+            // TODO: ディレクター自身の環境のオムニバーに URL を設定する
+            // これは実際のところ、復帰用 URL であってオムニバーに出さないほうがいいのでは？
             history.replaceState('', '', generateDirectorURL(
                 currentMode,
                 directionMode,
@@ -582,6 +587,22 @@ window.addEventListener('DOMContentLoaded', () => {
                 currentChannelId,
                 friendDirectorId,
             ));
+
+            // フレンドがいる場合は URL を生成する
+            if(friendDirectorId != null){
+                const friendUrl = generateFriendURL(
+                    currentMode,
+                    broadcastSetting.assign,
+                    currentDirectorId,
+                    currentChannelId,
+                    friendDirectorId,
+                );
+                console.log(friendUrl);
+            }
+
+            // 一般公開用の配信 URL を生成する
+            // TODO:
+
             showDialog('ここで URL とかが出るようにする＆フラグを立てておいて、再度ボタンが押された際に URL とかを出すようにする', {cancelVisible: false});
 
         })
@@ -905,6 +926,7 @@ function generateUrl(url){
  * @param {string} directorId - ディレクター ID
  * @param {string} channelId - チャンネル ID
  * @param {string} friendId - フレンドに設定するディレクター ID
+ * @return {string}
  */
 function generateDirectorURL(graphicsMode, directionMode, assign, directorId, channelId, friendId){
     const currentState = [
@@ -927,6 +949,34 @@ function generateDirectorURL(graphicsMode, directionMode, assign, directorId, ch
         case BROADCAST_ASSIGN.INVITE_GRAPHICS:
             currentState.push(`sd=${directorId}`, `fd=${friendId}`);
             break;
+    }
+    return currentState.join('&');
+}
+
+/**
+ * ディレクターからフレンドにシェアする URL を生成する
+ * @param {number} graphicsMode - 現在のグラフィックスのモード
+ * @param {string} assign - BROADCAST_ASSIGN に含まれるアサインの設定
+ * @param {string} directorId - ディレクター ID
+ * @param {string} channelId - チャンネル ID
+ * @param {string} friendId - フレンドに設定するディレクター ID
+ * @return {string}
+ */
+function generateFriendURL(graphicsMode, assign, directorId, channelId, friendId){
+    const currentState = [
+        `mode=${graphicsMode}`,
+        `ch=${channelId}`,
+        `ow=false`,
+    ];
+    switch(assign){
+        case BROADCAST_ASSIGN.INVITE_SOUND:
+            currentState.push(`sd=${friendId}`, `fd=${directorId}`);
+            break;
+        case BROADCAST_ASSIGN.INVITE_GRAPHICS:
+            currentState.push(`gd=${friendId}`, `fd=${directorId}`);
+            break;
+        default:
+            return '';
     }
     return currentState.join('&');
 }
