@@ -57,6 +57,9 @@ let broadcastSetting = null;    // 登録用フォームの入力内容
 let directionMode = null;       // 何に対するディレクターなのか
 let friendDirectionMode = null; // フレンドが何に対するディレクターなのか
 let isOwner = null;             // チャンネルのオーナーなのかどうか
+let shareURL = '';              // 配信用共有 URL
+let ownerURL = '';              // ディレクターとして同環境に復帰できる URL
+let friendURL = '';             // フレンド共有用 URL
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -479,7 +482,17 @@ window.addEventListener('DOMContentLoaded', () => {
                 if(inviteSound.checked    === true){broadcastSetting.assign = BROADCAST_ASSIGN.INVITE_SOUND;}
                 if(sound.checked          === true){broadcastSetting.assign = BROADCAST_ASSIGN.ONLY_SOUND;}
                 if(inviteGraphics.checked === true){broadcastSetting.assign = BROADCAST_ASSIGN.INVITE_GRAPHICS;}
-                // 入力内容に問題なければ firebase 関連の初期化を行う
+                // 入力内容に問題なければ各種変数を初期化し firebase 関連の初期化を行う
+                currentDirectorId = null;
+                friendDirectorId = null;
+                currentChannelId = null;
+                broadcastForm = null;
+                directionMode = null;
+                friendDirectionMode = null;
+                isOwner = null;
+                shareURL = '';
+                ownerURL = '';
+                friendURL = '';
                 if(broadcastSetting.validation === true){
                     showDialog('please wait...', {
                         okDisable: true,
@@ -502,8 +515,6 @@ window.addEventListener('DOMContentLoaded', () => {
         .then((res) => {
             // ディレクター ID をキャッシュ
             currentDirectorId = res.directorId;
-            // フレンド用の変数を一度クリア
-            friendDirectorId = friendDirectionMode = null;
             return new Promise((resolve) => {
                 if(
                     broadcastSetting.assign === BROADCAST_ASSIGN.INVITE_SOUND ||
@@ -575,35 +586,36 @@ window.addEventListener('DOMContentLoaded', () => {
         //     .catch(err => console.log('爆發', err));
         // })
         .then((res) => {
-            console.log('🌠', currentDirectorId, friendDirectorId);
+            // 一般公開用の配信 URL を生成する
+            shareURL = `${BASE_URL}?ch=${currentChannelId}`;
 
-            // TODO: ディレクター自身の環境のオムニバーに URL を設定する
-            // これは実際のところ、復帰用 URL であってオムニバーに出さないほうがいいのでは？
-            history.replaceState('', '', generateDirectorURL(
+            // ディレクター自身の環境のオムニバーに URL を設定する
+            ownerURL = BASE_URL + '?' + generateDirectorURL(
                 currentMode,
                 directionMode,
                 broadcastSetting.assign,
                 currentDirectorId,
                 currentChannelId,
                 friendDirectorId,
-            ));
+            );
 
             // フレンドがいる場合は URL を生成する
             if(friendDirectorId != null){
-                const friendUrl = generateFriendURL(
+                friendURL = generateFriendURL(
                     currentMode,
                     broadcastSetting.assign,
                     currentDirectorId,
                     currentChannelId,
                     friendDirectorId,
                 );
-                console.log(friendUrl);
             }
 
-            // 一般公開用の配信 URL を生成する
-            // TODO:
+            // オムニバー（アドレスバー）の状態を配信視聴者用と同じ URL に変更
+            history.replaceState('', '', `?ch=${currentChannelId}`);
 
-            showDialog('ここで URL とかが出るようにする＆フラグを立てておいて、再度ボタンが押された際に URL とかを出すようにする', {cancelVisible: false});
+            // リンクを含む DOM を生成してダイアログを表示
+            const wrap = generateShareAnchor(ownerURL, friendURL, shareURL);
+            showDialog(wrap, {cancelVisible: false});
 
         })
         .catch((err) => {
@@ -855,6 +867,48 @@ function generateBroadcastForm(){
     wrap.appendChild(assignLabelGraphicsToFriend);
     assignLabelGraphicsToFriend.appendChild(assignInputGraphicsToFriend);
     assignLabelGraphicsToFriend.appendChild(assignCaptionGraphicsToFriend);
+
+    return wrap;
+}
+
+/**
+ * 配信用フォームの部品を生成する
+ * @return {HTMLDivElement}
+ */
+function generateShareAnchor(ownerURL, friendURL, shareURL){
+    const wrap = document.createElement('div');
+    const directorHeader = document.createElement('h3');
+    directorHeader.textContent = 'Director (You)';
+    const directorCaption = document.createElement('div');
+    directorCaption.textContent = 'The URL to return to a state where you can edit this channel again.';
+    const directorAnchor = document.createElement('a');
+    directorAnchor.textContent = 'Director URL';
+    directorAnchor.setAttribute('href', ownerURL);
+    wrap.appendChild(directorHeader);
+    wrap.appendChild(directorCaption);
+    wrap.appendChild(directorAnchor);
+    if(friendURL != null && friendURL !== ''){
+        const friendHeader = document.createElement('h3');
+        friendHeader.textContent = 'Co-Editor (Friend)';
+        const friendCaption = document.createElement('div');
+        friendCaption.textContent = 'Only share it with friends who are co-editors.';
+        const friendAnchor = document.createElement('a');
+        friendAnchor.textContent = 'Friend URL';
+        friendAnchor.setAttribute('href', friendURL);
+        wrap.appendChild(friendHeader);
+        wrap.appendChild(friendCaption);
+        wrap.appendChild(friendAnchor);
+    }
+    const publicHeader = document.createElement('h3');
+    publicHeader.textContent = 'Audience';
+    const publicCaption = document.createElement('div');
+    publicCaption.textContent = 'This is a URL for public broadcast.';
+    const publicAnchor = document.createElement('a');
+    publicAnchor.textContent = 'Broadcast URL';
+    publicAnchor.setAttribute('href', shareURL);
+    wrap.appendChild(publicHeader);
+    wrap.appendChild(publicCaption);
+    wrap.appendChild(publicAnchor);
 
     return wrap;
 }
