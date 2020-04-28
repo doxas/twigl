@@ -578,7 +578,7 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         })
         .then((res) => {
-            // ディレクター自身の環境のオムニバーに URL を設定する
+            // ディレクター自身の復帰用 URL を生成する
             ownerURL = BASE_URL + '?' + generateDirectorURL(
                 currentMode,
                 directionMode,
@@ -1048,6 +1048,7 @@ function updateStar(count){
     const overlay = document.querySelector('#staroverlay');
     overlay.classList.remove('popup');
     overlay.classList.add('visible');
+    // 既に登録済みのタイマーがある場合はキャンセル
     if(starCounterTimer != null){
         clearTimeout(starCounterTimer);
         counter.textContent = overlay.textContent = zeroPadding(count, 3);
@@ -1058,6 +1059,12 @@ function updateStar(count){
     }, 100);
 }
 
+/**
+ * 数値をゼロ埋めする
+ * @param {number} number - 数値
+ * @param {number} count - 桁数
+ * @return {string}
+ */
 function zeroPadding(number, count){
     const len = '' + number;
     return (new Array(count).join('0') + number).substr(-Math.max(count, len.length));
