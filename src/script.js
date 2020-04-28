@@ -60,6 +60,7 @@ let isOwner = null;             // チャンネルのオーナーなのかどう
 let shareURL = '';              // 配信用共有 URL
 let ownerURL = '';              // ディレクターとして同環境に復帰できる URL
 let friendURL = '';             // フレンド共有用 URL
+let starCounterTimer = null;    // スターのアニメーション用タイマー
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -438,6 +439,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // broadcast
     broadIcon.addEventListener('click', () => {
+        if(ownerURL !== ''){
+            // 一度でも配信用 URL が生成されている場合は、ただ再表示するだけ
+            const wrap = generateShareAnchor(ownerURL, friendURL, shareURL);
+            showDialog(wrap, {cancelVisible: false});
+            return;
+        }
         showDialog('Do you want to start setting up a broadcast?')
         .then((isOk) => {
             return new Promise((resolve, reject) => {
@@ -570,25 +577,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     return fire.updateChannelDirector(currentChannelId, friendDirectorId, currentDirectorId);
             }
         })
-        // TODO: 以下は仮でとりあえず更新できるか試してみたもの
-        //       ID が不正な場合は正しくエラーになるのだが catch できない模様
-        // .then((res) => {
-        //     console.log('🌏', res);
-        //     return fire.updateChannelData(currentDirectorId + 'hogejayo', currentChannelId, {
-        //         source: 'graphics',
-        //         cursor: '10|10|10',
-        //         mode: 1,
-        //     }, {
-        //         source: 'sound',
-        //         cursor: '99|99|99',
-        //         play: 99,
-        //     })
-        //     .catch(err => console.log('爆發', err));
-        // })
         .then((res) => {
-            // 一般公開用の配信 URL を生成する
-            shareURL = `${BASE_URL}?ch=${currentChannelId}`;
-
             // ディレクター自身の環境のオムニバーに URL を設定する
             ownerURL = BASE_URL + '?' + generateDirectorURL(
                 currentMode,
@@ -598,7 +587,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 currentChannelId,
                 friendDirectorId,
             );
-
             // フレンドがいる場合は URL を生成する
             if(friendDirectorId != null){
                 friendURL = generateFriendURL(
@@ -609,17 +597,17 @@ window.addEventListener('DOMContentLoaded', () => {
                     friendDirectorId,
                 );
             }
-
+            // 一般公開用の配信 URL を生成する
+            shareURL = `${BASE_URL}?ch=${currentChannelId}`;
             // オムニバー（アドレスバー）の状態を配信視聴者用と同じ URL に変更
             history.replaceState('', '', `?ch=${currentChannelId}`);
 
             // リンクを含む DOM を生成してダイアログを表示
             const wrap = generateShareAnchor(ownerURL, friendURL, shareURL);
             showDialog(wrap, {cancelVisible: false});
-
         })
         .catch((err) => {
-            console.log('💣', err);
+            console.error('💣', err);
             showDialog(err || 'Unknown Error', {cancelVisible: false});
         });
     }, false);
@@ -1033,6 +1021,46 @@ function generateFriendURL(graphicsMode, assign, directorId, channelId, friendId
             return '';
     }
     return currentState.join('&');
+}
+
+/**
+ * スターアイコンを表示する
+ */
+function showStarIcon(){
+    const wrap = document.querySelector('#stariconwrap');
+    wrap.classList.add('visible');
+}
+
+/**
+ * スターアイコンを非表示にする
+ */
+function hideStarIcon(){
+    const wrap = document.querySelector('#stariconwrap');
+    wrap.classList.remove('visible');
+}
+
+/**
+ * スターのカウントを更新する
+ * @param {number} count - カウント
+ */
+function updateStar(count){
+    const counter = document.querySelector('#starcounter');
+    const overlay = document.querySelector('#staroverlay');
+    overlay.classList.remove('popup');
+    overlay.classList.add('visible');
+    if(starCounterTimer != null){
+        clearTimeout(starCounterTimer);
+        counter.textContent = overlay.textContent = zeroPadding(count, 3);
+    }
+    starCounterTimer = setTimeout(() => {
+        counter.textContent = overlay.textContent = zeroPadding(count, 3);
+        overlay.classList.add('popup');
+    }, 100);
+}
+
+function zeroPadding(number, count){
+    const len = '' + number;
+    return (new Array(count).join('0') + number).substr(-Math.max(count, len.length));
 }
 
 /**
