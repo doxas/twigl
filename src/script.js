@@ -298,6 +298,17 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 1000);
         // 文字数の出力
         counter.textContent = `${editor.getValue().length}`;
+    }, (evt) => {
+        // 配信中はステータスとは無関係に状態を送る
+        if(currentChannelId != null && (broadcastMode === 'owner' || broadcastMode === 'friend')){
+            // グラフィックスを編集する立場かどうか
+            if(
+                (broadcastMode === 'owner' && directionMode !== BROADCAST_DIRECTION.SOUND) ||
+                (broadcastMode === 'friend' && directionMode === BROADCAST_DIRECTION.SOUND)
+            ){
+                updateGraphicsData(currentDirectorId, currentChannelId, currentMode);
+            }
+        }
     });
     let audioTimeoutId = null;
     audioEditor = editorSetting('editoraudio', currentAudioSource, (evt) => {
@@ -309,6 +320,17 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 1000);
         // 文字数の出力
         audioCounter.textContent = `${audioEditor.getValue().length}`;
+    }, (evt) => {
+        // 配信中はステータスとは無関係に状態を送る
+        if(currentChannelId != null && (broadcastMode === 'owner' || broadcastMode === 'friend')){
+            // グラフィックスを編集する立場かどうか
+            if(
+                (broadcastMode === 'owner' && directionMode !== BROADCAST_DIRECTION.GRAPHICS) ||
+                (broadcastMode === 'friend' && directionMode === BROADCAST_DIRECTION.GRAPHICS)
+            ){
+                updateSoundData(currentDirectorId, currentChannelId, soundPlay);
+            }
+        }
     });
     // audioToggle が checked である場合、URL からサウンドシェーダが有効化されている
     if(audioToggle.checked === true){
@@ -426,7 +448,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 (broadcastMode === 'owner' && directionMode !== BROADCAST_DIRECTION.SOUND) ||
                 (broadcastMode === 'friend' && directionMode === BROADCAST_DIRECTION.SOUND)
             ){
-                updateGraphicsData(currentDirectorId, currentChannelId, graphicsData, currentMode);
+                updateGraphicsData(currentDirectorId, currentChannelId, currentMode);
             }
         }
     });
@@ -745,6 +767,28 @@ window.addEventListener('DOMContentLoaded', () => {
                     currentChannelId,
                     friendDirectorId,
                 );
+                // フレンドがいる場合は read only を設定した上でリスナーを登録
+                if(directionMode === BROADCAST_DIRECTION.SOUND && friendDirectorId != null){
+                    editor.setReadOnly(true);
+                    // グラフィックスを listen
+                    fire.listenChannelData(currentChannelId, (snap) => {
+                        channelData = snap;
+                        reflectGraphics(channelData);
+                    });
+                }else if(directionMode === BROADCAST_DIRECTION.GRAPHICS && friendDirectorId != null){
+                    audioEditor.setReadOnly(true);
+                    // サウンドを listen
+                    fire.listenChannelData(currentChannelId, (snap) => {
+                        channelData = snap;
+                        reflectSound(channelData);
+                        if(soundPlay !== channelData.sound.play){
+                            soundPlay = channelData.sound.play;
+                            // リモートの再生回数が変更になっていたら再生する
+                            if(latestAudioStatus !== 'success'){return;}
+                            updateAudio(audioEditor.getValue(), true);
+                        }
+                    });
+                }
             }
             const params = `?ch=${currentChannelId}&dm=${directionMode}`;
             // 一般公開用の配信 URL を生成する
@@ -893,6 +937,12 @@ window.addEventListener('DOMContentLoaded', () => {
                                 updateAudio(audioEditor.getValue(), true);
                             }
                         });
+                    }else{
+                        // サウンド以外のリスナーを設定
+                        fire.listenChannelData(currentChannelId, (snap) => {
+                            channelData = snap;
+                            reflectGraphics(channelData);
+                        });
                     }
                     // 視聴者側には配信アイコンを表示しない
                     icon = document.querySelector('#broadcasticon');
@@ -947,7 +997,7 @@ function updateAudio(source, force){
 function reflectGraphics(data){
     fragmen.mode = currentMode = mode.selectedIndex = data.graphics.mode;
     const numbers = data.graphics.cursor.split('|');
-    if(editor.getValue !== data.graphics.source){
+    if(editor.getValue() !== data.graphics.source){
         editor.setValue(data.graphics.source);
     }
     editor.gotoLine(parseInt(numbers[0]) + 1, parseInt(numbers[1]), true);
@@ -960,7 +1010,7 @@ function reflectGraphics(data){
  */
 function reflectSound(data){
     const numbers = data.sound.cursor.split('|');
-    if(audioEditor.getValue !== data.sound.source){
+    if(audioEditor.getValue() !== data.sound.source){
         audioEditor.setValue(data.sound.source);
     }
     audioEditor.gotoLine(parseInt(numbers[0]) + 1, parseInt(numbers[1]), true);
@@ -969,8 +1019,13 @@ function reflectSound(data){
 
 /**
  * Ace editor の初期設定
+ * @param {string} id - 対象となる DOM が持つ ID 属性
+ * @param {string} source - 初期値として設定するソースコード
+ * @param {function} onChange - change イベント用コールバック
+ * @param {function} onSelectionChange - selection change イベント用コールバック
+ * @param {string} [theme='chaos'] - テーマ
  */
-function editorSetting(id, source, onChange, theme = 'chaos'){
+function editorSetting(id, source, onChange, onSelectionChange, theme = 'chaos'){
     const edit = ace.edit(id);
     edit.setTheme(`ace/theme/${theme}`);
     edit.session.setOption('indentedSoftWrap', false);
@@ -986,6 +1041,9 @@ function editorSetting(id, source, onChange, theme = 'chaos'){
 
     // editor の内容が変化した際のリスナーを設定
     edit.session.on('change', onChange);
+
+    // editor 内で選択が変更した際のリスナーを設定
+    edit.selection.on('changeSelection', onSelectionChange);
 
     // １行目にフォーカスしておく
     setTimeout(() => {edit.gotoLine(1);}, 100);
