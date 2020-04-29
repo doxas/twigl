@@ -66,6 +66,8 @@ let graphicsDisable = false;    // グラフィックス用のエディタを無
 let soundDisable = false;       // サウンド用のエディタを無効化するかどうか
 let broadcastMode = 'none';     // 配信に対する挙動（none, owner, friend, audience）
 let soundPlay = 0;              // サウンドが配信者の元で再生された際のカウント
+let channelData = null;         // チャンネルのデータを保持
+let starData = null;            // スターに関するデータを保持
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -815,8 +817,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // URL から取得した情報に応じて配信かどうか判断しセットアップする
     if(broadcastMode !== 'none'){
-        let channelData = null;
-        let starData = null;
+        channelData = null;
+        starData = null;
         soundPlay = 0;
         fire.getChannelData(currentChannelId)
         .then((snapshot) => {
