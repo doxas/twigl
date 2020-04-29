@@ -426,15 +426,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 (broadcastMode === 'owner' && directionMode !== BROADCAST_DIRECTION.SOUND) ||
                 (broadcastMode === 'friend' && directionMode === BROADCAST_DIRECTION.SOUND)
             ){
-                // カーソル位置やスクロール位置
-                const cursor = editor.selection.getCursor();
-                const scrollTop = editor.session.getScrollTop();
-                const graphicsData = {
-                    cursor: `${cursor.row}|${cursor.column}|${scrollTop}`,
-                    mode: currentMode,
-                    source: editor.getValue()
-                };
-                fire.updateChannelData(currentDirectorId, currentChannelId, graphicsData);
+                updateGraphicsData(currentDirectorId, currentChannelId, graphicsData, currentMode);
             }
         }
     });
@@ -471,15 +463,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 (broadcastMode === 'owner' && directionMode !== BROADCAST_DIRECTION.GRAPHICS) ||
                 (broadcastMode === 'friend' && directionMode === BROADCAST_DIRECTION.GRAPHICS)
             ){
-                // カーソル位置やスクロール位置
-                const cursor = audioEditor.selection.getCursor();
-                const scrollTop = audioEditor.session.getScrollTop();
-                const soundData = {
-                    cursor: `${cursor.row}|${cursor.column}|${scrollTop}`,
-                    source: audioEditor.getValue(),
-                    play: soundPlay,
-                };
-                fire.updateChannelData(currentDirectorId, currentChannelId, null, soundData);
+                updateSoundData(currentDirectorId, currentChannelId, soundPlay);
             }
         }
     }, false);
@@ -503,15 +487,7 @@ window.addEventListener('DOMContentLoaded', () => {
                         (broadcastMode === 'owner' && directionMode !== BROADCAST_DIRECTION.GRAPHICS) ||
                         (broadcastMode === 'friend' && directionMode === BROADCAST_DIRECTION.GRAPHICS)
                     ){
-                        // カーソル位置やスクロール位置
-                        const cursor = audioEditor.selection.getCursor();
-                        const scrollTop = audioEditor.session.getScrollTop();
-                        const soundData = {
-                            cursor: `${cursor.row}|${cursor.column}|${scrollTop}`,
-                            source: audioEditor.getValue(),
-                            play: soundPlay,
-                        };
-                        fire.updateChannelData(currentDirectorId, currentChannelId, null, soundData);
+                        updateSoundData(currentDirectorId, currentChannelId, soundPlay);
                     }
                 }
             }
@@ -971,7 +947,9 @@ function updateAudio(source, force){
 function reflectGraphics(data){
     fragmen.mode = currentMode = mode.selectedIndex = data.graphics.mode;
     const numbers = data.graphics.cursor.split('|');
-    editor.setValue(data.graphics.source);
+    if(editor.getValue !== data.graphics.source){
+        editor.setValue(data.graphics.source);
+    }
     editor.gotoLine(parseInt(numbers[0]) + 1, parseInt(numbers[1]), true);
     editor.session.setScrollTop(parseInt(numbers[2]));
 }
@@ -982,7 +960,9 @@ function reflectGraphics(data){
  */
 function reflectSound(data){
     const numbers = data.sound.cursor.split('|');
-    audioEditor.setValue(data.sound.source);
+    if(audioEditor.getValue !== data.sound.source){
+        audioEditor.setValue(data.sound.source);
+    }
     audioEditor.gotoLine(parseInt(numbers[0]) + 1, parseInt(numbers[1]), true);
     audioEditor.session.setScrollTop(parseInt(numbers[2]));
 }
@@ -1108,15 +1088,7 @@ function onomatSetting(play = true){
                     (broadcastMode === 'owner' && directionMode !== BROADCAST_DIRECTION.GRAPHICS) ||
                     (broadcastMode === 'friend' && directionMode === BROADCAST_DIRECTION.GRAPHICS)
                 ){
-                    // カーソル位置やスクロール位置
-                    const cursor = audioEditor.selection.getCursor();
-                    const scrollTop = audioEditor.session.getScrollTop();
-                    const soundData = {
-                        cursor: `${cursor.row}|${cursor.column}|${scrollTop}`,
-                        source: audioEditor.getValue(),
-                        play: soundPlay,
-                    };
-                    fire.updateChannelData(currentDirectorId, currentChannelId, null, soundData);
+                    updateSoundData(currentDirectorId, currentChannelId, soundPlay);
                 }
             }
         });
@@ -1388,6 +1360,42 @@ function generateFriendURL(graphicsMode, directionMode, assign, directorId, chan
             return '';
     }
     return currentState.join('&');
+}
+
+/**
+ * グラフィックスデータを送信するための一連の処理をまとめたもの
+ * @param {string} directorId - ディレクター ID
+ * @param {string} channelId - チャンネル ID
+ * @param {number} mode - 現在のモード
+ */
+function updateGraphicsData(directorId, channelId, mode){
+    // カーソル位置やスクロール位置
+    const cursor = editor.selection.getCursor();
+    const scrollTop = editor.session.getScrollTop();
+    const graphicsData = {
+        cursor: `${cursor.row}|${cursor.column}|${scrollTop}`,
+        source: editor.getValue(),
+        mode: mode,
+    };
+    fire.updateChannelData(directorId, channelId, graphicsData);
+}
+
+/**
+ * サウンドデータを送信するための一連の処理をまとめたもの
+ * @param {string} directorId - ディレクター ID
+ * @param {string} channelId - チャンネル ID
+ * @param {number} play - サウンドの再生回数
+ */
+function updateSoundData(directorId, channelId, play){
+    // カーソル位置やスクロール位置
+    const cursor = audioEditor.selection.getCursor();
+    const scrollTop = audioEditor.session.getScrollTop();
+    const soundData = {
+        cursor: `${cursor.row}|${cursor.column}|${scrollTop}`,
+        source: audioEditor.getValue(),
+        play: play,
+    };
+    fire.updateChannelData(directorId, channelId, null, soundData);
 }
 
 /**
