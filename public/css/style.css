@@ -28,9 +28,126 @@ body {
 #canvaswrap {
     width: 100%;
     height: calc(100% - 480px);
+    position: relative;
+    overflow: hidden;
 }
 #canvaswrap.fullscreen {
     height: 100%;
+}
+#canvaswrap canvas {
+    position: absolute;
+}
+#globaliconwrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    overflow: hidden;
+    position: relative;
+    pointer-events: none;
+}
+#globaliconcolumn {
+    margin: 0px 0px 0px auto;
+    padding: 10px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+#globaliconcolumn.invisible {
+    display: none;
+}
+.globaliconinner {
+    background-color: rgba(64, 64, 64, 0.5);
+    border-radius: 20px;
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    user-select: none;
+    pointer-events: auto;
+    cursor: pointer;
+}
+.globaliconinner.invisible {
+    display: none;
+}
+.globaliconinner + .globaliconinner {
+    margin: 8px 0px 0px;
+}
+.globaliconinner img {
+    margin: auto;
+    width: 100%;
+    opacity: 0.5;
+}
+.globaliconinner:hover {
+    background-color: rgba(64, 64, 64, 0.8);
+}
+.globaliconinner:hover img {
+    opacity: 0.8;
+}
+#stariconwrap {
+    background-color: rgba(64, 64, 64, 0.5);
+    border-radius: 20px;
+    margin: auto 0px 0px;
+    padding: 10px 8px;
+    width: 40px;
+    height: 60px;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    user-select: none;
+    pointer-events: auto;
+    cursor: pointer;
+}
+#stariconwrap.visible {
+    display: flex;
+}
+#stariconwrap img {
+    margin: 0px auto auto;
+    width: calc(100% - 4px);
+    opacity: 0.5;
+}
+#stariconwrap:hover {
+    background-color: rgba(64, 64, 64, 0.8);
+}
+#stariconwrap:hover img {
+    opacity: 0.8;
+}
+#starcounterwrap {
+    font-family: 'Overpass Mono', monospace;
+    font-size: 9px;
+    text-align: center;
+    text-shadow: 1px 0px 1px black, -1px 0px 1px black, 0px 1px 1px black, 0px -1px 1px black;
+    margin: auto 0px 0px;
+    min-height: 12px;
+    max-height: 12px;
+    position: relative;
+}
+#starcounter {
+    color: white;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+#staroverlay {
+    color: hotpink;
+    width: 100%;
+    height: 100%;
+    display: none;
+    position: absolute;
+    opacity: 1.0;
+    transform: translate(0px, -12px);
+}
+#staroverlay.visible {
+    display: block;
+}
+#staroverlay.popup {
+    display: block;
+    opacity: 0.0;
+    transform: translate(0px, -24px);
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
 }
 .lineout {
     background-color: #111;
@@ -116,9 +233,12 @@ body {
     max-width: 220px;
     height: 100%;
 }
-#menu .menublock {
+.menublock {
     border-top: 1px solid black;
     border-left: 1px solid black;
+}
+.menublock.invisible {
+    display: none;
 }
 .h3wrap {
     display: flex;
@@ -311,6 +431,7 @@ input[type=checkbox]:checked + .togglebutton::before {
     position: absolute;
     top: 0px;
     left: 0px;
+    z-index: 99;
 }
 #layer.visible {
     display: flex;
@@ -329,10 +450,46 @@ input[type=checkbox]:checked + .togglebutton::before {
 }
 #dialogmessage {
     font-size: 14px;
-    width: 200px;
-    min-height: 100px;
-    max-height: 100px;
+    width: 300px;
+    min-height: 150px;
+    max-height: 150px;
     overflow: auto;
+}
+#dialogmessage h3 {
+    border-bottom: 1px solid #444;
+    color: silver;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 15px 0px 8px;
+}
+#dialogmessage h3:first-child {
+    margin: 0px 0px 8px;
+}
+#dialogmessage a {
+    color: #1DA1F2;
+    text-decoration: none;
+}
+#dialogmessage a:hover {
+    text-decoration: underline;
+}
+#dialogmessage input[type=text] {
+    background-color: inherit;
+    border: 0px;
+    border-bottom: 2px solid #222;
+    color: #1DA1F2;
+    margin: 0px 8px;
+    padding: 5px;
+    width: calc(100% - 20px);
+}
+#dialogmessage label {
+    padding: 3px 0px 3px 10px;
+    display: block;
+}
+#dialogmessage label input[type=radio] {
+    vertical-align: bottom;
+}
+#dialogmessage label span {
+    margin: 0px 0px 0px 5px;
 }
 #dialogbuttonwrap {
     padding: 20px 10px;
@@ -343,9 +500,14 @@ input[type=checkbox]:checked + .togglebutton::before {
 .dialogbutton {
     border: 1px solid #333;
     border-radius: 20px;
+    line-height: 170%;
     margin: 0px 0px 0px 8px;
     padding: 3px 20px;
     cursor: pointer;
+    user-select: none;
+}
+.dialogbutton.invisible {
+    display: none;
 }
 #dialogbuttonok {
     color: #1DA1F2;
@@ -362,5 +524,15 @@ input[type=checkbox]:checked + .togglebutton::before {
     background-color: #FF517B;
     border: 1px solid #FF517B;
     color: inherit;
+}
+#dialogbuttonok.disabled,
+#dialogbuttoncancel.disabled,
+#dialogbuttonok.disabled:hover,
+#dialogbuttoncancel.disabled:hover,
+.dialogbutton.disabled {
+    background-color: #555;
+    border: 1px solid #555;
+    color: silver;
+    cursor: default;
 }
 

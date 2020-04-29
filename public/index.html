@@ -29,26 +29,6 @@
         <link rel="stylesheet" href="./css/style.css?v=2020042402">
         <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@600&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Overpass+Mono:wght@400;700&display=swap" rel="stylesheet">
-        <!-- The core Firebase JS SDK is always required and must be listed first -->
-        <script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-app.js"></script>
-        <!-- TODO: Add SDKs for Firebase products that you want to use https://firebase.google.com/docs/web/setup#available-libraries -->
-        <script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-analytics.js"></script>
-        <script>
-            // Your web app's Firebase configuration
-            var firebaseConfig = {
-                apiKey: "AIzaSyAcRObIHeZUmCt_X3FEzLdBJzUDYTVRte8",
-                authDomain: "twigl-f67a0.firebaseapp.com",
-                databaseURL: "https://twigl-f67a0.firebaseio.com",
-                projectId: "twigl-f67a0",
-                storageBucket: "twigl-f67a0.appspot.com",
-                messagingSenderId: "653821260349",
-                appId: "1:653821260349:web:17e2128ca9a60f2c7ff054",
-                measurementId: "G-WHMVELFNCW"
-            };
-            // Initialize Firebase
-            firebase.initializeApp(firebaseConfig);
-            firebase.analytics();
-        </script>
 
         <title>twigl.app</title>
     </head>
@@ -56,6 +36,26 @@
         <div id="wrap">
             <div id="canvaswrap">
                 <canvas id="webgl"></canvas>
+                <div id="globaliconwrap">
+                    <div id="globaliconcolumn">
+                        <div id="informationicon" class="globaliconinner" title="information">
+                            <img src="./resource/info.svg">
+                        </div>
+                        <div id="fullscreenicon" class="globaliconinner" title="fullscreen">
+                            <img src="./resource/fullscreen.svg">
+                        </div>
+                        <div id="broadcasticon" class="globaliconinner" title="broadcast mode">
+                            <img src="./resource/bloadcast.svg">
+                        </div>
+                        <div id="stariconwrap">
+                            <img src="./resource/heart.svg">
+                            <div id="starcounterwrap">
+                                <div id="starcounter">000</div>
+                                <div id="staroverlay">000</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div id="editorwrap">
                 <div id="interface">
@@ -81,6 +81,12 @@
                     </div>
                 </div>
                 <div id="menu">
+                    <div id="broadcastblock" class="menublock invisible">
+                        <div class="h3wrap"><h3>Broadcast</h3></div>
+                        <div class="menublockinner">
+                            director name or group.
+                        </div>
+                    </div>
                     <div class="menublock">
                         <div class="h3wrap"><h3 title="classic: An ordinary shader editor.
 geek: Uniform variables become a single character.
@@ -96,7 +102,7 @@ geeker: geek mode + you don't have to define precision and uniform variables by 
                             </select>
                         </div>
                     </div>
-                    <div class="menublock">
+                    <div id="soundblock" class="menublock">
                         <div class="h3wrap">
                             <h3 title="respect Shadertoy" style="cursor: help;">Sound Shader</h3>
                             <div id="audiotogglewrap">
@@ -113,7 +119,7 @@ geeker: geek mode + you don't have to define precision and uniform variables by 
                             </div>
                         </div>
                     </div>
-                    <div class="menublock">
+                    <div id="exportblock" class="menublock">
                         <div class="h3wrap"><h3 title="generate animation GIF" style="cursor: help;">Export</h3></div>
                         <div class="menublockinner">
                             <select class="dropdown" id="frameselect">
@@ -158,7 +164,7 @@ geeker: geek mode + you don't have to define precision and uniform variables by 
         <div id="layer">
             <div id="dialog">
                 <div id="dialogmessagewrap">
-                    <div id="dialogmessage">This URL is a valid of sound shader.<br>It is OK play the audio?</div>
+                    <div id="dialogmessage"></div>
                 </div>
                 <div id="dialogbuttonwrap">
                     <div id="dialogbuttonok" class="dialogbutton">ok</div>
