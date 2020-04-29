@@ -79,8 +79,7 @@ const FRAGMEN_OPTION = {
     resize: true,
     escape: false
 }
-// bitly にリクエストする際のベース URL
-// const BASE_URL = 'https://twigl.app';
+// 外部サービスへリクエストする際のベース URL
 const BASE_URL = location.origin;
 // firebase のコンフィグ
 const FIREBASE_CONFIG = {
@@ -703,6 +702,7 @@ window.addEventListener('DOMContentLoaded', () => {
             });
         })
         .then(() => {
+            // もしソースが正しく更新された状態であればそれを初期値としてチャンネルに設定する
             let graphicsSource = fragmenDefaultSource[currentMode];
             let soundSource = Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT;
             if(latestStatus === 'success'){
