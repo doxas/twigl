@@ -16,12 +16,13 @@ export class FireDB {
     }
     /**
      * ディレクターを新規に生成する
-     * @param {string} name - ディレクター名
+     * @param {string} name - ディレクター名（純粋な視聴者側のメニュー位置に表示される）
      * @return {Promise} realtime database にディレクターを登録したら解決する Promise
      */
     createDirector(name){
         if(name == null || name === ''){return Promise.reject('invalid argument');}
         return new Promise((resolve) => {
+            // ユニークなキーを取得してデータを作成
             const directorKey = this.db.ref('director').push().key;
             const payload = {};
             payload[`director/${directorKey}`] = {name: name};
@@ -45,22 +46,23 @@ export class FireDB {
      */
     createChannel(directorId, graphicsSource, graphicsMode, soundSource){
         return new Promise((resolve) => {
+            // ユニークなキーを取得してデータを作成
             const channelKey = this.db.ref('channel').push().key;
             const payload = {};
             payload[`channel/${channelKey}`] = {
-                initialized: true,
-                directorId: directorId,
-                visual: 'unknown',
-                disc: 'unknown',
+                initialized: true,      // 初期代入の際にのみ必要（validation の都合）
+                directorId: directorId, // オーナーとなるディレクター ID
+                visual: 'unknown',      // VJ 担当となるディレクター（初期値は unknown）
+                disc: 'unknown',        // DJ 担当となるディレクター（初期値は unknown）
                 graphics: {
                     source: graphicsSource,
-                    cursor: '0|0|0',    // row, column, scrollTop
-                    mode: graphicsMode, // current mode of graphics
+                    cursor: '0|0|0',    // row, column, scrollTop（復元用）
+                    mode: graphicsMode, // current mode of graphics（classic, geek, geeker, and others）
                 },
                 sound: {
                     source: soundSource,
-                    cursor: '0|0|0',
-                    play: 0, // increment at sound play in director location
+                    cursor: '0|0|0',    // グラフィックス側と同じ
+                    play: 0,            // ディレクターが手動で音声を再生したカウント数
                 },
             };
             this.db.ref().update(payload)
@@ -87,7 +89,7 @@ export class FireDB {
         });
     }
     /**
-     * チャンネルに紐づくディレクター情報を更新する
+     * チャンネルに紐づくディレクター情報を更新する（ここで担当ディレクターが決まる）
      * @param {string} channelId - チャンネル ID
      * @param {string} visual - VJ を担当するディレクターの ID
      * @param {string} disc - DJ を担当するディレクターの ID
@@ -134,7 +136,7 @@ export class FireDB {
         });
     }
     /**
-     * スターをインクリメントした値で更新する
+     * スターをインクリメントした値で更新する（渋滞する可能性があるのでトランザクションを利用）
      * @param {string} channelId - チャンネル ID
      */
     updateStarData(channelId){
@@ -187,7 +189,7 @@ export class FireDB {
         });
     }
     /**
-     * チャンネルをリッスンする
+     * チャンネルに対するリスナーを設定する
      * @param {string} channelId - チャンネル ID
      * @param {function} resolve - データ更新時に呼ばれるコールバック
      * @param {function} [reject] - データ更新が失敗した際に呼ばれるコールバック
@@ -200,7 +202,7 @@ export class FireDB {
         });
     }
     /**
-     * スターをリッスンする
+     * スターに対するリスナーを設定する
      * @param {string} channelId - チャンネル ID
      * @param {function} resolve - データ更新時に呼ばれるコールバック
      * @param {function} [reject] - データ更新が失敗した際に呼ばれるコールバック
