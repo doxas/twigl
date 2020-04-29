@@ -133,5 +133,73 @@ export class FireDB {
             });
         });
     }
+    /**
+     * ディレクター ID からデータを取得する
+     * @param {string} directorId - チャンネル ID
+     * @return {Promise}
+     */
+    getDirectorData(directorId){
+        return new Promise((resolve, reject) => {
+            this.db.ref(`director/${directorId}`).once('value', (snapshot) => {
+                resolve(snapshot.val());
+            }, (err) => {
+                reject(err);
+            });
+        });
+    }
+    /**
+     * チャンネルからデータを取得する
+     * @param {string} channelId - チャンネル ID
+     * @return {Promise}
+     */
+    getChannelData(channelId){
+        return new Promise((resolve, reject) => {
+            this.db.ref(`channel/${channelId}`).once('value', (snapshot) => {
+                resolve(snapshot.val());
+            }, (err) => {
+                reject(err);
+            });
+        });
+    }
+    /**
+     * スターからデータを取得する
+     * @param {string} channelId - チャンネル ID
+     * @return {Promise}
+     */
+    getStarData(channelId){
+        return new Promise((resolve, reject) => {
+            this.db.ref(`star/${channelId}`).once('value', (snapshot) => {
+                resolve(snapshot.val());
+            }, (err) => {
+                reject(err);
+            });
+        });
+    }
+    /**
+     * チャンネルをリッスンする
+     * @param {string} channelId - チャンネル ID
+     * @param {function} resolve - データ更新時に呼ばれるコールバック
+     * @param {function} [reject] - データ更新が失敗した際に呼ばれるコールバック
+     */
+    listenChannelData(channelId, resolve, reject){
+        this.db.ref(`channel/${channelId}`).on('value', (snapshot) => {
+            resolve(snapshot.val());
+        }, (err) => {
+            if(reject != null){reject(err);}
+        });
+    }
+    /**
+     * スターをリッスンする
+     * @param {string} channelId - チャンネル ID
+     * @param {function} resolve - データ更新時に呼ばれるコールバック
+     * @param {function} [reject] - データ更新が失敗した際に呼ばれるコールバック
+     */
+    listenStarData(channelId, resolve, reject){
+        this.db.ref(`star/${channelId}`).on('value', (snapshot) => {
+            resolve(snapshot.val());
+        }, (err) => {
+            if(reject != null){reject(err);}
+        });
+    }
 }
 
