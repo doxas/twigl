@@ -418,6 +418,24 @@ window.addEventListener('DOMContentLoaded', () => {
                     link.classList.add('disabled');
                 }
         }
+        // 配信中はステータスとは無関係に状態を送る
+        if(currentChannelId != null && (broadcastMode === 'owner' || broadcastMode === 'friend')){
+            // グラフィックスを編集する立場かどうか
+            if(
+                (broadcastMode === 'owner' && directionMode !== BROADCAST_DIRECTION.SOUND) ||
+                (broadcastMode === 'friend' && directionMode === BROADCAST_DIRECTION.SOUND)
+            ){
+                // カーソル位置やスクロール位置
+                const cursor = editor.selection.getCursor();
+                const scrollTop = editor.session.getScrollTop();
+                const graphicsData = {
+                    cursor: `${cursor.row}|${cursor.column}|${scrollTop}`,
+                    mode: currentMode,
+                    source: editor.getValue()
+                };
+                fire.updateChannelData(currentDirectorId, currentChannelId, graphicsData);
+            }
+        }
     });
     fragmen.onDraw(() => {
         if(onomat == null || audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
@@ -723,6 +741,8 @@ window.addEventListener('DOMContentLoaded', () => {
             fire.listenStarData(currentChannelId, (snap) => {
                 updateStar(snap.count);
             });
+            // 配信モード
+            broadcastMode = 'owner';
 
             // リンクを含む DOM を生成してダイアログを表示
             const wrap = generateShareAnchor(ownerURL, friendURL, shareURL);
@@ -910,7 +930,11 @@ function updateAudio(source, force){
  * @param {object} data - 更新データ
  */
 function reflectGraphics(data){
+    fragmen.mode = currentMode = mode.selectedIndex = data.graphics.mode;
+    const numbers = data.graphics.cursor.split('|');
     editor.setValue(data.graphics.source);
+    editor.gotoLine(parseInt(numbers[0]) + 1, parseInt(numbers[1]), true);
+    editor.session.setScrollTop(parseInt(numbers[2]));
     // TODO: カーソル位置・モードの状態・場合により fragmen の更新
 }
 
