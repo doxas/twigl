@@ -76,7 +76,7 @@ const FRAGMEN_OPTION = {
 }
 // bitly にリクエストする際のベース URL
 // const BASE_URL = 'https://twigl.app';
-const BASE_URL = location.href;
+const BASE_URL = location.origin;
 // firebase のコンフィグ
 const FIREBASE_CONFIG = {
     apiKey: 'AIzaSyAcRObIHeZUmCt_X3FEzLdBJzUDYTVRte8',
