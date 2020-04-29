@@ -27,6 +27,7 @@ let iconColumn = null; // icon を包んでいるラッパー DOM
 let infoIcon   = null; // information icon
 let fullIcon   = null; // fullscreen icon
 let broadIcon  = null; // broadcast mode icon
+let starIcon   = null; // star icon TODO
 
 let audioWrap     = null; // サウンドシェーダペインのラッパー
 let audioEditor   = null; // Ace editor のインスタンス
@@ -63,6 +64,7 @@ let friendURL = '';             // フレンド共有用 URL
 let starCounterTimer = null;    // スターのアニメーション用タイマー
 let graphicsDisable = false;    // グラフィックス用のエディタを無効化するかどうか
 let soundDisable = false;       // サウンド用のエディタを無効化するかどうか
+let broadcastMode = 'none';     // 配信に対する挙動（none, owner, friend, audience）
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -200,25 +202,6 @@ window.addEventListener('DOMContentLoaded', () => {
         if(directorId != null){
             // ディレクター ID が存在する場合視聴者ではなくいずれかの配信者
             if(isOwner === true){
-                // 自分で立てた配信
-                switch(directionMode){
-                    case BROADCAST_DIRECTION.BOTH:
-                    case BROADCAST_DIRECTION.SOUND:
-                        // まず自家製ダイアログを出しユーザーにクリック操作をさせる
-                        showDialog('Sound playback is enabled on this channel.', {cancelVisible: false})
-                        .then(() => {
-                            // onomat を初期化しエディタも状態を更新しておく
-                            audioToggle.checked === true;
-                            onomatSetting(false);
-                            update(editor.getValue());
-                            counter.textContent = `${editor.getValue().length}`;
-                            audioCounter.textContent = `${audioEditor.getValue().length}`;
-                        });
-                        break;
-                    case BROADCAST_DIRECTION.GRAPHICS:
-                        // グラフィックスのみなのでサウンドは仮に有効化しても配信されない
-                        break;
-                }
                 broadcastSetting = {validation: true, assign: 'both'};
                 // フレンドがいるかどうか
                 if(friendDirectorId != null){
@@ -252,6 +235,8 @@ window.addEventListener('DOMContentLoaded', () => {
                     );
                 }
                 shareURL = `${BASE_URL}?ch=${currentChannelId}&dm=${directionMode}`;
+                // 配信モードはオーナー
+                broadcastMode = 'owner';
             }else{
                 // 招待を受けた側
                 if(friendDirectorId != null){
@@ -263,30 +248,19 @@ window.addEventListener('DOMContentLoaded', () => {
                         // フレンドはサウンドを担当
                         soundDisable = true;
                     }
-                    // フレンド側には配信アイコンを表示しない
-                    const icon  = document.querySelector('#broadcasticon');
-                    icon.classList.add('invisible');
+                    // 配信モードはフレンド
+                    broadcastMode = 'friend';
                 }else{
                     // オーナーがいないことになってしまうので不正
                     invalidURL = true;
                 }
             }
         }else{
-            // TODO: メニューを消すのとか
-
-            // 視聴者として URL を参照している状態
-            switch(directionMode){
-                case BROADCAST_DIRECTION.BOTH:
-                case BROADCAST_DIRECTION.SOUND:
-                    // 配信者はサウンドを有効化する可能性がある
-                    break;
-                case BROADCAST_DIRECTION.GRAPHICS:
-                    // グラフィックスのみ（仮に配信者がサウンド有効化しても鳴らない）
-                    break;
-            }
-            // 視聴者側には配信アイコンを表示しない
-            const icon  = document.querySelector('#broadcasticon');
-            icon.classList.add('invisible');
+            // 視聴者の場合エディタは強制的に読み取り専用になる
+            graphicsDisable = true;
+            soundDisable = true;
+            // 配信モードは視聴者
+            broadcastMode = 'audience';
         }
     }
     if(invalidURL === true){
@@ -302,6 +276,9 @@ window.addEventListener('DOMContentLoaded', () => {
         shareURL = '';
         ownerURL = '';
         friendURL = '';
+        graphicsDisable = false;
+        soundDisable = false;
+        broadcastMode = 'none';
     }
 
     // Ace editor 関連の初期化
@@ -726,6 +703,149 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }, false);
 
+    // URL から取得した情報に応じて配信かどうか判断しセットアップする
+    if(broadcastMode !== 'none'){
+        let channelData = null;
+        let starData = null;
+        let soundPlay = 0;
+        fire.getChannelData(currentChannelId)
+        .then((snapshot) => {
+            channelData = snapshot;
+            soundPlay = channelData.sound.play;
+            return fire.getStarData(currentChannelId);
+        })
+        .then((snapshot) => {
+            let icon = null;
+            starData = snapshot;
+            // いずれにしても共通する復元処理
+            fragmen.mode = currentMode = channelData.graphics.mode;          // モードの復元と設定
+            mode.selectedIndex = currentMode;                                // ドロップダウンリストのモードの復元
+            editor.setValue(channelData.graphics.source);                    // エディタ上にソースを復元
+            update(channelData.graphics.source);                             // 復元したソースで更新
+            counter.textContent = `${channelData.graphics.source.length}`;   // 文字数カウント
+            audioEditor.setValue(channelData.sound.source);                  // サウンドシェーダのソースを復元
+            audioCounter.textContent = `${channelData.sound.source.length}`; // 文字数カウント
+            setTimeout(() => {editor.gotoLine(1);}, 100);
+            setTimeout(() => {audioEditor.gotoLine(1);}, 100);
+            editor.setReadOnly(graphicsDisable);              // エディタの読み取り専用属性を設定
+            audioEditor.setReadOnly(soundDisable);            // エディタの読み取り専用属性を設定
+            updateStar(starData.count);                       // スターの内容を更新
+            showStarIcon();                                   // スターを表示
+            fire.listenStarData(currentChannelId, (snap) => { // リスナーを設定
+                starData = snap;
+                updateStar(starData.count);
+            });
+            // 各配信モードごとの処理
+            switch(broadcastMode){
+                case 'owner':
+                    // 自分で立てた配信
+                    if(directionMode === BROADCAST_DIRECTION.BOTH || directionMode === BROADCAST_DIRECTION.SOUND){
+                        // サウンドが必要な場合自家製ダイアログを出しクリック操作をさせる
+                        showDialog('Sound playback is enabled on this channel.', {cancelVisible: false})
+                        .then(() => {
+                            // onomat を初期化
+                            audioToggle.checked === true;
+                            onomatSetting(false);
+                        });
+                    }
+                    if(directionMode === BROADCAST_DIRECTION.SOUND && friendDirectorId != null){
+                        // グラフィックスを listen
+                        fire.listenChannelData(currentChannelId, (snap) => {
+                            channelData = snap;
+                            reflectGraphics(channelData);
+                        });
+                    }else if(directionMode === BROADCAST_DIRECTION.GRAPHICS && friendDirectorId != null){
+                        // サウンドを listen
+                        fire.listenChannelData(currentChannelId, (snap) => {
+                            channelData = snap;
+                            reflectSound(channelData);
+                            if(soundPlay !== channelData.sound.play){
+                                soundPlay = channelData.sound.play;
+                                // リモートの再生回数が変更になっていたら再生する
+                                if(latestAudioStatus !== 'success'){return;}
+                                updateAudio(audioEditor.getValue(), true);
+                            }
+                        });
+                    }
+                    break;
+                case 'friend':
+                    // フレンドありに設定されている時点でサウンドは鳴る可能性がある
+                    showDialog('Sound playback is enabled on this channel.', {cancelVisible: false})
+                    .then(() => {
+                        // onomat を初期化
+                        audioToggle.checked === true;
+                        onomatSetting(false);
+                    });
+                    if(directionMode === BROADCAST_DIRECTION.SOUND){
+                        // サウンドを listen
+                        fire.listenChannelData(currentChannelId, (snap) => {
+                            channelData = snap;
+                            reflectSound(channelData);
+                            if(soundPlay !== channelData.sound.play){
+                                soundPlay = channelData.sound.play;
+                                // リモートの再生回数が変更になっていたら再生する
+                                if(latestAudioStatus !== 'success'){return;}
+                                updateAudio(audioEditor.getValue(), true);
+                            }
+                        });
+                    }else if(directionMode === BROADCAST_DIRECTION.GRAPHICS){
+                        // グラフィックスを listen
+                        fire.listenChannelData(currentChannelId, (snap) => {
+                            channelData = snap;
+                            reflectGraphics(channelData);
+                        });
+                    }
+                    // フレンド側には配信アイコンを表示しない
+                    icon = document.querySelector('#broadcasticon');
+                    icon.classList.add('invisible');
+                    break;
+                case 'audience':
+                    if(channelData.disc !== 'unknown'){
+                        // 視聴ユーザーがサウンドの再生を許可したかどうか
+                        const soundEnable = false;
+                        // disc が unknown ではない場合、サウンドが更新される可能性がある
+                        showDialog('This channel is a valid of sound shader.\nIt is OK play the audio?', {
+                            okLabel: 'yes',
+                            cancelLabel: 'no',
+                        })
+                        .then((result) => {
+                            soundEnable = result;
+                            // ユーザーが OK, Cancel のいずれをクリックしたかのフラグを引数に与える
+                            onomatSetting(result);
+                            audioToggle.checked === true;
+                            audioCounter.textContent = `${audioEditor.getValue().length}`;
+                        });
+                        // リスナーを設定
+                        fire.listenChannelData(currentChannelId, (snap) => {
+                            channelData = snap;
+                            reflectGraphics(channelData);
+                            reflectSound(channelData);
+                            if(soundEnable === true && soundPlay !== channelData.sound.play){
+                                soundPlay = channelData.sound.play;
+                                // ユーザーが許可している & リモートの再生回数が変更になっていたら再生する
+                                if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
+                                updateAudio(audioEditor.getValue(), true);
+                            }
+                        });
+                    }
+                    // 視聴者側には配信アイコンを表示しない
+                    icon = document.querySelector('#broadcasticon');
+                    icon.classList.add('invisible');
+                    // 視聴者側ではメニューの状態を変更する
+                    fire.getDirectorData(channelData.directorId)
+                    .then((snap) => {
+                        hideMenu(snap.name);
+                    });
+                    break;
+            }
+
+        })
+        .catch((err) => {
+            console.error('💣', err);
+            showDialog('Firebase Error', {cancelVisible: false});
+        });
+    }
+
 }, false);
 
 /**
@@ -752,6 +872,24 @@ function update(source){
 function updateAudio(source, force){
     if(onomat == null){return;}
     onomat.render(source, force);
+}
+
+/**
+ * 更新を受けてグラフィックス側の状態を反映させる
+ * @param {object} data - 更新データ
+ */
+function reflectGraphics(data){
+    editor.setValue(data.graphics.source);
+    // TODO: カーソル位置・モードの状態・場合により fragmen の更新
+}
+
+/**
+ * 更新を受けてサウンド側の状態を反映させる
+ * @param {object} data - 更新データ
+ */
+function reflectSound(data){
+    audioEditor.setValue(data.sound.source);
+    // TODO: カーソル位置・場合により onomat の更新
 }
 
 /**
@@ -1182,6 +1320,20 @@ function updateStar(count){
 function zeroPadding(number, count){
     const len = '' + number;
     return (new Array(count).join('0') + number).substr(-Math.max(count, len.length));
+}
+
+/**
+ * メニューの状態を変更する
+ * @param {string} directorName - ディレクター名
+ */
+function hideMenu(directorName){
+    const broadcastBlock = document.querySelector('#broadcastblock');
+    broadcastBlock.textContent = directorName;
+    broadcastBlock.classList.remove('invisible');
+    const soundBlock = document.querySelector('#soundblock');
+    soundBlock.classList.add('invisible');
+    const exportBlock = document.querySelector('#exportblock');
+    exportBlock.classList.add('invisible');
 }
 
 /**
