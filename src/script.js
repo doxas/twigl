@@ -65,6 +65,7 @@ let starCounterTimer = null;    // スターのアニメーション用タイマ
 let graphicsDisable = false;    // グラフィックス用のエディタを無効化するかどうか
 let soundDisable = false;       // サウンド用のエディタを無効化するかどうか
 let broadcastMode = 'none';     // 配信に対する挙動（none, owner, friend, audience）
+let soundPlay = 0;              // サウンドが配信者の元で再生された際のカウント
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -461,7 +462,26 @@ window.addEventListener('DOMContentLoaded', () => {
     }, false);
     audioPlayIcon.addEventListener('click', () => {
         if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
+        ++soundPlay;
         updateAudio(audioEditor.getValue(), true);
+        // 配信中はステータスとは無関係に状態を送る
+        if(currentChannelId != null && (broadcastMode === 'owner' || broadcastMode === 'friend')){
+            // グラフィックスを編集する立場かどうか
+            if(
+                (broadcastMode === 'owner' && directionMode !== BROADCAST_DIRECTION.GRAPHICS) ||
+                (broadcastMode === 'friend' && directionMode === BROADCAST_DIRECTION.GRAPHICS)
+            ){
+                // カーソル位置やスクロール位置
+                const cursor = audioEditor.selection.getCursor();
+                const scrollTop = audioEditor.session.getScrollTop();
+                const soundData = {
+                    cursor: `${cursor.row}|${cursor.column}|${scrollTop}`,
+                    source: audioEditor.getValue(),
+                    play: soundPlay,
+                };
+                fire.updateChannelData(currentDirectorId, currentChannelId, null, soundData);
+            }
+        }
     }, false);
     audioStopIcon.addEventListener('click', () => {
         if(audioToggle.checked !== true){return;}
@@ -474,7 +494,26 @@ window.addEventListener('DOMContentLoaded', () => {
             if(evt.ctrlKey === true){
                 onomat.stop();
             }else{
+                ++soundPlay;
                 updateAudio(audioEditor.getValue(), true);
+                // 配信中はステータスとは無関係に状態を送る
+                if(currentChannelId != null && (broadcastMode === 'owner' || broadcastMode === 'friend')){
+                    // グラフィックスを編集する立場かどうか
+                    if(
+                        (broadcastMode === 'owner' && directionMode !== BROADCAST_DIRECTION.GRAPHICS) ||
+                        (broadcastMode === 'friend' && directionMode === BROADCAST_DIRECTION.GRAPHICS)
+                    ){
+                        // カーソル位置やスクロール位置
+                        const cursor = audioEditor.selection.getCursor();
+                        const scrollTop = audioEditor.session.getScrollTop();
+                        const soundData = {
+                            cursor: `${cursor.row}|${cursor.column}|${scrollTop}`,
+                            source: audioEditor.getValue(),
+                            play: soundPlay,
+                        };
+                        fire.updateChannelData(currentDirectorId, currentChannelId, null, soundData);
+                    }
+                }
             }
         }
     }, false);
@@ -692,7 +731,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     directionMode = BROADCAST_DIRECTION.BOTH;
                     return fire.updateChannelDirector(currentChannelId, currentDirectorId, currentDirectorId);
                 case BROADCAST_ASSIGN.ONLY_GRAPHICS:
-                    directionMode = BROADCAST_DIRECTION.BOTH;
+                    directionMode = BROADCAST_DIRECTION.GRAPHICS;
                     return fire.updateChannelDirector(currentChannelId, currentDirectorId, undefined);
                 case BROADCAST_ASSIGN.INVITE_SOUND:
                     directionMode = BROADCAST_DIRECTION.GRAPHICS;
@@ -700,7 +739,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     audioEditor.setReadOnly(true); // サウンドに招待するのでエディタを編集できないようにする
                     return fire.updateChannelDirector(currentChannelId, currentDirectorId, friendDirectorId);
                 case BROADCAST_ASSIGN.ONLY_SOUND:
-                    directionMode = BROADCAST_DIRECTION.BOTH;
+                    directionMode = BROADCAST_DIRECTION.SOUND;
                     return fire.updateChannelDirector(currentChannelId, undefined, currentDirectorId);
                 case BROADCAST_ASSIGN.INVITE_GRAPHICS:
                     directionMode = BROADCAST_DIRECTION.SOUND;
@@ -758,7 +797,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(broadcastMode !== 'none'){
         let channelData = null;
         let starData = null;
-        let soundPlay = 0;
+        soundPlay = 0;
         fire.getChannelData(currentChannelId)
         .then((snapshot) => {
             channelData = snapshot;
@@ -935,7 +974,6 @@ function reflectGraphics(data){
     editor.setValue(data.graphics.source);
     editor.gotoLine(parseInt(numbers[0]) + 1, parseInt(numbers[1]), true);
     editor.session.setScrollTop(parseInt(numbers[2]));
-    // TODO: カーソル位置・モードの状態・場合により fragmen の更新
 }
 
 /**
@@ -943,8 +981,10 @@ function reflectGraphics(data){
  * @param {object} data - 更新データ
  */
 function reflectSound(data){
+    const numbers = data.sound.cursor.split('|');
     audioEditor.setValue(data.sound.source);
-    // TODO: カーソル位置・場合により onomat の更新
+    audioEditor.gotoLine(parseInt(numbers[0]) + 1, parseInt(numbers[1]), true);
+    audioEditor.session.setScrollTop(parseInt(numbers[2]));
 }
 
 /**
@@ -1060,6 +1100,24 @@ function onomatSetting(play = true){
                 link.classList.remove('disabled');
             }else{
                 link.classList.add('disabled');
+            }
+            // 配信中はステータスとは無関係に状態を送る
+            if(currentChannelId != null && (broadcastMode === 'owner' || broadcastMode === 'friend')){
+                // グラフィックスを編集する立場かどうか
+                if(
+                    (broadcastMode === 'owner' && directionMode !== BROADCAST_DIRECTION.GRAPHICS) ||
+                    (broadcastMode === 'friend' && directionMode === BROADCAST_DIRECTION.GRAPHICS)
+                ){
+                    // カーソル位置やスクロール位置
+                    const cursor = audioEditor.selection.getCursor();
+                    const scrollTop = audioEditor.session.getScrollTop();
+                    const soundData = {
+                        cursor: `${cursor.row}|${cursor.column}|${scrollTop}`,
+                        source: audioEditor.getValue(),
+                        play: soundPlay,
+                    };
+                    fire.updateChannelData(currentDirectorId, currentChannelId, null, soundData);
+                }
             }
         });
         // 再生まで行うよう引数で指定されている場合は再生処理をタイマーで登録
