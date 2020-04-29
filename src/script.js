@@ -637,12 +637,20 @@ window.addEventListener('DOMContentLoaded', () => {
             });
         })
         .then(() => {
+            let graphicsSource = fragmenDefaultSource[currentMode];
+            let soundSource = Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT;
+            if(latestStatus === 'success'){
+                graphicsSource = editor.getValue();
+            }
+            if(latestAudioStatus === 'success'){
+                soundSource = audioEditor.getValue();
+            }
             // チャンネルを生成
             return fire.createChannel(
                 currentDirectorId,
-                fragmenDefaultSource[currentMode],
+                graphicsSource,
                 currentMode,
-                Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT
+                soundSource
             );
         })
         .then((res) => {
@@ -699,6 +707,11 @@ window.addEventListener('DOMContentLoaded', () => {
             shareURL = `${BASE_URL}${params}`;
             // オムニバー（アドレスバー）の状態を配信視聴者用と同じ URL に変更
             history.replaceState('', '', params);
+            // スターを表示してリスナーを設定する
+            showStarIcon();
+            fire.listenStarData(currentChannelId, (snap) => {
+                updateStar(snap.count);
+            });
 
             // リンクを含む DOM を生成してダイアログを表示
             const wrap = generateShareAnchor(ownerURL, friendURL, shareURL);
