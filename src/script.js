@@ -27,7 +27,7 @@ let iconColumn = null; // icon を包んでいるラッパー DOM
 let infoIcon   = null; // information icon
 let fullIcon   = null; // fullscreen icon
 let broadIcon  = null; // broadcast mode icon
-let starIcon   = null; // star icon TODO
+let starIcon   = null; // star icon
 
 let audioWrap     = null; // サウンドシェーダペインのラッパー
 let audioEditor   = null; // Ace editor のインスタンス
@@ -127,6 +127,7 @@ window.addEventListener('DOMContentLoaded', () => {
     infoIcon   = document.querySelector('#informationicon');
     fullIcon   = document.querySelector('#fullscreenicon');
     broadIcon  = document.querySelector('#broadcasticon');
+    starIcon   = document.querySelector('#stariconwrap');
 
     audioWrap     = document.querySelector('#audio');
     audioLineout  = document.querySelector('#lineoutaudio');
@@ -166,8 +167,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'dm': // direction mode
                 directionMode = value;
-                let directionFlag = Object.keys(BROADCAST_DIRECTION).some((mode) => {
-                    return mode === value;
+                let directionFlag = Object.entries(BROADCAST_DIRECTION).some(([key, val]) => {
+                    return val === value;
                 });
                 if(directionFlag !== true){
                     directionMode = null;
@@ -199,7 +200,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // channel ID がある場合は配信に関係している状態とみなす
     let invalidURL = false;
     if(currentChannelId != null && directionMode != null){
-        if(directorId != null){
+        if(currentDirectorId != null){
             // ディレクター ID が存在する場合視聴者ではなくいずれかの配信者
             if(isOwner === true){
                 broadcastSetting = {validation: true, assign: 'both'};
@@ -527,6 +528,12 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }, false);
 
+    // star
+    starIcon.addEventListener('click', () => {
+        if(currentChannelId == null){return;}
+        fire.updateStarData(currentChannelId);
+    }, false);
+
     // broadcast
     broadIcon.addEventListener('click', () => {
         if(ownerURL !== ''){
@@ -744,7 +751,7 @@ window.addEventListener('DOMContentLoaded', () => {
                         showDialog('Sound playback is enabled on this channel.', {cancelVisible: false})
                         .then(() => {
                             // onomat を初期化
-                            audioToggle.checked === true;
+                            audioToggle.checked = true;
                             onomatSetting(false);
                         });
                     }
@@ -773,7 +780,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     showDialog('Sound playback is enabled on this channel.', {cancelVisible: false})
                     .then(() => {
                         // onomat を初期化
-                        audioToggle.checked === true;
+                        audioToggle.checked = true;
                         onomatSetting(false);
                     });
                     if(directionMode === BROADCAST_DIRECTION.SOUND){
@@ -802,7 +809,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 case 'audience':
                     if(channelData.disc !== 'unknown'){
                         // 視聴ユーザーがサウンドの再生を許可したかどうか
-                        const soundEnable = false;
+                        let soundEnable = false;
                         // disc が unknown ではない場合、サウンドが更新される可能性がある
                         showDialog('This channel is a valid of sound shader.\nIt is OK play the audio?', {
                             okLabel: 'yes',
@@ -811,8 +818,8 @@ window.addEventListener('DOMContentLoaded', () => {
                         .then((result) => {
                             soundEnable = result;
                             // ユーザーが OK, Cancel のいずれをクリックしたかのフラグを引数に与える
+                            audioToggle.checked = true;
                             onomatSetting(result);
-                            audioToggle.checked === true;
                             audioCounter.textContent = `${audioEditor.getValue().length}`;
                         });
                         // リスナーを設定
@@ -1328,12 +1335,22 @@ function zeroPadding(number, count){
  */
 function hideMenu(directorName){
     const broadcastBlock = document.querySelector('#broadcastblock');
-    broadcastBlock.textContent = directorName;
     broadcastBlock.classList.remove('invisible');
+    const broadcastCaption = broadcastBlock.querySelector('.menublockinner');
+    broadcastCaption.textContent = directorName;
     const soundBlock = document.querySelector('#soundblock');
     soundBlock.classList.add('invisible');
     const exportBlock = document.querySelector('#exportblock');
     exportBlock.classList.add('invisible');
+    disableRegulation();
+}
+
+/**
+ * モード選択ドロップダウンリストを disabled に設定する
+ */
+function disableRegulation(){
+    const select = document.querySelector('#modeselect');
+    select.disabled = true;
 }
 
 /**
