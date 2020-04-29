@@ -214,6 +214,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     }else{
                         // フレンドはグラフィックスを担当
                         graphicsDisable = true;
+                        disableRegulation();
                         broadcastSetting.assign = BROADCAST_ASSIGN.INVITE_GRAPHICS;
                     }
                 }
@@ -227,8 +228,9 @@ window.addEventListener('DOMContentLoaded', () => {
                     friendDirectorId,
                 );
                 if(friendDirectorId != null){
-                    friendURL = generateFriendURL(
+                    friendURL = BASE_URL + '?' + generateFriendURL(
                         currentMode,
+                        directionMode,
                         broadcastSetting.assign,
                         currentDirectorId,
                         currentChannelId,
@@ -245,8 +247,10 @@ window.addEventListener('DOMContentLoaded', () => {
                     if(directionMode === BROADCAST_DIRECTION.GRAPHICS){
                         // オーナーはグラフィックスを担当
                         graphicsDisable = true;
+                        // フレンド側からはレギュレーションは操作できない
+                        disableRegulation();
                     }else{
-                        // フレンドはサウンドを担当
+                        // オーナーはサウンドを担当
                         soundDisable = true;
                     }
                     // 配信モードはフレンド
@@ -344,6 +348,9 @@ window.addEventListener('DOMContentLoaded', () => {
             const defaultSource = fragmenDefaultSource[currentMode];
             editor.setValue(defaultSource);
             setTimeout(() => {editor.gotoLine(1);}, 100);
+        }else{
+            // ソースを置き換えないとしてもビルドはしなおす
+            update(editor.getValue());
         }
     }, false);
 
@@ -672,6 +679,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 case BROADCAST_ASSIGN.INVITE_SOUND:
                     directionMode = BROADCAST_DIRECTION.GRAPHICS;
                     friendDirectionMode = BROADCAST_DIRECTION.SOUND;
+                    audioEditor.setReadOnly(true); // サウンドに招待するのでエディタを編集できないようにする
                     return fire.updateChannelDirector(currentChannelId, currentDirectorId, friendDirectorId);
                 case BROADCAST_ASSIGN.ONLY_SOUND:
                     directionMode = BROADCAST_DIRECTION.BOTH;
@@ -679,6 +687,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 case BROADCAST_ASSIGN.INVITE_GRAPHICS:
                     directionMode = BROADCAST_DIRECTION.SOUND;
                     friendDirectionMode = BROADCAST_DIRECTION.GRAPHICS;
+                    editor.setReadOnly(true); // グラフィックスに招待するのでエディタを編集できないようにする
+                    disableRegulation();
                     return fire.updateChannelDirector(currentChannelId, friendDirectorId, currentDirectorId);
             }
         })
@@ -694,8 +704,9 @@ window.addEventListener('DOMContentLoaded', () => {
             );
             // フレンドがいる場合は URL を生成する
             if(friendDirectorId != null){
-                friendURL = generateFriendURL(
+                friendURL = BASE_URL + '?' + generateFriendURL(
                     currentMode,
+                    directionMode,
                     broadcastSetting.assign,
                     currentDirectorId,
                     currentChannelId,
@@ -1270,15 +1281,17 @@ function generateDirectorURL(graphicsMode, directionMode, assign, directorId, ch
 /**
  * ディレクターからフレンドにシェアする URL を生成する
  * @param {number} graphicsMode - 現在のグラフィックスのモード
+ * @param {string} directionMode - BROADCAST_DIRECTION に含まれるディレクションモード
  * @param {string} assign - BROADCAST_ASSIGN に含まれるアサインの設定
  * @param {string} directorId - ディレクター ID
  * @param {string} channelId - チャンネル ID
  * @param {string} friendId - フレンドに設定するディレクター ID
  * @return {string}
  */
-function generateFriendURL(graphicsMode, assign, directorId, channelId, friendId){
+function generateFriendURL(graphicsMode, directionMode, assign, directorId, channelId, friendId){
     const currentState = [
         `mode=${graphicsMode}`,
+        `dm=${directionMode}`,
         `ch=${channelId}`,
         `ow=false`,
     ];
