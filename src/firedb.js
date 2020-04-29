@@ -134,6 +134,17 @@ export class FireDB {
         });
     }
     /**
+     * スターをインクリメントした値で更新する
+     * @param {string} channelId - チャンネル ID
+     */
+    updateStarData(channelId){
+        const ref = this.db.ref(`star/${channelId}`);
+        ref.transaction((currentData) => {
+            if(currentData == null){return;}
+            return {count: currentData.count + 1};
+        });
+    }
+    /**
      * ディレクター ID からデータを取得する
      * @param {string} directorId - チャンネル ID
      * @return {Promise}
