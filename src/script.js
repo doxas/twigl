@@ -9,6 +9,8 @@ import * as firebase from 'firebase/app';
 import 'firebase/database';
 import 'firebase/analytics';
 
+(() => {
+
 let canvas     = null; // スクリーン
 let editor     = null; // Ace editor のインスタンス
 let lineout    = null; // ステータスバー DOM
@@ -1703,4 +1705,6 @@ function copyToClipboard(str){
     // body 配下から削除
     document.body.removeChild(t);
 }
+
+})();
 
