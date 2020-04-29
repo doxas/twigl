@@ -61,6 +61,8 @@ let shareURL = '';              // 配信用共有 URL
 let ownerURL = '';              // ディレクターとして同環境に復帰できる URL
 let friendURL = '';             // フレンド共有用 URL
 let starCounterTimer = null;    // スターのアニメーション用タイマー
+let graphicsDisable = false;    // グラフィックス用のエディタを無効化するかどうか
+let soundDisable = false;       // サウンド用のエディタを無効化するかどうか
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -71,7 +73,8 @@ const FRAGMEN_OPTION = {
     escape: false
 }
 // bitly にリクエストする際のベース URL
-const BASE_URL = 'https://twigl.app';
+// const BASE_URL = 'https://twigl.app';
+const BASE_URL = location.href;
 // firebase のコンフィグ
 const FIREBASE_CONFIG = {
     apiKey: 'AIzaSyAcRObIHeZUmCt_X3FEzLdBJzUDYTVRte8',
@@ -189,6 +192,116 @@ window.addEventListener('DOMContentLoaded', () => {
     // audioToggle が checked ではないかサウンドシェーダのソースが空の場合既定のソースを利用する
     if(audioToggle.checked !== true || currentAudioSource === ''){
         currentAudioSource = Onomat.FRAGMENT_SHADER_SOURCE_DEFAULT;
+    }
+
+    // channel ID がある場合は配信に関係している状態とみなす
+    let invalidURL = false;
+    if(currentChannelId != null && directionMode != null){
+        if(directorId != null){
+            // ディレクター ID が存在する場合視聴者ではなくいずれかの配信者
+            if(isOwner === true){
+                // 自分で立てた配信
+                switch(directionMode){
+                    case BROADCAST_DIRECTION.BOTH:
+                    case BROADCAST_DIRECTION.SOUND:
+                        // まず自家製ダイアログを出しユーザーにクリック操作をさせる
+                        showDialog('Sound playback is enabled on this channel.', {cancelVisible: false})
+                        .then(() => {
+                            // onomat を初期化しエディタも状態を更新しておく
+                            audioToggle.checked === true;
+                            onomatSetting(false);
+                            update(editor.getValue());
+                            counter.textContent = `${editor.getValue().length}`;
+                            audioCounter.textContent = `${audioEditor.getValue().length}`;
+                        });
+                        break;
+                    case BROADCAST_DIRECTION.GRAPHICS:
+                        // グラフィックスのみなのでサウンドは仮に有効化しても配信されない
+                        break;
+                }
+                broadcastSetting = {validation: true, assign: 'both'};
+                // フレンドがいるかどうか
+                if(friendDirectorId != null){
+                    // フレンドがいる場合、招待したほうのエディタは編集不可能にする
+                    if(directionMode === BROADCAST_DIRECTION.GRAPHICS){
+                        // フレンドはサウンドを担当
+                        soundDisable = true;
+                        broadcastSetting.assign = BROADCAST_ASSIGN.INVITE_SOUND;
+                    }else{
+                        // フレンドはグラフィックスを担当
+                        graphicsDisable = true;
+                        broadcastSetting.assign = BROADCAST_ASSIGN.INVITE_GRAPHICS;
+                    }
+                }
+                // オーナーの場合配信アイコン押下で URL を再表示できる必要があるのであらかじめ生成しておく
+                ownerURL = BASE_URL + '?' + generateDirectorURL(
+                    currentMode,
+                    directionMode,
+                    broadcastSetting.assign,
+                    currentDirectorId,
+                    currentChannelId,
+                    friendDirectorId,
+                );
+                if(friendDirectorId != null){
+                    friendURL = generateFriendURL(
+                        currentMode,
+                        broadcastSetting.assign,
+                        currentDirectorId,
+                        currentChannelId,
+                        friendDirectorId,
+                    );
+                }
+                shareURL = `${BASE_URL}?ch=${currentChannelId}&dm=${directionMode}`;
+            }else{
+                // 招待を受けた側
+                if(friendDirectorId != null){
+                    // この箇所での friend == オーナーディレクターなのでオーナー側のエディタは編集不可能にする
+                    if(directionMode === BROADCAST_DIRECTION.GRAPHICS){
+                        // オーナーはグラフィックスを担当
+                        graphicsDisable = true;
+                    }else{
+                        // フレンドはサウンドを担当
+                        soundDisable = true;
+                    }
+                    // フレンド側には配信アイコンを表示しない
+                    const icon  = document.querySelector('#broadcasticon');
+                    icon.classList.add('invisible');
+                }else{
+                    // オーナーがいないことになってしまうので不正
+                    invalidURL = true;
+                }
+            }
+        }else{
+            // TODO: メニューを消すのとか
+
+            // 視聴者として URL を参照している状態
+            switch(directionMode){
+                case BROADCAST_DIRECTION.BOTH:
+                case BROADCAST_DIRECTION.SOUND:
+                    // 配信者はサウンドを有効化する可能性がある
+                    break;
+                case BROADCAST_DIRECTION.GRAPHICS:
+                    // グラフィックスのみ（仮に配信者がサウンド有効化しても鳴らない）
+                    break;
+            }
+            // 視聴者側には配信アイコンを表示しない
+            const icon  = document.querySelector('#broadcasticon');
+            icon.classList.add('invisible');
+        }
+    }
+    if(invalidURL === true){
+        // 無効な URL とみなされるなにかがあったので通常の初期化フローにする
+        currentDirectorId = null;
+        friendDirectorId = null;
+        currentChannelId = null;
+        broadcastSetting = null;
+        broadcastForm = null;
+        directionMode = null;
+        friendDirectionMode = null;
+        isOwner = null;
+        shareURL = '';
+        ownerURL = '';
+        friendURL = '';
     }
 
     // Ace editor 関連の初期化
@@ -597,10 +710,11 @@ window.addEventListener('DOMContentLoaded', () => {
                     friendDirectorId,
                 );
             }
+            const params = `?ch=${currentChannelId}&dm=${directionMode}`;
             // 一般公開用の配信 URL を生成する
-            shareURL = `${BASE_URL}?ch=${currentChannelId}`;
+            shareURL = `${BASE_URL}${params}`;
             // オムニバー（アドレスバー）の状態を配信視聴者用と同じ URL に変更
-            history.replaceState('', '', `?ch=${currentChannelId}`);
+            history.replaceState('', '', params);
 
             // リンクを含む DOM を生成してダイアログを表示
             const wrap = generateShareAnchor(ownerURL, friendURL, shareURL);
