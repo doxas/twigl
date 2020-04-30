@@ -60,6 +60,7 @@ let broadcastSetting = null;    // 登録用フォームの入力内容
 let directionMode = null;       // 何に対するディレクターなのか
 let friendDirectionMode = null; // フレンドが何に対するディレクターなのか
 let isOwner = null;             // チャンネルのオーナーなのかどうか
+let isOwnerInitialized = true;  // オーナー自身が復帰 URL を踏んだ際に初期化が完了しているかどうか
 let shareURL = '';              // 配信用共有 URL
 let ownerURL = '';              // ディレクターとして同環境に復帰できる URL
 let friendURL = '';             // フレンド共有用 URL
@@ -207,6 +208,10 @@ window.addEventListener('DOMContentLoaded', () => {
         if(currentDirectorId != null){
             // ディレクター ID が存在する場合視聴者ではなくいずれかの配信者
             if(isOwner === true){
+                // この時点でオーナーだということは復帰 URL を踏んでいる
+                // つまり先に firebase から復帰すべき情報を取得してやらなくてならない
+                // isOwnerInitialized は通常は true だが、初期化が完了するまでは false に設定する
+                isOwnerInitialized = false;
                 broadcastSetting = {validation: true, assign: 'both'};
                 // フレンドがいるかどうか
                 if(friendDirectorId != null){
@@ -244,6 +249,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 shareURL = `${BASE_URL}?ch=${currentChannelId}&dm=${directionMode}`;
                 // 配信モードはオーナー
                 broadcastMode = 'owner';
+
+                // オーナーとしての復帰情報が必要となる
             }else{
                 // 招待を受けた側
                 if(friendDirectorId != null){
@@ -852,6 +859,8 @@ window.addEventListener('DOMContentLoaded', () => {
             // 各配信モードごとの処理
             switch(broadcastMode){
                 case 'owner':
+                    // オーナーとしての復帰を完了したとみなしてフラグを立てなおす
+                    isOwnerInitialized = true;
                     // 自分で立てた配信
                     if(directionMode === BROADCAST_DIRECTION.BOTH || directionMode === BROADCAST_DIRECTION.SOUND){
                         // サウンドが必要な場合自家製ダイアログを出しクリック操作をさせる
@@ -1431,6 +1440,8 @@ function generateFriendURL(graphicsMode, directionMode, assign, directorId, chan
  * @param {number} mode - 現在のモード
  */
 function updateGraphicsData(directorId, channelId, mode){
+    // オーナーとしての初期化が完了していない場合リモートに送信しない
+    if(isOwnerInitialized !== true){return;}
     // カーソル位置やスクロール位置
     const cursor = editor.selection.getCursor();
     const scrollTop = editor.session.getScrollTop();
@@ -1449,6 +1460,8 @@ function updateGraphicsData(directorId, channelId, mode){
  * @param {number} play - サウンドの再生回数
  */
 function updateSoundData(directorId, channelId, play){
+    // オーナーとしての初期化が完了していない場合リモートに送信しない
+    if(isOwnerInitialized !== true){return;}
     // カーソル位置やスクロール位置
     const cursor = audioEditor.selection.getCursor();
     const scrollTop = audioEditor.session.getScrollTop();
