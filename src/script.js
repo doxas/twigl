@@ -584,16 +584,55 @@ window.addEventListener('DOMContentLoaded', () => {
         fullIcon.classList.add('invisible');
     }
 
-    // TODO: information アイコンが押されたとき
+    // information アイコンが押されたとき
     infoIcon.addEventListener('click', () => {
-        const infoWrap = document.createElement('div');
+        const wrap = document.createElement('div');
+
         const infoHeader = document.createElement('h3');
-        infoHeader.textContent = 'information';
+        infoHeader.textContent = 'Information';
         const infoCaption = document.createElement('div');
-        infoCaption.textContent = 'twigl.app is an online editor for One tweet shader, with gif generator and sound shader.';
-        infoWrap.appendChild(infoHeader);
-        infoWrap.appendChild(infoCaption);
-        showDialog(infoWrap, {
+        infoCaption.textContent = 'twigl.app is an online editor for One tweet shader, with GIF generator, sound shader, and broadcast live coding.';
+        wrap.appendChild(infoHeader);
+        wrap.appendChild(infoCaption);
+
+        const modeHeader = document.createElement('h3');
+        modeHeader.textContent = 'Edit mode';
+        const modeCaption = document.createElement('div');
+        const modeMessage = [
+            'There are three modes in twigl.app and sub-modes that use GLSL ES 3.0 for each.',
+            'classic:',
+            'This mode is compatible with GLSLSandbox.',
+            'The uniform variables are "resolution", "mouse", "time", and "backbuffer".',
+            'geek:',
+            'In this mode, the various uniform variables are in a single-character style.',
+            '"r", "m", "t", and "b", respectively.',
+            'geeker:',
+            'In this mode, there is no need to declare precision and uniform. They are automatically complemented on the implementation side. Otherwise, it is the same as in GEEK mode.',
+        ];
+        modeMessage.forEach((v) => {
+            const e = document.createElement('div');
+            e.textContent = v;
+            modeCaption.appendChild(e);
+        });
+        wrap.appendChild(modeHeader);
+        wrap.appendChild(modeCaption);
+
+        const soundHeader = document.createElement('h3');
+        soundHeader.textContent = 'Sound Shader';
+        const soundCaption = document.createElement('div');
+        const soundMessage = [
+            'Sound Shader is compatible with the great pioneer, Shadertoy.',
+            'Also, the output from the "mainSound" function can be referred to as a uniform variable with the name "sound" or "s" in various graphics modes.',
+        ];
+        soundMessage.forEach((v) => {
+            const e = document.createElement('div');
+            e.textContent = v;
+            soundCaption.appendChild(e);
+        });
+        wrap.appendChild(soundHeader);
+        wrap.appendChild(soundCaption);
+
+        showDialog(wrap, {
             okVisible: true,
             cancelVisible: false,
             okLabel: 'close',
