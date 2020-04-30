@@ -605,7 +605,7 @@ window.addEventListener('DOMContentLoaded', () => {
             'In this mode, the various uniform variables are in a single-character style.',
             '"r", "m", "t", and "b", respectively.',
             'geeker:',
-            'In this mode, there is no need to declare precision and uniform. They are automatically complemented on the implementation side. Otherwise, it is the same as in GEEK mode.',
+            'In this mode, there is no need to declare precision and uniform. They are automatically complemented on the implementation side. Otherwise, it is the same as in geek mode.',
         ];
         modeMessage.forEach((v) => {
             const e = document.createElement('div');
