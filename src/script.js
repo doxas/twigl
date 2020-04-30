@@ -249,8 +249,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 shareURL = `${BASE_URL}?ch=${currentChannelId}&dm=${directionMode}`;
                 // 配信モードはオーナー
                 broadcastMode = 'owner';
-
-                // オーナーとしての復帰情報が必要となる
             }else{
                 // 招待を受けた側
                 if(friendDirectorId != null){
@@ -1413,7 +1411,7 @@ function generateUrl(url){
 }
 
 /**
- * ディレクター自身が復帰できる完全なディレクター URL を生成する
+ * オーナーディレクター自身が復帰できる完全なディレクター URL を生成する
  * @param {number} graphicsMode - 現在のグラフィックスのモード
  * @param {string} directionMode - BROADCAST_DIRECTION に含まれるディレクションモード
  * @param {string} assign - BROADCAST_ASSIGN に含まれるアサインの設定
@@ -1448,7 +1446,7 @@ function generateDirectorURL(graphicsMode, directionMode, assign, directorId, ch
 }
 
 /**
- * ディレクターからフレンドにシェアする URL を生成する
+ * オーナーディレクターからフレンドにシェアする URL を生成する
  * @param {number} graphicsMode - 現在のグラフィックスのモード
  * @param {string} directionMode - BROADCAST_DIRECTION に含まれるディレクションモード
  * @param {string} assign - BROADCAST_ASSIGN に含まれるアサインの設定
@@ -1464,6 +1462,7 @@ function generateFriendURL(graphicsMode, directionMode, assign, directorId, chan
         `ch=${channelId}`,
         `ow=false`,
     ];
+    // フレンド側での fd パラメータがチャンネルのオーナーディレクターとなる
     switch(assign){
         case BROADCAST_ASSIGN.INVITE_SOUND:
             currentState.push(`sd=${friendId}`, `fd=${directorId}`);
