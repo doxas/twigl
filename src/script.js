@@ -956,6 +956,11 @@ window.addEventListener('DOMContentLoaded', () => {
                             channelData = snap;
                             reflectGraphics(channelData);
                         });
+                        // サウンドシェーダの配信が無いので仮に出ていてもエディタ領域は隠す
+                        audioToggle.checked = false;
+                        audioWrap.classList.add('invisible');
+                        audioPlayIcon.classList.add('disabled');
+                        audioStopIcon.classList.add('disabled');
                     }
                     // 視聴者側には配信アイコンを表示しない
                     icon = document.querySelector('#broadcasticon');
