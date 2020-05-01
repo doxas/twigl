@@ -427,7 +427,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // メインとなる fragmen のインスタンス
     const option = Object.assign(FRAGMEN_OPTION, {
         target: canvas,
-        eventTarget: canvas,
+        eventTarget: window,
     });
     fragmen = new Fragmen(option);
     // シェーダが更新された段階で同時にメッセージを更新
