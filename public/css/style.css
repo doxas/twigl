@@ -209,7 +209,7 @@ body {
     display: block;
 }
 #wrap.overlay .editor {
-    height: calc(100vh - 95px - 32px);
+    height: calc(100vh - 94px - 32px);
 }
 .editorblock {
     width: 100%;
@@ -244,8 +244,8 @@ body {
 }
 #wrap.overlay #editorwrap #interface {
     width: calc(100% - 80px);
-    min-height: calc(100vh - 95px);
-    max-height: calc(100vh - 95px);
+    min-height: calc(100vh - 94px);
+    max-height: calc(100vh - 94px);
     flex-direction: row;
 }
 #menu {
@@ -258,8 +258,8 @@ body {
     background: rgba(17, 17, 17, 0.9);
     min-width: 100%;
     max-width: 100%;
-    min-height: 95px;
-    max-height: 95px;
+    min-height: 94px;
+    max-height: 94px;
     display: flex;
     flex-direction: row;
 }
