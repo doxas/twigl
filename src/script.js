@@ -30,6 +30,7 @@ let infoIcon   = null; // information icon
 let fullIcon   = null; // fullscreen icon
 let broadIcon  = null; // broadcast mode icon
 let starIcon   = null; // star icon
+let menuIcon   = null; // star icon
 
 let audioWrap     = null; // サウンドシェーダペインのラッパー
 let audioEditor   = null; // Ace editor のインスタンス
@@ -133,6 +134,7 @@ window.addEventListener('DOMContentLoaded', () => {
     fullIcon   = document.querySelector('#fullscreenicon');
     broadIcon  = document.querySelector('#broadcasticon');
     starIcon   = document.querySelector('#stariconwrap');
+    menuIcon   = document.querySelector('#togglemenuicon');
 
     audioWrap     = document.querySelector('#audio');
     audioLineout  = document.querySelector('#lineoutaudio');
@@ -641,6 +643,16 @@ window.addEventListener('DOMContentLoaded', () => {
     starIcon.addEventListener('click', () => {
         if(currentChannelId == null){return;}
         fire.updateStarData(currentChannelId);
+    }, false);
+
+    // toggle menu
+    menuIcon.addEventListener('click', () => {
+        const wrap = document.querySelector('#wrap');
+        wrap.classList.toggle('overlay');
+        editor.resize();
+        audioEditor.resize();
+        resize();
+        fragmen.rect();
     }, false);
 
     // broadcast
