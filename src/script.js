@@ -30,6 +30,7 @@ let infoIcon   = null; // information icon
 let fullIcon   = null; // fullscreen icon
 let broadIcon  = null; // broadcast mode icon
 let starIcon   = null; // star icon
+let menuIcon   = null; // star icon
 
 let audioWrap     = null; // サウンドシェーダペインのラッパー
 let audioEditor   = null; // Ace editor のインスタンス
@@ -49,7 +50,8 @@ let currentAudioSource = '';                   // 直近の Sound Shader のソ�
 let fragmen            = null;                 // fragmen.js のインスタンス
 let onomat             = null;                 // onomat.js のインスタンス
 
-let urlParameter = null; // GET パラメータを解析するための searchParams オブジェクト
+let urlParameter = null;  // GET パラメータを解析するための searchParams オブジェクト
+let vimMode      = false; // vim mode
 
 let fire = null;                // firedb
 let currentDirectorId = null;   // 自分自身のディレクター ID
@@ -133,6 +135,7 @@ window.addEventListener('DOMContentLoaded', () => {
     fullIcon   = document.querySelector('#fullscreenicon');
     broadIcon  = document.querySelector('#broadcasticon');
     starIcon   = document.querySelector('#stariconwrap');
+    menuIcon   = document.querySelector('#togglemenuicon');
 
     audioWrap     = document.querySelector('#audio');
     audioLineout  = document.querySelector('#lineoutaudio');
@@ -425,7 +428,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // メインとなる fragmen のインスタンス
     const option = Object.assign(FRAGMEN_OPTION, {
         target: canvas,
-        eventTarget: canvas,
+        eventTarget: window,
     });
     fragmen = new Fragmen(option);
     // シェーダが更新された段階で同時にメッセージを更新
@@ -502,6 +505,20 @@ window.addEventListener('DOMContentLoaded', () => {
         onomat.stop();
     }, false);
     window.addEventListener('keydown', (evt) => {
+        // vim mode
+        if(
+            ((evt.ctrlKey === true || evt.metaKey === true) && evt.altKey === true) &&
+            evt.key === 'v' || evt.key === 'V' || evt.key === '√'
+        ){
+            vimMode = !vimMode;
+            if(vimMode === true){
+                editor.setKeyboardHandler('ace/keyboard/vim');
+                audioEditor.setKeyboardHandler('ace/keyboard/vim');
+            }else{
+                editor.setKeyboardHandler(null);
+                audioEditor.setKeyboardHandler(null);
+            }
+        }
         if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
         // Alt + Enter で再生、Ctrl をさらに付与すると停止
         if(evt.key === 'Enter' && evt.altKey === true){
@@ -641,6 +658,16 @@ window.addEventListener('DOMContentLoaded', () => {
     starIcon.addEventListener('click', () => {
         if(currentChannelId == null){return;}
         fire.updateStarData(currentChannelId);
+    }, false);
+
+    // toggle menu
+    menuIcon.addEventListener('click', () => {
+        const wrap = document.querySelector('#wrap');
+        wrap.classList.toggle('overlay');
+        editor.resize();
+        audioEditor.resize();
+        resize();
+        fragmen.rect();
     }, false);
 
     // broadcast
@@ -1090,8 +1117,8 @@ function editorSetting(id, source, onChange, onSelectionChange, theme = 'chaos')
     edit.session.setUseSoftTabs(true);
     edit.$blockScrolling = Infinity;
     edit.setShowPrintMargin(false);
+    edit.setShowInvisibles(true);
     edit.setHighlightSelectedWord(true);
-    // edit.setShowInvisibles(true);
     edit.setValue(source);
 
     // editor の内容が変化した際のリスナーを設定

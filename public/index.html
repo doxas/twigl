@@ -14,7 +14,7 @@
 
         <script src="./js/ace.js"></script>
         <script src="./js/CCapture.all.min.js"></script>
-        <script src="./js/script.js?v=2020050101"></script>
+        <script src="./js/script.js?v=2020050201"></script>
 
         <link rel="apple-touch-icon" sizes="180x180" href="./resource/favicons/apple-touch-icon.png">
         <link rel="icon" type="image/x-icon" sizes="32x32" href="./resource/favicons/favicon-32x32.png">
@@ -26,7 +26,7 @@
         <meta name="msapplication-config" content="./resource/favicons/browserconfig.xml">
         <meta name="theme-color" content="#141414">
 
-        <link rel="stylesheet" href="./css/style.css?v=2020050101">
+        <link rel="stylesheet" href="./css/style.css?v=2020050201">
         <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@600&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Overpass+Mono:wght@400;700&display=swap" rel="stylesheet">
 
@@ -41,11 +41,14 @@
                         <div id="informationicon" class="globaliconinner" title="information">
                             <img src="./resource/info.svg">
                         </div>
+                        <div id="broadcasticon" class="globaliconinner" title="broadcast mode">
+                            <img src="./resource/bloadcast.svg">
+                        </div>
                         <div id="fullscreenicon" class="globaliconinner" title="fullscreen mode">
                             <img src="./resource/fullscreen.svg">
                         </div>
-                        <div id="broadcasticon" class="globaliconinner" title="broadcast mode">
-                            <img src="./resource/bloadcast.svg">
+                        <div id="togglemenuicon" class="globaliconinner" title="toggle edit mode">
+                            <img src="./resource/togglemenu.svg">
                         </div>
                         <div id="stariconwrap">
                             <img src="./resource/heart.svg">
@@ -122,33 +125,37 @@ geeker: geek mode + you don't have to define precision and uniform variables by 
                     <div id="exportblock" class="menublock">
                         <div class="h3wrap"><h3 title="generate animation GIF" style="cursor: help;">Export</h3></div>
                         <div class="menublockinner">
-                            <select class="dropdown" id="frameselect">
-                                <option value="60">60 frames</option>
-                                <option value="120" selected>120 frames</option>
-                                <option value="180">180 frames</option>
-                                <option value="240">240 frames</option>
-                                <option value="300">300 frames</option>
-                                <option value="360">360 frames</option>
-                                <option value="94">94 frames</option>
-                                <option value="188">188 frames</option>
-                                <option value="376">376 frames</option>
-                                <option value="752">752 frames</option>
-                                <option value="1504">1504 frames</option>
-                                <option value="1880">1880 frames</option>
-                            </select>
-                            <select class="dropdown" id="sizeselect">
-                                <option value="128x128">128 x 128</option>
-                                <option value="256x128">256 x 128</option>
-                                <option value="256x256">256 x 256</option>
-                                <option value="512x256" selected>512 x 256</option>
-                                <option value="512x512">512 x 512</option>
-                                <option value="1024x512">1024 x 512</option>
-                                <option value="1024x1024">1024 x 1024</option>
-                                <option value="2048x1024">2048 x 1024</option>
-                                <option value="2048x2048">2048 x 2048</option>
-                            </select>
-                            <div id="downloadgif" class="button" title="If over 15MB gif image that impossible attach to Twitter.">Download GIF</div>
-                            <div id="permanentlink" class="button" title="Generate permanent link.">Generate LINK</div>
+                            <div class="menublockselectwrap">
+                                <select class="dropdown" id="frameselect">
+                                    <option value="60">60 frames</option>
+                                    <option value="120" selected>120 frames</option>
+                                    <option value="180">180 frames</option>
+                                    <option value="240">240 frames</option>
+                                    <option value="300">300 frames</option>
+                                    <option value="360">360 frames</option>
+                                    <option value="94">94 frames</option>
+                                    <option value="188">188 frames</option>
+                                    <option value="376">376 frames</option>
+                                    <option value="752">752 frames</option>
+                                    <option value="1504">1504 frames</option>
+                                    <option value="1880">1880 frames</option>
+                                </select>
+                                <select class="dropdown" id="sizeselect">
+                                    <option value="128x128">128 x 128</option>
+                                    <option value="256x128">256 x 128</option>
+                                    <option value="256x256">256 x 256</option>
+                                    <option value="512x256" selected>512 x 256</option>
+                                    <option value="512x512">512 x 512</option>
+                                    <option value="1024x512">1024 x 512</option>
+                                    <option value="1024x1024">1024 x 1024</option>
+                                    <option value="2048x1024">2048 x 1024</option>
+                                    <option value="2048x2048">2048 x 2048</option>
+                                </select>
+                            </div>
+                            <div class="menublockbuttonwrap">
+                                <div id="downloadgif" class="button" title="If over 15MB gif image that impossible attach to Twitter.">Download GIF</div>
+                                <div id="permanentlink" class="button" title="Generate permanent link.">Generate LINK</div>
+                            </div>
                         </div>
                     </div>
                     <div class="menublock">

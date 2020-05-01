@@ -540,17 +540,10 @@ void main(){
      * mouse event
      */
     mouseMove(eve){
-        let bound, x, y, w, h;
-        if(this.eventTarget === window){
-            x = eve.clientX; y = eve.clientY;
-            w = window.innerWidth; h = window.innerHeight;
-        }else{
-            bound = this.eventTarget.getBoundingClientRect();
-            x = eve.clientX - (bound.left - window.scrollX);
-            y = eve.clientY - (bound.top - window.scrollY);
-            w = bound.width; h = bound.height;
-        }
-        this.mousePosition = [x / w, 1.0 - y / h];
+        if(eve.clientY > this.target.height){return;}
+        const x = Math.min(eve.clientX, this.target.width);
+        const y = Math.min(eve.clientY, this.target.height);
+        this.mousePosition = [x / this.target.width, 1.0 - y / this.target.height];
     }
 
     /**
