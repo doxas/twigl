@@ -50,7 +50,8 @@ let currentAudioSource = '';                   // 直近の Sound Shader のソ�
 let fragmen            = null;                 // fragmen.js のインスタンス
 let onomat             = null;                 // onomat.js のインスタンス
 
-let urlParameter = null; // GET パラメータを解析するための searchParams オブジェクト
+let urlParameter = null;  // GET パラメータを解析するための searchParams オブジェクト
+let vimMode      = false; // vim mode
 
 let fire = null;                // firedb
 let currentDirectorId = null;   // 自分自身のディレクター ID
@@ -504,6 +505,20 @@ window.addEventListener('DOMContentLoaded', () => {
         onomat.stop();
     }, false);
     window.addEventListener('keydown', (evt) => {
+        // vim mode
+        if(
+            ((evt.ctrlKey === true || evt.metaKey === true) && evt.altKey === true) &&
+            evt.key === 'v' || evt.key === 'V' || evt.key === '√'
+        ){
+            vimMode = !vimMode;
+            if(vimMode === true){
+                editor.setKeyboardHandler('ace/keyboard/vim');
+                audioEditor.setKeyboardHandler('ace/keyboard/vim');
+            }else{
+                editor.setKeyboardHandler(null);
+                audioEditor.setKeyboardHandler(null);
+            }
+        }
         if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
         // Alt + Enter で再生、Ctrl をさらに付与すると停止
         if(evt.key === 'Enter' && evt.altKey === true){
@@ -1104,7 +1119,6 @@ function editorSetting(id, source, onChange, onSelectionChange, theme = 'chaos')
     edit.setShowPrintMargin(false);
     edit.setShowInvisibles(true);
     edit.setHighlightSelectedWord(true);
-    // edit.setShowInvisibles(true);
     edit.setValue(source);
 
     // editor の内容が変化した際のリスナーを設定
