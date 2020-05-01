@@ -1090,6 +1090,7 @@ function editorSetting(id, source, onChange, onSelectionChange, theme = 'chaos')
     edit.session.setUseSoftTabs(true);
     edit.$blockScrolling = Infinity;
     edit.setShowPrintMargin(false);
+    edit.setShowInvisibles(true);
     edit.setHighlightSelectedWord(true);
     // edit.setShowInvisibles(true);
     edit.setValue(source);
