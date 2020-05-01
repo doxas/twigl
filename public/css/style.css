@@ -105,6 +105,9 @@ body {
     pointer-events: auto;
     cursor: pointer;
 }
+#wrap.overlay #stariconwrap {
+    margin: auto 0px 95px;
+}
 #stariconwrap.visible {
     display: flex;
 }
@@ -161,7 +164,7 @@ body {
     font-size: 14px;
     line-height: 30px;
     padding: 0px 10px;
-    width: 100%;
+    width: calc(100% - 1px);
     display: flex;
     min-height: 32px;
     max-height: 32px;
@@ -185,9 +188,10 @@ body {
     text-align: center;
     min-width: 100px;
     max-width: 100px;
-    height: 100%;
+    height: 32px;
     margin: -1px 0px 0px 0px;
     padding: 0px 5px 0px 0px;
+    overflow: hidden;
     user-select: none;
 }
 .counterchars {
@@ -209,6 +213,7 @@ body {
     display: block;
 }
 #wrap.overlay .editor {
+    border-right: 1px solid rgba(96, 96, 96, 0.2);
     height: calc(100vh - 94px - 32px);
 }
 .editorblock {
@@ -307,7 +312,7 @@ body {
     width: 100%;
 }
 #wrap.overlay #menu .menublock {
-    width: 25%;
+    width: 35%;
     min-width: 150px;
 }
 #wrap.overlay #menu #exportblock {
@@ -324,6 +329,13 @@ body {
     display: flex;
     flex-direction: row;
 }
+#wrap.overlay #menu #broadcastblock .menublockinner {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    margin: 14px 0px;
+}
+
 select.dropdown {
     background-image:
         linear-gradient(45deg, transparent 50%, #999 50%),
