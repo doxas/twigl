@@ -206,7 +206,7 @@ body {
     display: block;
 }
 #wrap.overlay .editor {
-    height: calc(100vh - 480px - 32px);
+    height: calc(100vh - 95px - 32px);
 }
 .editorblock {
     width: 100%;
@@ -241,8 +241,8 @@ body {
 }
 #wrap.overlay #editorwrap #interface {
     width: calc(100% - 80px);
-    min-height: calc(100vh - 480px);
-    max-height: calc(100vh - 480px);
+    min-height: calc(100vh - 95px);
+    max-height: calc(100vh - 95px);
     flex-direction: row;
 }
 #menu {
@@ -254,10 +254,15 @@ body {
 #wrap.overlay #menu {
     min-width: 100%;
     max-width: 100%;
+    min-height: 95px;
+    max-height: 95px;
+    display: flex;
+    flex-direction: row;
 }
 .menublock {
     border-top: 1px solid black;
     border-left: 1px solid black;
+    overflow: hidden;
 }
 .menublock.invisible {
     display: none;
@@ -270,9 +275,12 @@ body {
     background-color: #222;
     color: #999999;
     font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     padding: 7px 9px;
     width: 100%;
     height: 30px;
+    overflow: hidden;
 }
 .menublock .menublockinner {
     font-size: 16px;
@@ -290,6 +298,24 @@ body {
     padding: 8px 5px 10px 10px;
     width: 100%;
 }
+#wrap.overlay #menu .menublock {
+    width: 25%;
+    min-width: 150px;
+}
+#wrap.overlay #menu #exportblock {
+    width: 100%;
+}
+#wrap.overlay #menu #exportblock .menublockinner {
+    min-width: 450px;
+    display: flex;
+    flex-direction: row;
+}
+#wrap.overlay #menu #exportblock .menublockinner .menublockselectwrap,
+#wrap.overlay #menu #exportblock .menublockinner .menublockbuttonwrap {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
 select.dropdown {
     background-image:
         linear-gradient(45deg, transparent 50%, #999 50%),
@@ -304,6 +330,9 @@ select.dropdown {
         5px 4px,
         2.3em 2.5em;
     background-repeat: no-repeat;
+}
+#wrap.overlay #menu #exportblock .menublockinner select {
+    margin: 4px 3px;
 }
 .menublockinner a,
 .menublockinner a:visited {
@@ -322,6 +351,12 @@ select.dropdown {
 .menublockinner a:hover {
     color: #1DA1F2;
     opacity: 1.0;
+}
+#wrap.overlay #menu .menublockinner a {
+    margin: 12px 0px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 #twitter::before {
     content: ' ';
@@ -357,8 +392,11 @@ select.dropdown {
     color: whitesmoke;
     font-size: 16px;
     text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     margin: 2px 0px 5px;
     padding: 8px 5px 10px 5px;
+    overflow: hidden;
     user-select: none;
     cursor: pointer;
 }
@@ -371,6 +409,11 @@ select.dropdown {
     color: silver;
     cursor: default;
 }
+#wrap.overlay #menu #exportblock .menublockinner .button {
+    margin: 5px 3px;
+    width: 100%;
+}
+
 #links {
     display: flex;
     flex-direction: row;
