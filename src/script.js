@@ -53,26 +53,26 @@ let onomat             = null;                 // onomat.js のインスタン�
 let urlParameter = null;  // GET パラメータを解析するための searchParams オブジェクト
 let vimMode      = false; // vim mode
 
-let fire = null;                // firedb
-let currentDirectorId = null;   // 自分自身のディレクター ID
-let friendDirectorId = null;    // 招待用のディレクター ID
-let currentChannelId = null;    // 自分自身がディレクターとなったチャンネルの ID
-let broadcastForm = null;       // 登録用フォームの実体
-let broadcastSetting = null;    // 登録用フォームの入力内容
-let directionMode = null;       // 何に対するディレクターなのか
-let friendDirectionMode = null; // フレンドが何に対するディレクターなのか
-let isOwner = null;             // チャンネルのオーナーなのかどうか
-let isOwnerInitialized = true;  // オーナー自身が復帰 URL を踏んだ際に初期化が完了しているかどうか
-let shareURL = '';              // 配信用共有 URL
-let ownerURL = '';              // ディレクターとして同環境に復帰できる URL
-let friendURL = '';             // フレンド共有用 URL
-let starCounterTimer = null;    // スターのアニメーション用タイマー
-let graphicsDisable = false;    // グラフィックス用のエディタを無効化するかどうか
-let soundDisable = false;       // サウンド用のエディタを無効化するかどうか
-let broadcastMode = 'none';     // 配信に対する挙動（none, owner, friend, audience）
-let soundPlay = 0;              // サウンドが配信者の元で再生された際のカウント
-let channelData = null;         // チャンネルのデータを保持
-let starData = null;            // スターに関するデータを保持
+let fire = null;                  // firedb
+let currentDirectorId = null;     // 自分自身のディレクター ID
+let friendDirectorId = null;      // 招待用のディレクター ID
+let currentChannelId = null;      // 自分自身がディレクターとなったチャンネルの ID
+let broadcastForm = null;         // 登録用フォームの実体
+let broadcastSetting = null;      // 登録用フォームの入力内容
+let directionMode = null;         // 何に対するディレクターなのか
+let friendDirectionMode = null;   // フレンドが何に対するディレクターなのか
+let isOwner = null;               // チャンネルのオーナーなのかどうか
+let isDirectorInitialized = true; // オーナー自身（及びフレンド）が復帰 URL を踏んだ際に初期化が完了しているかどうか
+let shareURL = '';                // 配信用共有 URL
+let ownerURL = '';                // ディレクターとして同環境に復帰できる URL
+let friendURL = '';               // フレンド共有用 URL
+let starCounterTimer = null;      // スターのアニメーション用タイマー
+let graphicsDisable = false;      // グラフィックス用のエディタを無効化するかどうか
+let soundDisable = false;         // サウンド用のエディタを無効化するかどうか
+let broadcastMode = 'none';       // 配信に対する挙動（none, owner, friend, audience）
+let soundPlay = 0;                // サウンドが配信者の元で再生された際のカウント
+let channelData = null;           // チャンネルのデータを保持
+let starData = null;              // スターに関するデータを保持
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -213,8 +213,8 @@ window.addEventListener('DOMContentLoaded', () => {
             if(isOwner === true){
                 // この時点でオーナーだということは復帰 URL を踏んでいる
                 // つまり先に firebase から復帰すべき情報を取得してやらなくてならない
-                // isOwnerInitialized は通常は true だが、初期化が完了するまでは false に設定する
-                isOwnerInitialized = false;
+                // isDirectorInitialized は通常は true だが、初期化が完了するまでは false に設定する
+                isDirectorInitialized = false;
                 broadcastSetting = {validation: true, assign: 'both'};
                 // フレンドがいるかどうか
                 if(friendDirectorId != null){
@@ -255,6 +255,8 @@ window.addEventListener('DOMContentLoaded', () => {
             }else{
                 // 招待を受けた側
                 if(friendDirectorId != null){
+                    // フレンドの場合もオーナーの場合と同じでコードを復元する必要がある
+                    isDirectorInitialized = false;
                     // この箇所での friend == オーナーディレクターなのでオーナー側のエディタは編集不可能にする
                     if(directionMode === BROADCAST_DIRECTION.GRAPHICS){
                         // オーナーはグラフィックスを担当
@@ -924,7 +926,7 @@ window.addEventListener('DOMContentLoaded', () => {
             switch(broadcastMode){
                 case 'owner':
                     // オーナーとしての復帰を完了したとみなしてフラグを立てなおす
-                    isOwnerInitialized = true;
+                    isDirectorInitialized = true;
                     // 自分で立てた配信
                     if(directionMode === BROADCAST_DIRECTION.BOTH || directionMode === BROADCAST_DIRECTION.SOUND){
                         // サウンドが必要な場合自家製ダイアログを出しクリック操作をさせる
@@ -956,6 +958,8 @@ window.addEventListener('DOMContentLoaded', () => {
                     }
                     break;
                 case 'friend':
+                    // フレンドとしての復帰を完了したとみなしてフラグを立てなおす
+                    isDirectorInitialized = true;
                     // フレンドありに設定されている時点でサウンドは鳴る可能性がある
                     showDialog('Sound playback is enabled on this channel.', {cancelVisible: false})
                     .then(() => {
@@ -1510,8 +1514,8 @@ function generateFriendURL(graphicsMode, directionMode, assign, directorId, chan
  * @param {number} mode - 現在のモード
  */
 function updateGraphicsData(directorId, channelId, mode){
-    // オーナーとしての初期化が完了していない場合リモートに送信しない
-    if(isOwnerInitialized !== true){return;}
+    // ディレクターとしての初期化が完了していない場合リモートに送信しない
+    if(isDirectorInitialized !== true){return;}
     // カーソル位置やスクロール位置
     const cursor = editor.selection.getCursor();
     const scrollTop = editor.session.getScrollTop();
@@ -1530,8 +1534,8 @@ function updateGraphicsData(directorId, channelId, mode){
  * @param {number} play - サウンドの再生回数
  */
 function updateSoundData(directorId, channelId, play){
-    // オーナーとしての初期化が完了していない場合リモートに送信しない
-    if(isOwnerInitialized !== true){return;}
+    // ディレクターとしての初期化が完了していない場合リモートに送信しない
+    if(isDirectorInitialized !== true){return;}
     // カーソル位置やスクロール位置
     const cursor = audioEditor.selection.getCursor();
     const scrollTop = audioEditor.session.getScrollTop();
