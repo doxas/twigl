@@ -89,6 +89,20 @@ export class FireDB {
         });
     }
     /**
+     * チャンネルに紐づく視聴者数を新規に生成する
+     * @param {string} channelId - チャンネル ID
+     * @return {Promise} realtime database に視聴者数を登録したら解決する Promise
+     */
+    createViewer(channelId){
+        return new Promise((resolve) => {
+            const payload = {count: 0};
+            this.db.ref(`viewer/${channelId}`).set(payload)
+            .then((res) => {
+                resolve({response: res});
+            });
+        });
+    }
+    /**
      * チャンネルに紐づくディレクター情報を更新する（ここで担当ディレクターが決まる）
      * @param {string} channelId - チャンネル ID
      * @param {string} visual - VJ を担当するディレクターの ID
@@ -147,6 +161,18 @@ export class FireDB {
         });
     }
     /**
+     * 視聴者数更新する（渋滞する可能性があるのでトランザクションを利用）
+     * @param {string} channelId - チャンネル ID
+     * @param {boolean} [isCountup=true] - カウントアップするかどうか（そうでない場合カウントダウン）
+     */
+    updateViewerData(channelId, isCountup = true){
+        const ref = this.db.ref(`viewer/${channelId}`);
+        ref.once('value', (res) => {
+            const count = res.val().count;
+            ref.update({count: count + (isCountup === true ? 1 : -1)});
+        });
+    }
+    /**
      * ディレクター ID からデータを取得する
      * @param {string} directorId - チャンネル ID
      * @return {Promise}
@@ -189,6 +215,20 @@ export class FireDB {
         });
     }
     /**
+     * 視聴者数からデータを取得する
+     * @param {string} channelId - チャンネル ID
+     * @return {Promise}
+     */
+    getViewerData(channelId){
+        return new Promise((resolve, reject) => {
+            this.db.ref(`viewer/${channelId}`).once('value', (snapshot) => {
+                resolve(snapshot.val());
+            }, (err) => {
+                reject(err);
+            });
+        });
+    }
+    /**
      * チャンネルに対するリスナーを設定する
      * @param {string} channelId - チャンネル ID
      * @param {function} resolve - データ更新時に呼ばれるコールバック
@@ -209,6 +249,19 @@ export class FireDB {
      */
     listenStarData(channelId, resolve, reject){
         this.db.ref(`star/${channelId}`).on('value', (snapshot) => {
+            resolve(snapshot.val());
+        }, (err) => {
+            if(reject != null){reject(err);}
+        });
+    }
+    /**
+     * 視聴者数に対するリスナーを設定する
+     * @param {string} channelId - チャンネル ID
+     * @param {function} resolve - データ更新時に呼ばれるコールバック
+     * @param {function} [reject] - データ更新が失敗した際に呼ばれるコールバック
+     */
+    listenViewerData(channelId, resolve, reject){
+        this.db.ref(`viewer/${channelId}`).on('value', (snapshot) => {
             resolve(snapshot.val());
         }, (err) => {
             if(reject != null){reject(err);}
