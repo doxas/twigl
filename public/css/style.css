@@ -199,9 +199,12 @@ body {
     display: inline-block;
 }
 .message {
+    text-overflow: ellipsis;
+    white-space: nowrap;
     padding: 0px 10px;
     width: 100%;
     height: 100%;
+    overflow: hidden;
 }
 .editor {
     font-family: 'Overpass Mono', monospace;
