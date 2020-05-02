@@ -508,7 +508,7 @@ window.addEventListener('DOMContentLoaded', () => {
         // vim mode
         if(
             ((evt.ctrlKey === true || evt.metaKey === true) && evt.altKey === true) &&
-            evt.key === 'v' || evt.key === 'V' || evt.key === '√'
+            (evt.key === 'v' || evt.key === 'V' || evt.key === '√')
         ){
             vimMode = !vimMode;
             if(vimMode === true){
