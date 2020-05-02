@@ -67,12 +67,14 @@ let shareURL = '';                // 配信用共有 URL
 let ownerURL = '';                // ディレクターとして同環境に復帰できる URL
 let friendURL = '';               // フレンド共有用 URL
 let starCounterTimer = null;      // スターのアニメーション用タイマー
+let viewerCounterTimer = null;    // 視聴者数のアニメーション用タイマー
 let graphicsDisable = false;      // グラフィックス用のエディタを無効化するかどうか
 let soundDisable = false;         // サウンド用のエディタを無効化するかどうか
 let broadcastMode = 'none';       // 配信に対する挙動（none, owner, friend, audience）
 let soundPlay = 0;                // サウンドが配信者の元で再生された際のカウント
 let channelData = null;           // チャンネルのデータを保持
 let starData = null;              // スターに関するデータを保持
+let viewerData = null;            // 視聴者数に関するデータを保持
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -799,6 +801,10 @@ window.addEventListener('DOMContentLoaded', () => {
             return fire.createStar(currentChannelId);
         })
         .then(() => {
+            // チャンネルの視聴者数を生成
+            return fire.createViewer(currentChannelId);
+        })
+        .then(() => {
             // チャンネルにディレクター情報を登録する
             // directionMode が both 以外のときに friendDirectionMode が設定される（つまりフレンドがいる）
             switch(broadcastSetting.assign){
@@ -877,6 +883,11 @@ window.addEventListener('DOMContentLoaded', () => {
             fire.listenStarData(currentChannelId, (snap) => {
                 updateStar(snap.count);
             });
+            // 視聴者数を表示してリスナーを設定する
+            showViewerIcon();
+            fire.listenViewerData(currentChannelId, (snap) => {
+                updateViewer(snap.count);
+            });
             // 配信モード
             broadcastMode = 'owner';
 
@@ -894,11 +905,16 @@ window.addEventListener('DOMContentLoaded', () => {
     if(broadcastMode !== 'none'){
         channelData = null;
         starData = null;
+        viewerData = null;
         soundPlay = 0;
         fire.getChannelData(currentChannelId)
         .then((snapshot) => {
             channelData = snapshot;
             soundPlay = channelData.sound.play;
+            return fire.getViewerData(currentChannelId);
+        })
+        .then((snapshot) => {
+            viewerData = snapshot;
             return fire.getStarData(currentChannelId);
         })
         .then((snapshot) => {
@@ -917,10 +933,16 @@ window.addEventListener('DOMContentLoaded', () => {
             editor.setReadOnly(graphicsDisable);              // エディタの読み取り専用属性を設定
             audioEditor.setReadOnly(soundDisable);            // エディタの読み取り専用属性を設定
             updateStar(starData.count);                       // スターの内容を更新
+            updateViewer(viewerData.count);                   // 視聴者数の内容を更新
             showStarIcon();                                   // スターを表示
+            showViewerIcon();                                 // 視聴者数を表示
             fire.listenStarData(currentChannelId, (snap) => { // リスナーを設定
                 starData = snap;
                 updateStar(starData.count);
+            });
+            fire.listenViewerData(currentChannelId, (snap) => { // リスナーを設定
+                viewerData = snap;
+                updateViewer(viewerData.count);
             });
             // 各配信モードごとの処理
             switch(broadcastMode){
@@ -1038,6 +1060,20 @@ window.addEventListener('DOMContentLoaded', () => {
                     .then((snap) => {
                         hideMenu(snap.name);
                     });
+                    // 視聴者数をカウントアップする
+                    fire.updateViewerData(currentChannelId);
+                    // 同時に離脱時の設定を行う
+                    window.addEventListener('beforeunload', (evt) => {
+                        evt.preventDefault();
+                        evt.returnValue = '';
+                        fire.updateViewerData(currentChannelId, false);
+                        // ユーザーがどちらの選択肢を取ったのかを知る方法が無いので……
+                        // とりあえず１分後にもこのウィンドウのインスタンスが開いているなら
+                        // 視聴を継続しているとみなしてカウントアップする
+                        setTimeout(() => {
+                            fire.updateViewerData(currentChannelId);
+                        }, 60000);
+                    }, false);
                     break;
             }
 
@@ -1556,6 +1592,14 @@ function showStarIcon(){
 }
 
 /**
+ * 視聴者アイコンを表示する
+ */
+function showViewerIcon(){
+    const wrap = document.querySelector('#eyeiconwrap');
+    wrap.classList.add('visible');
+}
+
+/**
  * スターアイコンを非表示にする
  */
 function hideStarIcon(){
@@ -1579,6 +1623,27 @@ function updateStar(count){
     }
     starCounterTimer = setTimeout(() => {
         counter.textContent = overlay.textContent = zeroPadding(count, 3);
+        overlay.classList.add('popup');
+    }, 100);
+}
+
+/**
+ * 視聴者数のカウントを更新する
+ * @param {number} count - カウント
+ */
+function updateViewer(count){
+    const counter = document.querySelector('#eyecounter');
+    const overlay = document.querySelector('#eyeoverlay');
+    overlay.classList.remove('popup');
+    overlay.classList.add('visible');
+    const clamp = Math.max(count, 0);
+    // 既に登録済みのタイマーがある場合はキャンセル
+    if(viewerCounterTimer != null){
+        clearTimeout(viewerCounterTimer);
+        counter.textContent = overlay.textContent = zeroPadding(clamp, 3);
+    }
+    viewerCounterTimer = setTimeout(() => {
+        counter.textContent = overlay.textContent = zeroPadding(clamp, 3);
         overlay.classList.add('popup');
     }, 100);
 }
