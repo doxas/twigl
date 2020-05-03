@@ -514,6 +514,9 @@ input[type=checkbox]:checked + .togglebutton::before {
     margin: 0px 0px 0px calc(100% - 16px);
     transition: margin 0.2s ease;
 }
+#wrap.overlay #syncscrollblock .togglebutton {
+    margin: 15px auto;
+}
 #playiconwrap {
     margin: 5px 0px;
     display: flex;
