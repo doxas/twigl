@@ -652,6 +652,28 @@ window.addEventListener('DOMContentLoaded', () => {
         wrap.appendChild(soundHeader);
         wrap.appendChild(soundCaption);
 
+        const authorHeader = document.createElement('h3');
+        authorHeader.textContent = 'Author';
+        const authorCaption = document.createElement('div');
+        const authorAnchor = document.createElement('a');
+        authorAnchor.textContent = 'doxas';
+        authorAnchor.setAttribute('href', 'https://twitter.com/h_doxas');
+        authorAnchor.setAttribute('target', '_blank');
+        authorCaption.appendChild(authorAnchor);
+        wrap.appendChild(authorHeader);
+        wrap.appendChild(authorCaption);
+
+        const sourceHeader = document.createElement('h3');
+        sourceHeader.textContent = 'Source Code';
+        const sourceCaption = document.createElement('div');
+        const sourceAnchor = document.createElement('a');
+        sourceAnchor.textContent = 'doxas/twigl';
+        sourceAnchor.setAttribute('href', 'https://github.com/doxas/twigl');
+        sourceAnchor.setAttribute('target', '_blank');
+        sourceCaption.appendChild(sourceAnchor);
+        wrap.appendChild(sourceHeader);
+        wrap.appendChild(sourceCaption);
+
         showDialog(wrap, {
             okVisible: true,
             cancelVisible: false,
