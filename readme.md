@@ -1,7 +1,7 @@
 
 # twigl
 
-twigl.app is an online editor for One tweet shader, with gif generator and sound shader.
+twigl.app is an online editor for One tweet shader, with gif generator and sound shader, and broadcast live coding.
 
 ⚡ [twigl\.app](https://twigl.app/) ⚡
 
