@@ -161,7 +161,7 @@ export class FireDB {
         });
     }
     /**
-     * 視聴者数更新する（渋滞する可能性があるのでトランザクションを利用）
+     * 視聴者数更新する
      * @param {string} channelId - チャンネル ID
      * @param {boolean} [isCountup=true] - カウントアップするかどうか（そうでない場合カウントダウン）
      */
