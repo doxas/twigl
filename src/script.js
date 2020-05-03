@@ -30,7 +30,8 @@ let infoIcon   = null; // information icon
 let fullIcon   = null; // fullscreen icon
 let broadIcon  = null; // broadcast mode icon
 let starIcon   = null; // star icon
-let menuIcon   = null; // star icon
+let menuIcon   = null; // menu icon
+let syncToggle = null; // スクロール同期用のチェックボックス
 
 let audioWrap     = null; // サウンドシェーダペインのラッパー
 let audioEditor   = null; // Ace editor のインスタンス
@@ -52,6 +53,7 @@ let onomat             = null;                 // onomat.js のインスタン�
 
 let urlParameter = null;  // GET パラメータを解析するための searchParams オブジェクト
 let vimMode      = false; // vim mode
+let syncScroll   = true;  // エディタ上で配信を受けている場合にスクロール同期するか
 
 let fire = null;                  // firedb
 let currentDirectorId = null;     // 自分自身のディレクター ID
@@ -139,6 +141,7 @@ window.addEventListener('DOMContentLoaded', () => {
     broadIcon  = document.querySelector('#broadcasticon');
     starIcon   = document.querySelector('#stariconwrap');
     menuIcon   = document.querySelector('#togglemenuicon');
+    syncToggle = document.querySelector('#syncscrolltoggle');
 
     audioWrap     = document.querySelector('#audio');
     audioLineout  = document.querySelector('#lineoutaudio');
@@ -428,6 +431,11 @@ window.addEventListener('DOMContentLoaded', () => {
         .finally(() => {
             link.classList.remove('disabled');
         });
+    }, false);
+
+    // スクロール同期
+    syncToggle.addEventListener('change', () => {
+        syncScroll = syncToggle.checked;
     }, false);
 
     // メインとなる fragmen のインスタンス
@@ -875,6 +883,9 @@ window.addEventListener('DOMContentLoaded', () => {
                     currentChannelId,
                     friendDirectorId,
                 );
+                // 配信を受けることになるのでスクロール同期スイッチを表示
+                showSyncScrollSwitch();
+                hideAuthorBlock();
                 // フレンドがいる場合は read only を設定した上でリスナーを登録
                 if(directionMode === BROADCAST_DIRECTION.SOUND && friendDirectorId != null){
                     editor.setReadOnly(true);
@@ -985,12 +996,18 @@ window.addEventListener('DOMContentLoaded', () => {
                         });
                     }
                     if(directionMode === BROADCAST_DIRECTION.SOUND && friendDirectorId != null){
+                        // 一部配信を受けることになるのでスクロール同期スイッチを表示
+                        showSyncScrollSwitch();
+                        hideAuthorBlock();
                         // グラフィックスを listen
                         fire.listenChannelData(currentChannelId, (snap) => {
                             channelData = snap;
                             reflectGraphics(channelData);
                         });
                     }else if(directionMode === BROADCAST_DIRECTION.GRAPHICS && friendDirectorId != null){
+                        // 一部配信を受けることになるのでスクロール同期スイッチを表示
+                        showSyncScrollSwitch();
+                        hideAuthorBlock();
                         // サウンドを listen
                         fire.listenChannelData(currentChannelId, (snap) => {
                             channelData = snap;
@@ -1005,6 +1022,9 @@ window.addEventListener('DOMContentLoaded', () => {
                     }
                     break;
                 case 'friend':
+                    // 配信を受けることになるのでスクロール同期スイッチを表示
+                    showSyncScrollSwitch();
+                    hideAuthorBlock();
                     // フレンドとしての復帰を完了したとみなしてフラグを立てなおす
                     isDirectorInitialized = true;
                     // フレンドありに設定されている時点でサウンドは鳴る可能性がある
@@ -1099,6 +1119,9 @@ window.addEventListener('DOMContentLoaded', () => {
                             fire.updateViewerData(currentChannelId);
                         }, 60000);
                     }, false);
+                    // 配信を受けることになるのでスクロール同期スイッチを表示
+                    // ※ Author ブロックを非表示にしなくても余白があるので非表示化しない
+                    showSyncScrollSwitch();
                     break;
             }
 
@@ -1147,8 +1170,12 @@ function reflectGraphics(data){
     if(editor.getValue() !== data.graphics.source){
         editor.setValue(data.graphics.source);
     }
-    editor.gotoLine(parseInt(numbers[0]) + 1, parseInt(numbers[1]), true);
-    editor.session.setScrollTop(parseInt(numbers[2]));
+    if(syncScroll === true){
+        editor.gotoLine(parseInt(numbers[0]) + 1, parseInt(numbers[1]), true);
+        editor.session.setScrollTop(parseInt(numbers[2]));
+    }else{
+        editor.clearSelection();
+    }
 }
 
 /**
@@ -1160,8 +1187,12 @@ function reflectSound(data){
     if(audioEditor.getValue() !== data.sound.source){
         audioEditor.setValue(data.sound.source);
     }
-    audioEditor.gotoLine(parseInt(numbers[0]) + 1, parseInt(numbers[1]), true);
-    audioEditor.session.setScrollTop(parseInt(numbers[2]));
+    if(syncScroll === true){
+        audioEditor.gotoLine(parseInt(numbers[0]) + 1, parseInt(numbers[1]), true);
+        audioEditor.session.setScrollTop(parseInt(numbers[2]));
+    }else{
+        audioEditor.clearSelection();
+    }
 }
 
 /**
@@ -1625,11 +1656,27 @@ function showViewerIcon(){
 }
 
 /**
+ * スクロール同期スイッチを表示する
+ */
+function showSyncScrollSwitch(){
+    const sync = document.querySelector('#syncscrollblock');
+    sync.classList.remove('invisible');
+}
+
+/**
  * スターアイコンを非表示にする
  */
 function hideStarIcon(){
     const wrap = document.querySelector('#stariconwrap');
     wrap.classList.remove('visible');
+}
+
+/**
+ * Author ブロックを非表示にする
+ */
+function hideAuthorBlock(){
+    const author = document.querySelector('#authorblock');
+    author.classList.add('invisible');
 }
 
 /**
