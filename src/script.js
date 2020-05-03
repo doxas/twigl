@@ -57,6 +57,7 @@ let fire = null;                  // firedb
 let currentDirectorId = null;     // 自分自身のディレクター ID
 let friendDirectorId = null;      // 招待用のディレクター ID
 let currentChannelId = null;      // 自分自身がディレクターとなったチャンネルの ID
+let currentDirectorName = null;   // ディレクターが指定した名前・グループ名
 let broadcastForm = null;         // 登録用フォームの実体
 let broadcastSetting = null;      // 登録用フォームの入力内容
 let directionMode = null;         // 何に対するディレクターなのか
@@ -729,6 +730,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 // 入力内容に問題なければ各種変数を初期化し firebase 関連の初期化を行う
                 currentDirectorId = null;
                 friendDirectorId = null;
+                currentDirectorName = null;
                 currentChannelId = null;
                 broadcastForm = null;
                 directionMode = null;
@@ -742,7 +744,8 @@ window.addEventListener('DOMContentLoaded', () => {
                         okDisable: true,
                         cancelDisable: true,
                     });
-                    return fire.createDirector(directorName.value)
+                    currentDirectorName = directorName.value;
+                    return fire.createDirector(currentDirectorName)
                     .then((res) => {
                         resolve(res);
                     });
@@ -764,8 +767,8 @@ window.addEventListener('DOMContentLoaded', () => {
                     broadcastSetting.assign === BROADCAST_ASSIGN.INVITE_SOUND ||
                     broadcastSetting.assign === BROADCAST_ASSIGN.INVITE_GRAPHICS
                 ){
-                    // 誰かに移譲するパターンの場合はもうひとつディレクターを作る
-                    fire.createDirector(currentDirectorId)
+                    // 誰かに移譲するパターンの場合はもうひとつ同じ名前を持つディレクターを作る
+                    fire.createDirector(currentDirectorName)
                     .then((friendRes) => {
                         friendDirectorId = friendRes.directorId;
                         resolve();
