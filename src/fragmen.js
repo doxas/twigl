@@ -3,7 +3,7 @@ export class Fragmen {
      * ES 3.0 専用モードの一覧
      * @type {Array.<number>}
      */
-    static get MODE_WITH_ES_300(){return [3, 4, 5];}
+    static get MODE_WITH_ES_300(){return [3, 4, 5, 6];}
     /**
      * resolution, mouse, time, backbuffer の各種 uniform 定義で動作するクラシックモード
      * @type {number}
@@ -35,6 +35,16 @@ export class Fragmen {
      */
     static get MODE_GEEKER_300(){return 5;}
     /**
+     * ギーカーの特性に加え、MRT を利用して複数ターゲットへの出力が可能なギーケストモード
+     * @type {number}
+     */
+    static get MODE_GEEKEST(){return 6;}
+    /**
+     * ギーケストモードのターゲット数
+     * @type {number}
+     */
+    static get GEEKEST_TARGET_COUNT(){return 4;}
+    /**
      * 各種のデフォルトのソースコード
      * @type {Array.<string>}
      */
@@ -63,7 +73,8 @@ uniform float t;
 out vec4 o;
 void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p.xxy,1);}`;
         const geeker300 = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p.xxy,1);}`;
-        return [classic, geek, geeker, classic300, geek300, geeker300];
+        const geekest = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o0=vec4(p.xxy,1);}`;
+        return [classic, geek, geeker, classic300, geek300, geeker300, geekest];
     }
     /**
      * GLSL ES 3.0 の場合に付与されるバージョンディレクティブ
@@ -80,6 +91,28 @@ void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.
      * @type {string}
      */
     static get GEEKER_OUT_CHUNK(){return 'out vec4 o;\n';}
+    /**
+     * ギーカーモード時に先頭に付与されるフラグメントシェーダのコード
+     * @type {string}
+     */
+    static get GEEKEST_CHUNK(){
+        const chunk = [];
+        for(let i = 0; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){
+            chunk.push(`uniform sampler2D b${i};`);
+        }
+        return `precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float s;${chunk.join('')}\n`;
+    }
+    /**
+     * ギーケストモードの場合に付与される layout out 修飾子付き変数のコード
+     * @type {string}
+     */
+    static get GEEKEST_OUT_CHUNK(){
+        const chunk = [];
+        for(let i = 0; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){
+            chunk.push(`layout (location = ${i}) out vec4 o${i};`);
+        }
+        return `${chunk.join('')}\n`;
+    }
 
     /**
      * constructor of fragmen.js
@@ -226,6 +259,10 @@ void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.
          * @type {WebGLFrameBuffer}
          */
         this.fTemp = null;
+        /**
+         * TODO
+         */
+        this.buffers = null;
         // self binding
         this.render    = this.render.bind(this);
         this.rect      = this.rect.bind(this);
@@ -305,6 +342,32 @@ void main(){
         this.postUniLocation = {};
         this.postUniLocation.texture = this.gl.getUniformLocation(this.postProgram, 'texture');
         this.postAttLocation = this.gl.getAttribLocation(this.postProgram, 'position');
+
+        this.post300VS = `#version 300 es
+in  vec3 position;
+out vec2 vTexCoord;
+void main(){
+    vTexCoord   = (position + 1.0).xy / 2.0;
+    gl_Position = vec4(position, 1.0);
+}`;
+        this.post300FS = `#version 300 es
+precision mediump float;
+uniform sampler2D drawTexture;
+in vec2 vTexCoord;
+layout (location = 0) out vec4 outColor;
+void main(){
+    outColor = texture(drawTexture, vTexCoord);
+}`;
+        this.post300Program = this.gl.createProgram();
+        vs = this.createShader(this.post300Program, 0, this.post300VS);
+        fs = this.createShader(this.post300Program, 1, this.post300FS);
+        this.gl.linkProgram(this.post300Program);
+        this.gl.deleteShader(vs);
+        this.gl.deleteShader(fs);
+        this.post300UniLocation = {};
+        this.post300UniLocation.texture = this.gl.getUniformLocation(this.post300Program, 'drawTexture');
+        this.post300AttLocation = this.gl.getAttribLocation(this.post300Program, 'position');
+
         this.fFront = this.fBack = this.fTemp = null;
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([-1,1,0,-1,-1,0,1,1,0,1,-1,0]), this.gl.STATIC_DRAW);
@@ -341,8 +404,15 @@ void main(){
         this.resetBuffer(this.fFront);
         this.resetBuffer(this.fBack);
         this.resetBuffer(this.fTemp);
-        this.fFront = this.createFramebuffer(this.width, this.height);
-        this.fBack = this.createFramebuffer(this.width, this.height);
+        switch(this.mode){
+            case Fragmen.MODE_GEEKEST:
+                this.fFront = this.createFramebufferMRT(this.width, this.height, Fragmen.GEEKEST_TARGET_COUNT);
+                this.fBack = this.createFramebufferMRT(this.width, this.height, Fragmen.GEEKEST_TARGET_COUNT);
+                break;
+            default:
+                this.fFront = this.createFramebuffer(this.width, this.height);
+                this.fBack = this.createFramebuffer(this.width, this.height);
+        }
         this.gl.viewport(0, 0, this.width, this.height);
     }
 
@@ -380,11 +450,14 @@ void main(){
         let time       = 'time';
         let sound      = 'sound';
         let backbuffer = 'backbuffer';
+        let mrtBuffers = [];
+        for(let i = 0; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){mrtBuffers.push(`b${i}`);}
         if(
             this.mode === Fragmen.MODE_GEEK ||
             this.mode === Fragmen.MODE_GEEKER ||
             this.mode === Fragmen.MODE_GEEK_300 ||
-            this.mode === Fragmen.MODE_GEEKER_300
+            this.mode === Fragmen.MODE_GEEKER_300 ||
+            this.mode === Fragmen.MODE_GEEKEST
         ){
             resolution = 'r';
             mouse      = 'm';
@@ -400,7 +473,15 @@ void main(){
         this.uniLocation.mouse = this.gl.getUniformLocation(this.program, mouse);
         this.uniLocation.time = this.gl.getUniformLocation(this.program, time);
         this.uniLocation.sound = this.gl.getUniformLocation(this.program, sound);
-        this.uniLocation.sampler = this.gl.getUniformLocation(this.program, backbuffer);
+        switch(this.mode){
+            case Fragmen.MODE_GEEKEST:
+                for(let i = 0; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){
+                    this.uniLocation[`sampler${i}`] = this.gl.getUniformLocation(this.program, mrtBuffers[i]);
+                }
+                break;
+            default:
+                this.uniLocation.sampler = this.gl.getUniformLocation(this.program, backbuffer);
+        }
         this.attLocation = this.gl.getAttribLocation(this.program, 'p');
         this.mousePosition = [0.0, 0.0];
         this.startTime = Date.now();
@@ -419,8 +500,18 @@ void main(){
         this.nowTime = (Date.now() - this.startTime) * 0.001;
         this.gl.useProgram(this.program);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fFront.f);
-        this.gl.activeTexture(this.gl.TEXTURE0);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.fBack.t);
+        if(Array.isArray(this.fBack.t) === true){
+            this.gl.drawBuffers(this.buffers);
+            for(let i = 0; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){
+                this.gl.activeTexture(this.gl.TEXTURE0 + i);
+                this.gl.bindTexture(this.gl.TEXTURE_2D, this.fBack.t[i]);
+                this.gl.uniform1i(this.uniLocation[`sampler${i}`], i);
+            }
+        }else{
+            this.gl.activeTexture(this.gl.TEXTURE0);
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fBack.t);
+            this.gl.uniform1i(this.uniLocation.sampler, 0);
+        }
         this.gl.enableVertexAttribArray(this.attLocation);
         this.gl.vertexAttribPointer(this.attLocation, 3, this.gl.FLOAT, false, 0, 0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -428,17 +519,28 @@ void main(){
         this.gl.uniform1f(this.uniLocation.time, this.nowTime);
         this.gl.uniform2fv(this.uniLocation.resolution, [this.width, this.height]);
         this.gl.uniform1f(this.uniLocation.sound, this.frequency);
-        this.gl.uniform1i(this.uniLocation.sampler, 0);
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
 
-        this.gl.useProgram(this.postProgram);
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-        this.gl.activeTexture(this.gl.TEXTURE1);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.fFront.t);
-        this.gl.enableVertexAttribArray(this.postAttLocation);
-        this.gl.vertexAttribPointer(this.postAttLocation, 3, this.gl.FLOAT, false, 0, 0);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.gl.uniform1i(this.postUniLocation.texture, 1);
+        if(Array.isArray(this.fBack.t) === true){
+            this.gl.useProgram(this.post300Program);
+            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+            this.gl.drawBuffers([this.gl.BACK]);
+            this.gl.activeTexture(this.gl.TEXTURE0);
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fFront.t[0]);
+            this.gl.enableVertexAttribArray(this.post300AttLocation);
+            this.gl.vertexAttribPointer(this.post300AttLocation, 3, this.gl.FLOAT, false, 0, 0);
+            this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            this.gl.uniform1i(this.post300UniLocation.texture, 0);
+        }else{
+            this.gl.useProgram(this.postProgram);
+            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+            this.gl.activeTexture(this.gl.TEXTURE0);
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fFront.t);
+            this.gl.enableVertexAttribArray(this.postAttLocation);
+            this.gl.vertexAttribPointer(this.postAttLocation, 3, this.gl.FLOAT, false, 0, 0);
+            this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            this.gl.uniform1i(this.postUniLocation.texture, 0);
+        }
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
 
         this.gl.flush();
@@ -513,6 +615,43 @@ void main(){
     }
 
     /**
+     * create framebuffer
+     * @param {number} width - set to framebuffer width
+     * @param {number} height - set to framebuffer height
+     * @param {number} count - colorbuffer count
+     * @return {object} custom object
+     * @property {WebGLFramebuffer} f
+     * @property {WebGLRenderbuffer} d
+     * @property {WebGLTexture} t
+     */
+    createFramebufferMRT(width, height, count){
+        const frameBuffer = this.gl.createFramebuffer();
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, frameBuffer);
+        const depthRenderBuffer = this.gl.createRenderbuffer();
+        this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, depthRenderBuffer);
+        this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, width, height);
+        this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, depthRenderBuffer);
+        const fTexture = [];
+        this.buffers = [];
+        for(let i = 0; i < count; ++i){
+            const tex = this.gl.createTexture();
+            this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
+            this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+            this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0 + i, this.gl.TEXTURE_2D, tex, 0);
+            fTexture.push(tex);
+            this.buffers.push(this.gl.COLOR_ATTACHMENT0 + i);
+        }
+        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+        this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+        return {f: frameBuffer, d: depthRenderBuffer, t: fTexture};
+    }
+
+    /**
      * framebuffer reset
      * @param {object} obj - custom object(this.createFramebuffer return value)
      */
@@ -528,7 +667,13 @@ void main(){
             this.gl.deleteRenderbuffer(obj.d);
             obj.d = null;
         }
-        if(obj.hasOwnProperty('t') && obj.t != null && this.gl.isTexture(obj.t)){
+        if(obj.hasOwnProperty('t') && Array.isArray(obj.t) === true){
+            this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+            obj.t.forEach((texture) => {
+                this.gl.deleteTexture(texture);
+                texture = null;
+            });
+        }else if(obj.hasOwnProperty('t') && obj.t != null && this.gl.isTexture(obj.t)){
             this.gl.bindTexture(this.gl.TEXTURE_2D, null);
             this.gl.deleteTexture(obj.t);
             obj.t = null;
@@ -587,6 +732,7 @@ void main(){
             case Fragmen.MODE_CLASSIC_300:
             case Fragmen.MODE_GEEK_300:
             case Fragmen.MODE_GEEKER_300:
+            case Fragmen.MODE_GEEKEST:
                 return Fragmen.ES_300_CHUNK + source.replace(/attribute/g, 'in');
             default:
                 return source;
@@ -612,6 +758,10 @@ void main(){
             case Fragmen.MODE_GEEKER_300:
                 chunk300 = Fragmen.ES_300_CHUNK;
                 chunkOut = Fragmen.GEEKER_CHUNK.substr(0, Fragmen.GEEKER_CHUNK.length - 1) + Fragmen.GEEKER_OUT_CHUNK;
+                break;
+            case Fragmen.MODE_GEEKEST:
+                chunk300 = Fragmen.ES_300_CHUNK;
+                chunkOut = Fragmen.GEEKEST_CHUNK.substr(0, Fragmen.GEEKEST_CHUNK.length - 1) + Fragmen.GEEKEST_OUT_CHUNK;
                 break;
         }
         return chunk300 + chunkOut + code;

@@ -636,6 +636,9 @@ window.addEventListener('DOMContentLoaded', () => {
             '"r", "m", "t", and "b", respectively.',
             'geeker:',
             'In this mode, there is no need to declare precision and uniform. They are automatically complemented on the implementation side. Otherwise, it is the same as in geek mode.',
+            'geekest:',
+            `In this mode, enable MRT. Count of render targets is ${Fragmen.GEEKEST_TARGET_COUNT}.`,
+            'The back buffer input uses a name that is a combination of "b" and a number. The output, "o" and a number.',
         ];
         modeMessage.forEach((v) => {
             const e = document.createElement('div');
