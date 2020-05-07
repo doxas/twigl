@@ -13,6 +13,7 @@ html, body {
 }
 body {
     font-family: 'Barlow', sans-serif;
+    font-weight: 600;
     position: relative;
 }
 #wrap {
@@ -332,10 +333,14 @@ body {
     border: 0px;
     color: whitesmoke;
     font-family: inherit;
+    font-weight: bold;
     font-size: 16px;
     margin: 2px 0px;
     padding: 8px 5px 10px 10px;
     width: 100%;
+}
+.menublockinner select option {
+    font-weight: bold;
 }
 #wrap.overlay #menu .menublock {
     width: 35%;
@@ -570,15 +575,16 @@ input[type=checkbox]:checked + .togglebutton::before {
 }
 #dialogmessage {
     font-size: 14px;
-    width: 300px;
-    min-height: 150px;
-    max-height: 150px;
+    font-weight: normal;
+    width: 400px;
+    min-height: 200px;
+    max-height: 200px;
     overflow: auto;
 }
 #dialogmessage h3 {
     border-bottom: 1px solid #444;
     color: silver;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     margin: 15px 0px 8px;
 }
