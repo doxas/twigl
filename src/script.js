@@ -638,7 +638,7 @@ window.addEventListener('DOMContentLoaded', () => {
             'In this mode, there is no need to declare precision and uniform. They are automatically complemented on the implementation side. Otherwise, it is the same as in geek mode.',
             'geekest:',
             `In this mode, enable MRT. Count of render targets is ${Fragmen.GEEKEST_TARGET_COUNT}.`,
-            'The back buffer input uses a name that is a combination of "b" and a number. The output, "o" and a number.',
+            'The back buffer input uses a name that is a combination of "b" and a number. The output, "o" and a number. In addition, gl_FragCoord can be abbreviated to "FC".',
         ];
         modeMessage.forEach((v) => {
             const e = document.createElement('div');
