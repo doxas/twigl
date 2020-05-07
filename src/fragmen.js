@@ -41,9 +41,11 @@ export class Fragmen {
     static get MODE_GEEKEST(){return 6;}
     /**
      * ギーケストモードのターゲット数
+     * ※ MRT では指定されたバッファのすべてに出力を行う必要があり、多ければよいというものではない
+     * ※ 将来的には任意にターゲット数を変更できるようにするべきなのかもしれない
      * @type {number}
      */
-    static get GEEKEST_TARGET_COUNT(){return 4;}
+    static get GEEKEST_TARGET_COUNT(){return 2;}
     /**
      * 各種のデフォルトのソースコード
      * @type {Array.<string>}
@@ -73,7 +75,11 @@ uniform float t;
 out vec4 o;
 void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p.xxy,1);}`;
         const geeker300 = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p.xxy,1);}`;
-        const geekest = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o0=vec4(p.xxy,1);}`;
+        let out = '';
+        for(let i = 1; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){
+            out += `o${i}=o0;`;
+        }
+        const geekest = `void main(){vec2 p=(FC.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o0=vec4(p.xxy,1);${out}}`;
         return [classic, geek, geeker, classic300, geek300, geeker300, geekest];
     }
     /**
@@ -100,7 +106,8 @@ void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.
         for(let i = 0; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){
             chunk.push(`uniform sampler2D b${i};`);
         }
-        return `precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float s;${chunk.join('')}\n`;
+        return `#define FC gl_FragCoord
+precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float s;${chunk.join('')}\n`;
     }
     /**
      * ギーケストモードの場合に付与される layout out 修飾子付き変数のコード
@@ -260,9 +267,11 @@ void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.y,r.x)-m;for(int i=0;i<8;++i){p.
          */
         this.fTemp = null;
         /**
-         * TODO
+         * MRT で gl.drawBuffers に指定するアタッチメント用定数を格納する配列
+         * @type {Array.<number>}
          */
         this.buffers = null;
+
         // self binding
         this.render    = this.render.bind(this);
         this.rect      = this.rect.bind(this);
@@ -524,7 +533,6 @@ void main(){
         if(Array.isArray(this.fBack.t) === true){
             this.gl.useProgram(this.post300Program);
             this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-            this.gl.drawBuffers([this.gl.BACK]);
             this.gl.activeTexture(this.gl.TEXTURE0);
             this.gl.bindTexture(this.gl.TEXTURE_2D, this.fFront.t[0]);
             this.gl.enableVertexAttribArray(this.post300AttLocation);
@@ -782,6 +790,9 @@ void main(){
                 break;
             case Fragmen.MODE_GEEKER_300:
                 dec += 2;
+                break;
+            case Fragmen.MODE_GEEKEST:
+                dec += 3;
                 break;
         }
         return message.replace(/^ERROR: (\d+):(\d)/gm, (...args) => {
