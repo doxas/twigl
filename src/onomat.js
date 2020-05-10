@@ -15,7 +15,7 @@ export class Onomat extends EventEmitter3 {
      * analyser に指定する FFT サイズ
      * @type {number}
      */
-    static get FFT_SIZE(){return 16;}
+    static get FFT_SIZE(){return 128;}
     /**
      * 秒単位の全体の長さ
      * @type {number}
@@ -335,14 +335,14 @@ uniform float sampleRate;
      * @return {number}
      */
     getFrequencyFloat(){
-        if(this.isPlay !== true){return;}
+        if(this.isPlay !== true){return 0.0;}
+        let f = 0;
         const array = this.getFrequency();
-        const freq = array.reduce((accumu, current) => {
-            return accumu + current;
-        });
-        // TODO: どのように計算すればよいのかが未解決……
-        //       ここでは仮に、0.15 より上の領域だけを正規化している
-        return Math.min(Math.max(freq / (Onomat.FFT_SIZE * 255) - 0.15, 0.0) / 0.85, 1.0);
+        for(let i = 0, j = array.length; i < j; ++i){
+            f += (array[i] / 255) / Math.log(i + 2);
+        }
+        const range = Math.log(Onomat.FFT_SIZE);
+        return f / (range * range);
     }
     /**
      * 再生中の音声を停止する
