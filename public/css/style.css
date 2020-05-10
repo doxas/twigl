@@ -435,6 +435,18 @@ select.dropdown {
 #github:hover::before {
     background-image: url('../resource/githubblue.svg');
 }
+#twitterdummy {
+    background-image: url('../resource/twitterblue.svg');
+    width: 0px;
+    height: 0px;
+    display: inline-block;
+}
+#githubdummy {
+    background-image: url('../resource/githubblue.svg');
+    width: 0px;
+    height: 0px;
+    display: inline-block;
+}
 
 .menublockinner .button {
     background-color: #1DA1F2;
