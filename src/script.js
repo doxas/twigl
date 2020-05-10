@@ -638,7 +638,7 @@ window.addEventListener('DOMContentLoaded', () => {
         modeHeader.textContent = 'Edit mode';
         const modeCaption = document.createElement('div');
         const modeMessage = [
-            'There are three modes in twigl.app and sub-modes that use GLSL ES 3.0 for each.',
+            'There are four modes in twigl.app, each of which has a sub-mode that uses GLSL ES 3.0, or in addition to it, a mode that enables MRT.',
             'classic:',
             'This mode is compatible with GLSLSandbox.',
             'The uniform variables are "resolution", "mouse", "time", and "backbuffer".',
@@ -648,14 +648,21 @@ window.addEventListener('DOMContentLoaded', () => {
             'geeker:',
             'In this mode, there is no need to declare precision and uniform. They are automatically complemented on the implementation side. Otherwise, it is the same as in geek mode.',
             'geekest:',
-            `In this mode, enable MRT. Count of render targets is ${Fragmen.MRT_TARGET_COUNT}.`,
-            'The back buffer input uses a name that is a combination of "b" and a number. The output, "o" and a number. In addition, gl_FragCoord can be abbreviated to "FC".',
+            'In this mode, the description of "void main(){}" can be omitted, and "gl_FragCoord" can be described as "FC". In addition, a variety of GLSL snippets are available.',
+            'For more information, please see below.',
         ];
         modeMessage.forEach((v) => {
             const e = document.createElement('div');
             e.textContent = v;
             modeCaption.appendChild(e);
         });
+        const modeInfoAnchorWrap = document.createElement('div');
+        const modeInfoAnchor = document.createElement('a');
+        modeInfoAnchor.setAttribute('href', 'https://github.com/doxas/twigl');
+        modeInfoAnchor.setAttribute('target', '_blank');
+        modeInfoAnchor.textContent = 'doxas/twigl - GitHub';
+        modeInfoAnchorWrap.appendChild(modeInfoAnchor);
+        modeCaption.appendChild(modeInfoAnchorWrap);
         wrap.appendChild(modeHeader);
         wrap.appendChild(modeCaption);
 
