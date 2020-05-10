@@ -225,4 +225,31 @@ float snoise4D(vec4 v){
 }
 float fsnoise      (vec2 c){return fract(sin(dot(c, vec2(12.9898, 78.233))) * 43758.5453);}
 float fsnoiseDigits(vec2 c){return fract(sin(dot(c, vec2(0.129898, 0.78233))) * 437.585453);}
+vec3 hsv(float h, float s, float v){
+    vec4 t = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(vec3(h) + t.xyz) * 6.0 - vec3(t.w));
+    return v * mix(vec3(t.x), clamp(p - vec3(t.x), 0.0, 1.0), s);
+}
+mat2 rotate2D(float r){
+    return mat2(cos(r), sin(r), -sin(r), cos(r));
+}
+mat3 rotate3D(float angle, vec3 axis){
+    vec3 a = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float r = 1.0 - c;
+    return mat3(
+        a.x * a.x * r + c,
+        a.y * a.x * r + a.z * s,
+        a.z * a.x * r - a.y * s,
+        a.x * a.y * r - a.z * s,
+        a.y * a.y * r + c,
+        a.z * a.y * r + a.x * s,
+        a.x * a.z * r + a.y * s,
+        a.y * a.z * r - a.x * s,
+        a.z * a.z * r + c
+    );
+}
+const float PI = 3.141592653589793;
+const float PI2 = PI * 2.0;
 
