@@ -1,7 +1,6 @@
 
 import noise from './shader_snippet/noise.glsl';
 
-console.log(noise, noise.split('\n').length);
 export class Fragmen {
     /**
      * ES 3.0 専用モードの一覧
