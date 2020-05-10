@@ -78,6 +78,7 @@ let soundPlay = 0;                // サウンドが配信者の元で再生さ�
 let channelData = null;           // チャンネルのデータを保持
 let starData = null;              // スターに関するデータを保持
 let viewerData = null;            // 視聴者数に関するデータを保持
+let editorFontSize = 17;          // エディタのフォントサイズ
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -531,6 +532,16 @@ window.addEventListener('DOMContentLoaded', () => {
                 editor.setKeyboardHandler(null);
                 audioEditor.setKeyboardHandler(null);
             }
+        }
+        if(evt.altKey === true && (evt.key === '≤' || evt.key === ',')){
+            --editorFontSize;
+            document.querySelector('#editor').style.fontSize = `${editorFontSize}px`;
+            document.querySelector('#editoraudio').style.fontSize = `${editorFontSize}px`;
+        }
+        if(evt.altKey === true && (evt.key === '≥' || evt.key === '.')){
+            ++editorFontSize;
+            document.querySelector('#editor').style.fontSize = `${editorFontSize}px`;
+            document.querySelector('#editoraudio').style.fontSize = `${editorFontSize}px`;
         }
         if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
         // Alt + Enter で再生、Ctrl をさらに付与すると停止
