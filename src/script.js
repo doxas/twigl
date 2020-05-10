@@ -533,12 +533,12 @@ window.addEventListener('DOMContentLoaded', () => {
                 audioEditor.setKeyboardHandler(null);
             }
         }
-        if(evt.altKey === true && (evt.key === '≤' || evt.key === ',')){
+        if((evt.ctrlKey === true || evt.metaKey === true) && evt.altKey === true && (evt.key === '≤' || evt.key === ',')){
             --editorFontSize;
             document.querySelector('#editor').style.fontSize = `${editorFontSize}px`;
             document.querySelector('#editoraudio').style.fontSize = `${editorFontSize}px`;
         }
-        if(evt.altKey === true && (evt.key === '≥' || evt.key === '.')){
+        if((evt.ctrlKey === true || evt.metaKey === true) && evt.altKey === true && (evt.key === '≥' || evt.key === '.')){
             ++editorFontSize;
             document.querySelector('#editor').style.fontSize = `${editorFontSize}px`;
             document.querySelector('#editoraudio').style.fontSize = `${editorFontSize}px`;
