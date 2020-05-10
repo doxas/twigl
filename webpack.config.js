@@ -3,13 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 
-const FB_API_KEY             = '<your environment>';
-const FB_AUTH_DOMAIN         = '<your environment>';
-const FB_DATABASE_URL        = '<your environment>';
-const FB_PROJECT_ID          = '<your environment>';
-const FB_STORAGE_BUCKET      = '<your environment>';
-const FB_MESSAGING_SENDER_ID = '<your environment>';
-
 // bitly api access token
 let BITLY_ACCESS_TOKEN = '';
 try {
@@ -53,6 +46,9 @@ module.exports = (env, argv) => {
                             ]
                         }
                     }]
+                }, {
+                    test: /\.(vert|frag|glsl)$/,
+                    use: 'raw-loader',
                 }
             ]
         },
@@ -66,12 +62,6 @@ module.exports = (env, argv) => {
         },
         plugins: [
             new webpack.DefinePlugin({
-                __FB_API_KEY__:             JSON.stringify(FB_API_KEY),
-                __FB_AUTH_DOMAIN__:         JSON.stringify(FB_AUTH_DOMAIN),
-                __FB_DATABASE_URL__:        JSON.stringify(FB_DATABASE_URL),
-                __FB_PROJECT_ID__:          JSON.stringify(FB_PROJECT_ID),
-                __FB_STORAGE_BUCKET__:      JSON.stringify(FB_STORAGE_BUCKET),
-                __FB_MESSAGING_SENDER_ID__: JSON.stringify(FB_MESSAGING_SENDER_ID),
                 __BITLY_ACCESS_TOKEN__    : JSON.stringify(BITLY_ACCESS_TOKEN),
             })
         ],
