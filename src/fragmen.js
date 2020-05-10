@@ -23,7 +23,7 @@ export class Fragmen {
      */
     static get MODE_GEEKER(){return 2;}
     /**
-     * ギーカーモードの特性に加え、gl_FragCoord の省略と各種 GLSL スニペットの利用が可能なギーケストモード
+     * ギーカーモードの特性に加え、void main と gl_FragCoord の省略、さらに各種 GLSL スニペットの利用が可能なギーケストモード
      * @type {number}
      */
     static get MODE_GEEKEST(){return 3;}
