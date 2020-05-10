@@ -6,7 +6,7 @@ export class Fragmen {
      * ES 3.0 専用モードの一覧
      * @type {Array.<number>}
      */
-    static get MODE_WITH_ES_300(){return [3, 4, 5, 6];}
+    static get MODE_WITH_ES_300(){return [4, 5, 6, 7, 8, 9, 10, 11];}
     /**
      * resolution, mouse, time, backbuffer の各種 uniform 定義で動作するクラシックモード
      * @type {number}
@@ -23,67 +23,126 @@ export class Fragmen {
      */
     static get MODE_GEEKER(){return 2;}
     /**
+     * ギーカーモードの特性に加え、void main と gl_FragCoord の省略、さらに各種 GLSL スニペットの利用が可能なギーケストモード
+     * @type {number}
+     */
+    static get MODE_GEEKEST(){return 3;}
+    /**
      * classic の ES 3.0 版
      * @type {number}
      */
-    static get MODE_CLASSIC_300(){return 3;}
+    static get MODE_CLASSIC_300(){return 4;}
     /**
      * geek の ES 3.0 版
      * @type {number}
      */
-    static get MODE_GEEK_300(){return 4;}
+    static get MODE_GEEK_300(){return 5;}
     /**
      * geeker の ES 3.0 版
      * @type {number}
      */
-    static get MODE_GEEKER_300(){return 5;}
+    static get MODE_GEEKER_300(){return 6;}
     /**
-     * ギーカーの特性に加え、MRT を利用して複数ターゲットへの出力が可能なギーケストモード
+     * geekest の ES 3.0 版
      * @type {number}
      */
-    static get MODE_GEEKEST(){return 6;}
+    static get MODE_GEEKEST_300(){return 7;}
     /**
-     * ギーケストモードのターゲット数
+     * classic の ES 3.0 + MRT 版
+     * @type {number}
+     */
+    static get MODE_CLASSIC_MRT(){return 8;}
+    /**
+     * geek の ES 3.0 + MRT 版
+     * @type {number}
+     */
+    static get MODE_GEEK_MRT(){return 9;}
+    /**
+     * geeker の ES 3.0 + MRT 版
+     * @type {number}
+     */
+    static get MODE_GEEKER_MRT(){return 10;}
+    /**
+     * geekest の ES 3.0 + MRT 版
+     * @type {number}
+     */
+    static get MODE_GEEKEST_MRT(){return 11;}
+    /**
+     * MRT のターゲット数
      * ※ MRT では指定されたバッファのすべてに出力を行う必要があり、多ければよいというものではない
      * ※ 将来的には任意にターゲット数を変更できるようにするべきなのかもしれない
      * @type {number}
      */
-    static get GEEKEST_TARGET_COUNT(){return 2;}
+    static get MRT_TARGET_COUNT(){return 2;}
     /**
      * 各種のデフォルトのソースコード
      * @type {Array.<string>}
      */
     static get DEFAULT_SOURCE(){
+        // MRT declaration
+        let declareOutColor = '';
+        for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){
+            declareOutColor += `layout (location = ${i}) out vec4 outColor${i};\n`;
+        }
+        let declareO = '';
+        for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){
+            declareO += `layout (location = ${i}) out vec4 o${i};\n`;
+        }
+        let outColor = '';
+        for(let i = 1; i < Fragmen.MRT_TARGET_COUNT; ++i){
+            outColor += `outColor${i}=outColor0;`;
+        }
+        let o = '';
+        for(let i = 1; i < Fragmen.MRT_TARGET_COUNT; ++i){
+            o += `o${i}=o0;`;
+        }
+        // sources
         const classic = `precision highp float;
 uniform vec2 resolution;
 uniform vec2 mouse;
 uniform float time;
+uniform sampler2D backbuffer;
 void main(){vec2 r=resolution,p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}gl_FragColor=vec4(p.xxy,1);}`;
         const geek = `precision highp float;
 uniform vec2 r;
 uniform vec2 m;
 uniform float t;
+uniform sampler2D b;
 void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p.xxy,1);}`;
         const geeker = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p.xxy,1);}`;
+        const geekest = `vec2 p=(FC.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}gl_FragColor=vec4(p.xxy,1);`;
         const classic300 = `precision highp float;
 uniform vec2 resolution;
 uniform vec2 mouse;
 uniform float time;
+uniform sampler2D backbuffer;
 out vec4 outColor;
 void main(){vec2 r=resolution,p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}outColor=vec4(p.xxy,1);}`;
         const geek300 = `precision highp float;
 uniform vec2 r;
 uniform vec2 m;
 uniform float t;
+uniform sampler2D b;
 out vec4 o;
 void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p.xxy,1);}`;
         const geeker300 = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p.xxy,1);}`;
-        let out = '';
-        for(let i = 1; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){
-            out += `o${i}=o0;`;
-        }
-        const geekest = `void main(){vec2 p=(FC.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o0=vec4(p.xxy,1);${out}}`;
-        return [classic, geek, geeker, classic300, geek300, geeker300, geekest];
+        const geekest300 = `vec2 p=(FC.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o=vec4(p.xxy,1);`;
+        const classicMRT = `precision highp float;
+uniform vec2 resolution;
+uniform vec2 mouse;
+uniform float time;
+uniform sampler2D backbuffer0;
+uniform sampler2D backbuffer1;
+${declareOutColor}void main(){vec2 r=resolution,p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-mouse;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(time*.2)*.4);}outColor0=vec4(p.xxy,1);${outColor}}`;
+        const geekMRT = `precision highp float;
+uniform vec2 r;
+uniform vec2 m;
+uniform float t;
+uniform sampler2D b;
+${declareO}void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o0=vec4(p.xxy,1);${o}}`;
+        const geekerMRT = `void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o0=vec4(p.xxy,1);${o}}`;
+        const geekestMRT = `vec2 p=(FC.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;i<8;++i){p.xy=abs(p)/abs(dot(p,p))-vec2(.9+cos(t*.2)*.4);}o0=vec4(p.xxy,1);${o}`;
+        return [classic, geek, geeker, geekest, classic300, geek300, geeker300, geekest300, classicMRT, geekMRT, geekerMRT, geekestMRT];
     }
     /**
      * GLSL ES 3.0 の場合に付与されるバージョンディレクティブ
@@ -101,12 +160,48 @@ void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;i<8;++i){p.
      */
     static get GEEKER_OUT_CHUNK(){return 'out vec4 o;\n';}
     /**
-     * ギーカーモード時に先頭に付与されるフラグメントシェーダのコード
+     * ギーカーモード + MRT 時に先頭に付与されるフラグメントシェーダのコード
+     * @type {string}
+     */
+    static get GEEKER_MRT_CHUNK(){
+        const chunk = [];
+        for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){
+            chunk.push(`uniform sampler2D b${i};`);
+        }
+        return `precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float s;${chunk.join('')}\n`;
+    }
+    /**
+     * ギーカーモード + ES 3.0 + MRT の場合に付与される out 修飾子付き変数のコード
+     * @type {string}
+     */
+    static get GEEKER_OUT_MRT_CHUNK(){
+        const chunk = [];
+        for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){
+            chunk.push(`layout (location = ${i}) out vec4 o${i};`);
+        }
+        return `${chunk.join('')}\n`;
+    }
+    /**
+     * ギーケストモード時に先頭に付与されるフラグメントシェーダのコード
      * @type {string}
      */
     static get GEEKEST_CHUNK(){
+        return `#define FC gl_FragCoord
+precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float s;uniform sampler2D b;
+${noise}\n`;
+    }
+    /**
+     * ギーケストモード + ES 3.0 の場合に付与される out 修飾子付き変数のコード
+     * @type {string}
+     */
+    static get GEEKEST_OUT_CHUNK(){return 'out vec4 o;\n';}
+    /**
+     * ギーケストモード + ES 3.0 + MRT の場合に先頭に付与されるフラグメントシェーダのコード
+     * @type {string}
+     */
+    static get GEEKEST_MRT_CHUNK(){
         const chunk = [];
-        for(let i = 0; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){
+        for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){
             chunk.push(`uniform sampler2D b${i};`);
         }
         return `#define FC gl_FragCoord
@@ -114,12 +209,12 @@ precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform floa
 ${noise}\n`;
     }
     /**
-     * ギーケストモードの場合に付与される layout out 修飾子付き変数のコード
+     * ギーケストモード + ES 3.0 + MRT の場合に付与される layout out 修飾子付き変数のコード
      * @type {string}
      */
-    static get GEEKEST_OUT_CHUNK(){
+    static get GEEKEST_OUT_MRT_CHUNK(){
         const chunk = [];
-        for(let i = 0; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){
+        for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){
             chunk.push(`layout (location = ${i}) out vec4 o${i};`);
         }
         return `${chunk.join('')}\n`;
@@ -418,9 +513,12 @@ void main(){
         this.resetBuffer(this.fBack);
         this.resetBuffer(this.fTemp);
         switch(this.mode){
-            case Fragmen.MODE_GEEKEST:
-                this.fFront = this.createFramebufferMRT(this.width, this.height, Fragmen.GEEKEST_TARGET_COUNT);
-                this.fBack = this.createFramebufferMRT(this.width, this.height, Fragmen.GEEKEST_TARGET_COUNT);
+            case Fragmen.MODE_CLASSIC_MRT:
+            case Fragmen.MODE_GEEK_MRT:
+            case Fragmen.MODE_GEEKER_MRT:
+            case Fragmen.MODE_GEEKEST_MRT:
+                this.fFront = this.createFramebufferMRT(this.width, this.height, Fragmen.MRT_TARGET_COUNT);
+                this.fBack = this.createFramebufferMRT(this.width, this.height, Fragmen.MRT_TARGET_COUNT);
                 break;
             default:
                 this.fFront = this.createFramebuffer(this.width, this.height);
@@ -464,13 +562,19 @@ void main(){
         let sound      = 'sound';
         let backbuffer = 'backbuffer';
         let mrtBuffers = [];
-        for(let i = 0; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){mrtBuffers.push(`b${i}`);}
+        for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){mrtBuffers.push(`backbuffer${i}`);}
+        let mrtShortBuffers = [];
+        for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){mrtShortBuffers.push(`b${i}`);}
         if(
             this.mode === Fragmen.MODE_GEEK ||
             this.mode === Fragmen.MODE_GEEKER ||
+            this.mode === Fragmen.MODE_GEEKEST ||
             this.mode === Fragmen.MODE_GEEK_300 ||
             this.mode === Fragmen.MODE_GEEKER_300 ||
-            this.mode === Fragmen.MODE_GEEKEST
+            this.mode === Fragmen.MODE_GEEKEST_300 ||
+            this.mode === Fragmen.MODE_GEEK_MRT ||
+            this.mode === Fragmen.MODE_GEEKER_MRT ||
+            this.mode === Fragmen.MODE_GEEKEST_MRT
         ){
             resolution = 'r';
             mouse      = 'm';
@@ -487,9 +591,16 @@ void main(){
         this.uniLocation.time = this.gl.getUniformLocation(this.program, time);
         this.uniLocation.sound = this.gl.getUniformLocation(this.program, sound);
         switch(this.mode){
-            case Fragmen.MODE_GEEKEST:
-                for(let i = 0; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){
+            case Fragmen.MODE_CLASSIC_MRT:
+                for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){
                     this.uniLocation[`sampler${i}`] = this.gl.getUniformLocation(this.program, mrtBuffers[i]);
+                }
+                break;
+            case Fragmen.MODE_GEEK_MRT:
+            case Fragmen.MODE_GEEKER_MRT:
+            case Fragmen.MODE_GEEKEST_MRT:
+                for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){
+                    this.uniLocation[`sampler${i}`] = this.gl.getUniformLocation(this.program, mrtShortBuffers[i]);
                 }
                 break;
             default:
@@ -515,7 +626,7 @@ void main(){
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fFront.f);
         if(Array.isArray(this.fBack.t) === true){
             this.gl.drawBuffers(this.buffers);
-            for(let i = 0; i < Fragmen.GEEKEST_TARGET_COUNT; ++i){
+            for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){
                 this.gl.activeTexture(this.gl.TEXTURE0 + i);
                 this.gl.bindTexture(this.gl.TEXTURE_2D, this.fBack.t[i]);
                 this.gl.uniform1i(this.uniLocation[`sampler${i}`], i);
@@ -744,7 +855,11 @@ void main(){
             case Fragmen.MODE_CLASSIC_300:
             case Fragmen.MODE_GEEK_300:
             case Fragmen.MODE_GEEKER_300:
-            case Fragmen.MODE_GEEKEST:
+            case Fragmen.MODE_GEEKEST_300:
+            case Fragmen.MODE_CLASSIC_MRT:
+            case Fragmen.MODE_GEEK_MRT:
+            case Fragmen.MODE_GEEKER_MRT:
+            case Fragmen.MODE_GEEKEST_MRT:
                 return Fragmen.ES_300_CHUNK + source.replace(/attribute/g, 'in');
             default:
                 return source;
@@ -759,24 +874,45 @@ void main(){
     preprocessFragmentCode(code){
         let chunk300 = '';
         let chunkOut = '';
+        let chunkMain = ''
+        let chunkClose = ''
         switch(this.mode){
             case Fragmen.MODE_GEEKER:
                 chunkOut = Fragmen.GEEKER_CHUNK;
                 break;
+            case Fragmen.MODE_GEEKEST:
+                chunkOut = Fragmen.GEEKEST_CHUNK;
+                chunkMain = 'void main(){\n'
+                chunkClose = '\n}'
+                break;
             case Fragmen.MODE_CLASSIC_300:
             case Fragmen.MODE_GEEK_300:
+            case Fragmen.MODE_CLASSIC_MRT:
+            case Fragmen.MODE_GEEK_MRT:
                 chunk300 = Fragmen.ES_300_CHUNK;
                 break;
             case Fragmen.MODE_GEEKER_300:
                 chunk300 = Fragmen.ES_300_CHUNK;
                 chunkOut = Fragmen.GEEKER_CHUNK.substr(0, Fragmen.GEEKER_CHUNK.length - 1) + Fragmen.GEEKER_OUT_CHUNK;
                 break;
-            case Fragmen.MODE_GEEKEST:
+            case Fragmen.MODE_GEEKER_MRT:
+                chunk300 = Fragmen.ES_300_CHUNK;
+                chunkOut = Fragmen.GEEKER_MRT_CHUNK.substr(0, Fragmen.GEEKER_MRT_CHUNK.length - 1) + Fragmen.GEEKER_OUT_MRT_CHUNK;
+                break;
+            case Fragmen.MODE_GEEKEST_300:
                 chunk300 = Fragmen.ES_300_CHUNK;
                 chunkOut = Fragmen.GEEKEST_CHUNK.substr(0, Fragmen.GEEKEST_CHUNK.length - 1) + Fragmen.GEEKEST_OUT_CHUNK;
+                chunkMain = 'void main(){\n'
+                chunkClose = '\n}'
+                break;
+            case Fragmen.MODE_GEEKEST_MRT:
+                chunk300 = Fragmen.ES_300_CHUNK;
+                chunkOut = Fragmen.GEEKEST_MRT_CHUNK.substr(0, Fragmen.GEEKEST_MRT_CHUNK.length - 1) + Fragmen.GEEKEST_OUT_MRT_CHUNK;
+                chunkMain = 'void main(){\n'
+                chunkClose = '\n}'
                 break;
         }
-        return chunk300 + chunkOut + code;
+        return chunk300 + chunkOut + chunkMain + code + chunkClose;
     }
 
     /**
@@ -786,17 +922,35 @@ void main(){
      */
     formatErrorMessage(message){
         let dec = 0;
+        let noiseDec = noise.split('\n').length;
         switch(this.mode){
+            case Fragmen.MODE_CLASSIC:
+            case Fragmen.MODE_GEEK:
+                dec = 0;
+                break;
             case Fragmen.MODE_GEEKER:
+                dec += 1;
+                break;
+            case Fragmen.MODE_GEEKEST:
+                dec += 3 + noiseDec;
+                break;
             case Fragmen.MODE_CLASSIC_300:
             case Fragmen.MODE_GEEK_300:
+            case Fragmen.MODE_CLASSIC_MRT:
+            case Fragmen.MODE_GEEK_MRT:
                 dec += 1;
                 break;
             case Fragmen.MODE_GEEKER_300:
                 dec += 2;
                 break;
-            case Fragmen.MODE_GEEKEST:
-                dec += 3 + noise.split('\n').length;
+            case Fragmen.MODE_GEEKER_MRT:
+                dec += 2;
+                break;
+            case Fragmen.MODE_GEEKEST_300:
+                dec += 4 + noiseDec;
+                break;
+            case Fragmen.MODE_GEEKEST_MRT:
+                dec += 4 + noiseDec;
                 break;
         }
         return message.replace(/^ERROR: (\d+):(\d+)/gm, (...args) => {
