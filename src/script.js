@@ -533,6 +533,9 @@ window.addEventListener('DOMContentLoaded', () => {
                 audioEditor.setKeyboardHandler(null);
             }
         }
+        if((evt.ctrlKey === true || evt.metaKey === true) && evt.altKey === true && (evt.key === '†' || evt.key === 't')){
+            toggleEditorView();
+        }
         if((evt.ctrlKey === true || evt.metaKey === true) && evt.altKey === true && (evt.key === '≤' || evt.key === ',')){
             --editorFontSize;
             document.querySelector('#editor').style.fontSize = `${editorFontSize}px`;
@@ -718,12 +721,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // toggle menu
     menuIcon.addEventListener('click', () => {
-        const wrap = document.querySelector('#wrap');
-        wrap.classList.toggle('overlay');
-        editor.resize();
-        audioEditor.resize();
-        resize();
-        fragmen.rect();
+        toggleEditorView();
     }, false);
 
     // broadcast
@@ -1163,6 +1161,18 @@ function resize(){
     const bound = canvas.parentElement.getBoundingClientRect();
     canvas.width = bound.width;
     canvas.height = bound.height;
+}
+
+/**
+ * エディタビューの変更
+ */
+function toggleEditorView(){
+    const wrap = document.querySelector('#wrap');
+    wrap.classList.toggle('overlay');
+    editor.resize();
+    audioEditor.resize();
+    resize();
+    fragmen.rect();
 }
 
 /**
