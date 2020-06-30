@@ -106,7 +106,7 @@ mat3 rotate3D(float angle, vec3 axis){
     float s = sin(angle);
     float c = cos(angle);
     float r = 1.0 - c;
-    return = mat3(
+    return mat3(
         a.x * a.x * r + c,
         a.y * a.x * r + a.z * s,
         a.z * a.x * r - a.y * s,
