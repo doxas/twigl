@@ -125,6 +125,19 @@ const float PI2 = PI * 2.0;
 
 Note that the above snippets are only available in GEEKEST mode.
 
+## keyboard shortcut
+
+| key                  | action         |
+|----------------------|----------------|
+| Alt + `Enter`        | play sound     |
+| Ctrl + Alt + `Enter` | stop sound     |
+| Ctrl + Alt + `v`     | vim mode       |
+| Ctrl + Alt + `t`     | change view    |
+| Ctrl + Alt + `.`     | up font size   |
+| Ctrl + Alt + `,`     | down font size |
+
+You can use `Command` instead `Ctrl` on the macOS.
+
 ## credit
 
 [spite/ccapture\.js: A library to capture canvas\-based animations at a fixed framerate](https://github.com/spite/ccapture.js)
