@@ -466,15 +466,17 @@ layout (location = 0) out vec4 outColor;
 void main(){
     outColor = texture(drawTexture, vTexCoord);
 }`;
-        this.post300Program = this.gl.createProgram();
-        vs = this.createShader(this.post300Program, 0, this.post300VS);
-        fs = this.createShader(this.post300Program, 1, this.post300FS);
-        this.gl.linkProgram(this.post300Program);
-        this.gl.deleteShader(vs);
-        this.gl.deleteShader(fs);
-        this.post300UniLocation = {};
-        this.post300UniLocation.texture = this.gl.getUniformLocation(this.post300Program, 'drawTexture');
-        this.post300AttLocation = this.gl.getAttribLocation(this.post300Program, 'position');
+        if(this.isWebGL2 === true){
+            this.post300Program = this.gl.createProgram();
+            vs = this.createShader(this.post300Program, 0, this.post300VS);
+            fs = this.createShader(this.post300Program, 1, this.post300FS);
+            this.gl.linkProgram(this.post300Program);
+            this.gl.deleteShader(vs);
+            this.gl.deleteShader(fs);
+            this.post300UniLocation = {};
+            this.post300UniLocation.texture = this.gl.getUniformLocation(this.post300Program, 'drawTexture');
+            this.post300AttLocation = this.gl.getAttribLocation(this.post300Program, 'position');
+        }
 
         this.fFront = this.fBack = this.fTemp = null;
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
@@ -910,6 +912,8 @@ void main(){
                 chunkOut = Fragmen.GEEKEST_MRT_CHUNK.substr(0, Fragmen.GEEKEST_MRT_CHUNK.length - 1) + Fragmen.GEEKEST_OUT_MRT_CHUNK;
                 chunkMain = 'void main(){\n'
                 chunkClose = '\n}'
+                break;
+            default:
                 break;
         }
         return chunk300 + chunkOut + chunkMain + code + chunkClose;
