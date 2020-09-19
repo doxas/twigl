@@ -195,6 +195,9 @@ window.addEventListener('DOMContentLoaded', () => {
             case 'ow': // is owner
                 isOwner = value === 'true';
                 break;
+            case 'ol': // overlay
+                document.querySelector('#wrap').classList.add('overlay');
+                break;
         }
     });
     // URL パラメータより得たカレントモードが存在するか
