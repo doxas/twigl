@@ -294,6 +294,7 @@ body {
     max-height: 94px;
     display: flex;
     flex-direction: row;
+    overflow: auto;
 }
 .menublock {
     border-top: 1px solid black;
@@ -347,10 +348,10 @@ body {
     min-width: 150px;
 }
 #wrap.overlay #menu #exportblock {
+    min-width: 450px;
     width: 100%;
 }
 #wrap.overlay #menu #exportblock .menublockinner {
-    min-width: 450px;
     display: flex;
     flex-direction: row;
 }
@@ -434,6 +435,12 @@ select.dropdown {
 }
 #github:hover::before {
     background-image: url('../resource/githubblue.svg');
+}
+#wrap.overlay #twitter::before,
+#wrap.overlay #github::before {
+    margin: auto 3px auto 0px;
+    width: 14px;
+    height: 14px;
 }
 #twitterdummy {
     background-image: url('../resource/twitterblue.svg');
