@@ -10,11 +10,11 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    position: absolute;
 }
 body {
     font-family: 'Barlow', sans-serif;
     font-weight: 600;
-    position: relative;
 }
 #wrap {
     width: 100%;
@@ -241,7 +241,7 @@ body {
 }
 #wrap.overlay .editor {
     border-right: 1px solid rgba(96, 96, 96, 0.2);
-    height: calc(100vh - 94px - 32px);
+    height: calc(100% - 32px);
 }
 .editorblock {
     width: 100%;
@@ -250,6 +250,9 @@ body {
 }
 .editorblock.invisible {
     display: none;
+}
+#wrap.overlay .editorblock {
+    height: calc(100vh - 94px);
 }
 #editorwrap {
     width: 100%;
@@ -276,9 +279,10 @@ body {
 }
 #wrap.overlay #editorwrap #interface {
     width: calc(100% - 80px);
-    min-height: calc(100vh - 94px);
-    max-height: calc(100vh - 94px);
+    min-height: calc(100% - 94px);
+    max-height: calc(100% - 94px);
     flex-direction: row;
+    position: absolute;
 }
 #menu {
     background: rgb(17, 17, 17);
@@ -295,6 +299,9 @@ body {
     display: flex;
     flex-direction: row;
     overflow: auto;
+    position: absolute;
+    bottom: 0px;
+    z-index: 9;
 }
 .menublock {
     border-top: 1px solid black;
