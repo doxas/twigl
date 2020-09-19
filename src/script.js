@@ -1524,6 +1524,7 @@ function generatePermamentLink(){
     return new Promise((resolve, reject) => {
         let result = [];
         if(latestStatus === 'success'){
+            result.push(`ol=true`);
             result.push(`mode=${mode.value}`);
             result.push(`source=${encodeURIComponent(editor.getValue())}`);
             if(audioToggle.checked === true){
