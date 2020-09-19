@@ -416,7 +416,7 @@ ${noise}\n`;
             this.eventTarget = option.eventTarget;
         }
         if(option.hasOwnProperty('mouse') && option.mouse === true){
-            this.eventTarget.addEventListener('mousemove', this.mouseMove, false);
+            this.eventTarget.addEventListener('pointermove', this.mouseMove, false);
         }
         if(option.hasOwnProperty('escape') && option.escape === true){
             window.addEventListener('keydown', this.keyDown, false);
