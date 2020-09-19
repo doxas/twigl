@@ -595,7 +595,8 @@ input[type=checkbox]:checked + .togglebutton::before {
 #dialogmessage {
     font-size: 14px;
     font-weight: normal;
-    width: 400px;
+    width: 100%;
+    max-width: 400px;
     min-height: 200px;
     max-height: 200px;
     overflow: auto;
