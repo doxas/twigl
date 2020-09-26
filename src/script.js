@@ -201,6 +201,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 isOwner = value === 'true';
                 break;
             case 'ol': // overlay (hide menu view)
+                document.querySelector('#wrap').classList.add('overlay');
                 isLayerHidden = true;
                 break;
         }
