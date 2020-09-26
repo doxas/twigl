@@ -157,6 +157,9 @@ window.addEventListener('DOMContentLoaded', () => {
     // fragmen からデフォルトのソース一覧を取得
     const fragmenDefaultSource = Fragmen.DEFAULT_SOURCE;
 
+    // メニュー及びエディタを非表示にするかどうかのフラグ
+    let isLayerHidden = false;
+
     // URL の GET パラメータの解析
     urlParameter = getParameter();
     urlParameter.forEach((value, key) => {
@@ -197,8 +200,8 @@ window.addEventListener('DOMContentLoaded', () => {
             case 'ow': // is owner
                 isOwner = value === 'true';
                 break;
-            case 'ol': // overlay
-                document.querySelector('#wrap').classList.add('overlay');
+            case 'ol': // overlay (hide menu view)
+                isLayerHidden = true;
                 break;
         }
     });
@@ -1160,6 +1163,9 @@ window.addEventListener('DOMContentLoaded', () => {
             showDialog('Firebase Error', {cancelVisible: false});
         });
     }
+
+    // メニュー及びエディタが非表示の場合（フルスクリーンとは異なる点に注意）
+    if(isLayerHidden === true){toggleLayerView();}
 
 }, false);
 
