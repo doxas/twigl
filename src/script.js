@@ -31,6 +31,7 @@ let fullIcon   = null; // fullscreen icon
 let broadIcon  = null; // broadcast mode icon
 let starIcon   = null; // star icon
 let menuIcon   = null; // menu icon
+let hideIcon   = null; // hide menu icon
 let syncToggle = null; // スクロール同期用のチェックボックス
 
 let audioWrap     = null; // サウンドシェーダペインのラッパー
@@ -142,6 +143,7 @@ window.addEventListener('DOMContentLoaded', () => {
     broadIcon  = document.querySelector('#broadcasticon');
     starIcon   = document.querySelector('#stariconwrap');
     menuIcon   = document.querySelector('#togglemenuicon');
+    hideIcon   = document.querySelector('#hidemenuicon');
     syncToggle = document.querySelector('#syncscrolltoggle');
 
     audioWrap     = document.querySelector('#audio');
@@ -722,6 +724,11 @@ window.addEventListener('DOMContentLoaded', () => {
         fire.updateStarData(currentChannelId);
     }, false);
 
+    // hide menu
+    hideIcon.addEventListener('click', () => {
+        toggleLayerView();
+    }, false);
+
     // toggle menu
     menuIcon.addEventListener('click', () => {
         toggleEditorView();
@@ -1164,6 +1171,29 @@ function resize(){
     const bound = canvas.parentElement.getBoundingClientRect();
     canvas.width = bound.width;
     canvas.height = bound.height;
+}
+
+/**
+ * レイヤービューの変更
+ */
+function toggleLayerView(){
+    canvasWrap.classList.toggle('fullheight');
+    editorWrap.classList.toggle('invisible');
+    infoIcon.classList.toggle('invisible');
+    fullIcon.classList.toggle('invisible');
+    broadIcon.classList.toggle('invisible');
+    hideIcon.classList.toggle('hide');
+    menuIcon.classList.toggle('invisible');
+    editor.resize();
+    audioEditor.resize();
+    resize();
+    fragmen.rect();
+
+    if(hideIcon.classList.contains('hide') === true){
+        hideIcon.title = 'hide editor';
+    }else{
+        hideIcon.title = 'show editor';
+    }
 }
 
 /**
