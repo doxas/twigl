@@ -78,6 +78,7 @@ body {
     pointer-events: auto;
     cursor: pointer;
 }
+.globaliconinner.nevershow,
 .globaliconinner.invisible {
     display: none;
 }

@@ -632,7 +632,7 @@ window.addEventListener('DOMContentLoaded', () => {
         fullIcon.addEventListener('click', onFullscreenRequest, false);
     }else{
         // いずれでもない場合は API でフルスクリーン化することができないのでアイコンを消す
-        fullIcon.classList.add('invisible');
+        fullIcon.classList.add('nevershow');
     }
 
     // information アイコンが押されたとき
