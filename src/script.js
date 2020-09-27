@@ -1088,7 +1088,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     }
                     // フレンド側には配信アイコンを表示しない
                     icon = document.querySelector('#broadcasticon');
-                    icon.classList.add('invisible');
+                    icon.classList.add('nevershow');
                     break;
                 case 'audience':
                     if(channelData.disc !== 'unknown'){
@@ -1132,7 +1132,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     }
                     // 視聴者側には配信アイコンを表示しない
                     icon = document.querySelector('#broadcasticon');
-                    icon.classList.add('invisible');
+                    icon.classList.add('nevershow');
                     // 視聴者側ではメニューの状態を変更する
                     fire.getDirectorData(channelData.directorId)
                     .then((snap) => {
