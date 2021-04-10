@@ -408,7 +408,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // ダウンロードボタン
     download.addEventListener('click', () => {
-        // ボタンに .disabled が付与されているかエンコード中は即時終了
+        // ボタンに disabled が付与されているかエンコード中は即時終了
         if(
             download.classList.contains('disabled') === true ||
             isEncoding === true
@@ -530,7 +530,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 alert('Should not be blank.');
                 return;
             }
-            // まず .disabled を付与して再度押せないようにする
+            // disabled を付与して連続で押せないようにする
             download.classList.add('disabled');
             // ダウンロードボタンの表記を変えておく
             download.textContent = 'generate...';
@@ -1470,6 +1470,7 @@ function captureAnimation(frame = 180, width = 512, height = 256, format = 'gif'
             ccapture.stop();
             ccapture.save((blob) => {
                 setTimeout(() => {
+                    // blob からダウンロードリンクを生成する
                     const url = URL.createObjectURL(blob);
                     let anchor = document.createElement('a');
                     document.body.appendChild(anchor);
@@ -1478,6 +1479,7 @@ function captureAnimation(frame = 180, width = 512, height = 256, format = 'gif'
                     anchor.click();
                     document.body.removeChild(anchor);
                     document.body.removeChild(captureCanvas);
+                    // 後始末をして UI を復帰させる
                     URL.revokeObjectURL(url);
                     download.classList.remove('disabled');
                     download.textContent = 'Download';
@@ -2129,6 +2131,10 @@ function copyToClipboard(str){
     document.body.removeChild(t);
 }
 
+/**
+ * uuid を生成する
+ * @return {string}
+ */
 function uuid(){
     // https://github.com/GoogleChrome/chrome-platform-analytics/blob/master/src/internal/identifier.js
     const chars = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.split('');
