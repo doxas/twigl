@@ -425,7 +425,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const s = size.value.split('x');
             const w = parseInt(s[0]);
             const h = parseInt(s[1]);
-            captureGif(f, w, h);
+            capture(f, w, h);
         }, 100);
     }, false);
 
@@ -1304,15 +1304,18 @@ function editorSetting(id, source, onChange, onSelectionChange, theme = 'chaos')
  * @param {number} [frame=180] - キャプチャするフレーム数
  * @param {number} [width=512] - キャプチャする際の canvas の幅
  * @param {number} [height=256] - キャプチャする際の canvas の高さ
+ * @param {string} [format='gif'] - capture output format
+ * @param {number} [framerate=60] - capture framerate
+ * @param {number} [quality=100] - capture quality
  */
-function captureGif(frame = 180, width = 512, height = 256){
+    function capture(frame = 180, width = 512, height = 256, format = 'gif', framerate = 60, quality = 100){
     // CCapture の初期化
     const capture = new CCapture({
         verbose: false,
-        format: 'gif',
+        format: format,
         workersPath: './js/',
-        framerate: 60,
-        quality: 100,
+        framerate: framerate,
+        quality: quality,
         onProgress: (range) => {
             // 変換進捗の出力
             const p = Math.floor(range * 100);
@@ -2002,5 +2005,6 @@ function copyToClipboard(str){
     document.body.removeChild(t);
 }
 
-})();
+window.TWIGL = {capture: capture}; // Expose for use from devtools console (too lazy to build a UI).
 
+})();
