@@ -1308,7 +1308,7 @@ function editorSetting(id, source, onChange, onSelectionChange, theme = 'chaos')
  * @param {number} [framerate=60] - capture framerate
  * @param {number} [quality=100] - capture quality
  */
-    function capture(frame = 180, width = 512, height = 256, format = 'gif', framerate = 60, quality = 100){
+function capture(frame = 180, width = 512, height = 256, format = 'gif', framerate = 60, quality = 100){
     // CCapture の初期化
     const capture = new CCapture({
         verbose: false,
