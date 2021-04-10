@@ -418,6 +418,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         // ダウンロード用のパラメータを設定するダイアログを表示する
         const wrap = document.createElement('div');
+        wrap.setAttribute('id', 'downloadconfig');
         const infoHeader = document.createElement('h3');
         infoHeader.textContent = 'Download';
         wrap.appendChild(infoHeader);
@@ -449,26 +450,39 @@ window.addEventListener('DOMContentLoaded', () => {
         frameInput.setAttribute('type', 'number');
         frameInput.value = parseInt(frames.value);
         frameInput.min = 1;
+        frameInput.addEventListener('change', () => {
+            frameInput.value = Math.max(frameInput.value, 1);
+        }, false);
         const frameCaption = document.createElement('span');
         frameCaption.textContent = 'frames';
-        frameWrap.appendChild(frameInput);
         frameWrap.appendChild(frameCaption);
+        frameWrap.appendChild(frameInput);
         wrap.appendChild(frameWrap);
         // 解像度
         const sizes = size.value.split('x');
         const resolutionWrap = document.createElement('div');
+        const resolutionCaption = document.createElement('span');
+        resolutionCaption.textContent = 'resolution';
         const widthInput = document.createElement('input');
         widthInput.setAttribute('type', 'number');
         widthInput.value = parseInt(sizes[0]);
         widthInput.min = 1;
+        widthInput.addEventListener('change', () => {
+            widthInput.value = Math.max(widthInput.value, 1);
+        }, false);
         const heightInput = document.createElement('input');
         heightInput.setAttribute('type', 'number');
         heightInput.value = parseInt(sizes[1]);
         heightInput.min = 1;
-        const resolutionCaption = document.createElement('span');
-        resolutionCaption.textContent = ' x ';
-        resolutionWrap.appendChild(widthInput);
+        heightInput.addEventListener('change', () => {
+            heightInput.value = Math.max(heightInput.value, 1);
+        }, false);
+        const resolutionCross = document.createElement('span');
+        resolutionCross.classList.add('cross');
+        resolutionCross.textContent = 'x';
         resolutionWrap.appendChild(resolutionCaption);
+        resolutionWrap.appendChild(widthInput);
+        resolutionWrap.appendChild(resolutionCross);
         resolutionWrap.appendChild(heightInput);
         wrap.appendChild(resolutionWrap);
         // フレームレート
@@ -478,10 +492,13 @@ window.addEventListener('DOMContentLoaded', () => {
         framerateInput.value = 60;
         framerateInput.min = 10;
         framerateInput.max = 60;
+        framerateInput.addEventListener('change', () => {
+            framerateInput.value = Math.min(Math.max(framerateInput.value, 10), 60);
+        }, false);
         const framerateCaption = document.createElement('span');
         framerateCaption.textContent = 'framerate';
-        framerateWrap.appendChild(framerateInput);
         framerateWrap.appendChild(framerateCaption);
+        framerateWrap.appendChild(framerateInput);
         wrap.appendChild(framerateWrap);
         // 品質
         const qualityWrap = document.createElement('div');
@@ -490,10 +507,13 @@ window.addEventListener('DOMContentLoaded', () => {
         qualityInput.value = 100;
         qualityInput.min = 10;
         qualityInput.max = 100;
+        qualityInput.addEventListener('change', () => {
+            qualityInput.value = Math.min(Math.max(qualityInput.value, 10), 100);
+        }, false);
         const qualityCaption = document.createElement('span');
         qualityCaption.textContent = 'quality';
-        qualityWrap.appendChild(qualityInput);
         qualityWrap.appendChild(qualityCaption);
+        qualityWrap.appendChild(qualityInput);
         wrap.appendChild(qualityWrap);
 
         showDialog(wrap, {okLabel: 'start'})
@@ -516,10 +536,6 @@ window.addEventListener('DOMContentLoaded', () => {
             isEncoding = true;
             // 各種パラメータを DOM から取得してキャプチャ開始する
             setTimeout(() => {
-                const f = parseInt(frames.value);
-                const s = size.value.split('x');
-                const w = parseInt(s[0]);
-                const h = parseInt(s[1]);
                 captureAnimation(
                     frameInput.value,
                     widthInput.value,
