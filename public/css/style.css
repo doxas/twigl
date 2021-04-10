@@ -705,6 +705,44 @@ input[type=checkbox]:checked + .togglebutton::before {
     color: silver;
     cursor: default;
 }
+#downloadconfig {
+    line-height: 24px;
+}
+#downloadconfig div {
+    margin: 5px 0px;
+}
+#downloadconfig div span {
+    min-width: 80px;
+    display: inline-block;
+}
+#downloadconfig div span.cross {
+    text-align: center;
+    min-width: 20px;
+    display: inline-block;
+}
+#downloadconfig div input[type=number] {
+    background-color: #3e3e3e;
+    border: 1px solid #141414;
+    color: whitesmoke;
+    padding: 3px;
+    width: 80px;
+}
+#downloadconfig label {
+    padding: 3px 0px 3px 10px;
+    min-width: 300px;
+    display: block;
+    cursor: pointer;
+}
+#downloadconfig label:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+#downloadconfig label input[type=radio] {
+    vertical-align: baseline;
+}
+#downloadconfig label span {
+    font-size: medium;
+    margin: 0px 5px 0px 10px;
+}
 
 #wrap.overlay .ace-chaos {
     background-color: transparent;

@@ -408,25 +408,146 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // ダウンロードボタン
     download.addEventListener('click', () => {
-        // ボタンに .disabled が付与されているかエンコード中は即時終了
+        // ボタンに disabled が付与されているかエンコード中は即時終了
         if(
             download.classList.contains('disabled') === true ||
             isEncoding === true
         ){
             return;
         }
-        // まず .disabled を付与して再度押せないようにする
-        download.classList.add('disabled');
-        // エンコード中のフラグを立てておく
-        isEncoding = true;
-        // 各種パラメータを DOM から取得してキャプチャ開始する
-        setTimeout(() => {
-            const f = parseInt(frames.value);
-            const s = size.value.split('x');
-            const w = parseInt(s[0]);
-            const h = parseInt(s[1]);
-            capture(f, w, h);
-        }, 100);
+
+        // ダウンロード用のパラメータを設定するダイアログを表示する
+        const wrap = document.createElement('div');
+        wrap.setAttribute('id', 'downloadconfig');
+        const infoHeader = document.createElement('h3');
+        infoHeader.textContent = 'Download';
+        wrap.appendChild(infoHeader);
+        // エクスポートの種類
+        const typeWrap = document.createElement('div');
+        const typeRadioGif = document.createElement('input');
+        typeRadioGif.setAttribute('type', 'radio');
+        typeRadioGif.setAttribute('name', 'typeradio');
+        typeRadioGif.checked = true;
+        const typeRadioGifLabel = document.createElement('label');
+        const typeRadioGifCaption = document.createElement('span');
+        typeRadioGifCaption.textContent = 'Gif';
+        typeRadioGifLabel.appendChild(typeRadioGif);
+        typeRadioGifLabel.appendChild(typeRadioGifCaption);
+        const typeRadioWebM = document.createElement('input');
+        typeRadioWebM.setAttribute('type', 'radio');
+        typeRadioWebM.setAttribute('name', 'typeradio');
+        const typeRadioWebMLabel = document.createElement('label');
+        const typeRadioWebMCaption = document.createElement('span');
+        typeRadioWebMCaption.textContent = 'WebM';
+        typeRadioWebMLabel.appendChild(typeRadioWebM);
+        typeRadioWebMLabel.appendChild(typeRadioWebMCaption);
+        typeWrap.appendChild(typeRadioGifLabel);
+        typeWrap.appendChild(typeRadioWebMLabel);
+        wrap.appendChild(typeWrap);
+        // フレーム数
+        const frameWrap = document.createElement('div');
+        const frameInput = document.createElement('input');
+        frameInput.setAttribute('type', 'number');
+        frameInput.value = parseInt(frames.value);
+        frameInput.min = 1;
+        frameInput.addEventListener('change', () => {
+            frameInput.value = Math.max(frameInput.value, 1);
+        }, false);
+        const frameCaption = document.createElement('span');
+        frameCaption.textContent = 'frames';
+        frameWrap.appendChild(frameCaption);
+        frameWrap.appendChild(frameInput);
+        wrap.appendChild(frameWrap);
+        // 解像度
+        const sizes = size.value.split('x');
+        const resolutionWrap = document.createElement('div');
+        const resolutionCaption = document.createElement('span');
+        resolutionCaption.textContent = 'resolution';
+        const widthInput = document.createElement('input');
+        widthInput.setAttribute('type', 'number');
+        widthInput.value = parseInt(sizes[0]);
+        widthInput.min = 1;
+        widthInput.addEventListener('change', () => {
+            widthInput.value = Math.max(widthInput.value, 1);
+        }, false);
+        const heightInput = document.createElement('input');
+        heightInput.setAttribute('type', 'number');
+        heightInput.value = parseInt(sizes[1]);
+        heightInput.min = 1;
+        heightInput.addEventListener('change', () => {
+            heightInput.value = Math.max(heightInput.value, 1);
+        }, false);
+        const resolutionCross = document.createElement('span');
+        resolutionCross.classList.add('cross');
+        resolutionCross.textContent = 'x';
+        resolutionWrap.appendChild(resolutionCaption);
+        resolutionWrap.appendChild(widthInput);
+        resolutionWrap.appendChild(resolutionCross);
+        resolutionWrap.appendChild(heightInput);
+        wrap.appendChild(resolutionWrap);
+        // フレームレート
+        const framerateWrap = document.createElement('div');
+        const framerateInput = document.createElement('input');
+        framerateInput.setAttribute('type', 'number');
+        framerateInput.value = 60;
+        framerateInput.min = 10;
+        framerateInput.max = 60;
+        framerateInput.addEventListener('change', () => {
+            framerateInput.value = Math.min(Math.max(framerateInput.value, 10), 60);
+        }, false);
+        const framerateCaption = document.createElement('span');
+        framerateCaption.textContent = 'framerate';
+        framerateWrap.appendChild(framerateCaption);
+        framerateWrap.appendChild(framerateInput);
+        wrap.appendChild(framerateWrap);
+        // 品質
+        const qualityWrap = document.createElement('div');
+        const qualityInput = document.createElement('input');
+        qualityInput.setAttribute('type', 'number');
+        qualityInput.value = 100;
+        qualityInput.min = 10;
+        qualityInput.max = 100;
+        qualityInput.addEventListener('change', () => {
+            qualityInput.value = Math.min(Math.max(qualityInput.value, 0), 100);
+        }, false);
+        const qualityCaption = document.createElement('span');
+        qualityCaption.textContent = 'quality';
+        qualityWrap.appendChild(qualityCaption);
+        qualityWrap.appendChild(qualityInput);
+        wrap.appendChild(qualityWrap);
+
+        showDialog(wrap, {okLabel: 'start'})
+        .then((isOk) => {
+            if(isOk !== true){return;}
+            if(
+                isNaN(parseInt(frameInput.value)) === true ||
+                isNaN(parseInt(widthInput.value)) === true ||
+                isNaN(parseInt(heightInput.value)) === true ||
+                isNaN(parseInt(framerateInput.value)) === true ||
+                isNaN(parseInt(qualityInput.value)) === true ||
+                false
+            ){
+                alert('Should not be blank.');
+                return;
+            }
+            // disabled を付与して連続で押せないようにする
+            download.classList.add('disabled');
+            // ダウンロードボタンの表記を変えておく
+            download.textContent = 'generate...';
+            // エンコード中のフラグを立てておく
+            isEncoding = true;
+            // 各種パラメータを DOM から取得してキャプチャ開始する
+            setTimeout(() => {
+                captureAnimation(
+                    parseInt(frameInput.value),
+                    parseInt(widthInput.value),
+                    parseInt(heightInput.value),
+                    typeRadioGif.checked === true ? 'gif' : 'webm',
+                    parseInt(framerateInput.value),
+                    parseInt(qualityInput.value) * 0.99999,
+                );
+            }, 100);
+        });
     }, false);
 
     // リンク生成ボタン
@@ -1308,9 +1429,9 @@ function editorSetting(id, source, onChange, onSelectionChange, theme = 'chaos')
  * @param {number} [framerate=60] - capture framerate
  * @param {number} [quality=100] - capture quality
  */
-function capture(frame = 180, width = 512, height = 256, format = 'gif', framerate = 60, quality = 100){
+function captureAnimation(frame = 180, width = 512, height = 256, format = 'gif', framerate = 60, quality = 100){
     // CCapture の初期化
-    const capture = new CCapture({
+    const ccapture = new CCapture({
         verbose: false,
         format: format,
         workersPath: './js/',
@@ -1320,15 +1441,6 @@ function capture(frame = 180, width = 512, height = 256, format = 'gif', framera
             // 変換進捗の出力
             const p = Math.floor(range * 100);
             download.textContent = `${p}%`;
-            // 完全に変換が終わった瞬間をイベントで取れないので
-            // 進捗率が 1.0 以上になった時点で後始末を行っておく
-            if(range >= 1.0){
-                setTimeout(() => {
-                    download.classList.remove('disabled');
-                    download.textContent = 'Download GIF';
-                    isEncoding = false;
-                }, 2000);
-            }
         },
     });
 
@@ -1352,21 +1464,35 @@ function capture(frame = 180, width = 512, height = 256, format = 'gif', framera
     let frameCount = 0;
     frag.onDraw(() => {
         if(frameCount < frame){
-            capture.capture(captureCanvas);
+            ccapture.capture(captureCanvas);
         }else{
             frag.run = false;
-            capture.stop();
-            capture.save();
-            setTimeout(() => {
-                document.body.removeChild(captureCanvas);
-                captureCanvas = null;
-                frag = null;
-            }, 500);
+            ccapture.stop();
+            ccapture.save((blob) => {
+                setTimeout(() => {
+                    // blob からダウンロードリンクを生成する
+                    const url = URL.createObjectURL(blob);
+                    let anchor = document.createElement('a');
+                    document.body.appendChild(anchor);
+                    anchor.download = `${uuid()}.${format}`;
+                    anchor.href = url;
+                    anchor.click();
+                    document.body.removeChild(anchor);
+                    document.body.removeChild(captureCanvas);
+                    // 後始末をして UI を復帰させる
+                    URL.revokeObjectURL(url);
+                    download.classList.remove('disabled');
+                    download.textContent = 'Download';
+                    isEncoding = false;
+                    captureCanvas = null;
+                    frag = null;
+                    anchor = null;
+                }, 500);
+            });
         }
         ++frameCount;
     });
-    download.textContent = 'generate...';
-    capture.start();
+    ccapture.start();
     frag.render(editor.getValue());
 }
 
@@ -2005,6 +2131,24 @@ function copyToClipboard(str){
     document.body.removeChild(t);
 }
 
-window.TWIGL = {capture: capture}; // Expose for use from devtools console (too lazy to build a UI).
+/**
+ * uuid を生成する
+ * @return {string}
+ */
+function uuid(){
+    // https://github.com/GoogleChrome/chrome-platform-analytics/blob/master/src/internal/identifier.js
+    const chars = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.split('');
+    for(let i = 0, j = chars.length; i < j; i++){
+        switch(chars[i]){
+            case 'x':
+                chars[i] = Math.floor(Math.random() * 16).toString(16);
+                break;
+            case 'y':
+                chars[i] = (Math.floor(Math.random() * 4) + 8).toString(16);
+                break;
+        }
+    }
+    return chars.join('');
+}
 
 })();
