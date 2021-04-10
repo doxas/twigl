@@ -520,7 +520,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 const s = size.value.split('x');
                 const w = parseInt(s[0]);
                 const h = parseInt(s[1]);
-                capture(
+                captureAnimation(
                     frameInput.value,
                     widthInput.value,
                     heightInput.value,
@@ -1411,9 +1411,9 @@ function editorSetting(id, source, onChange, onSelectionChange, theme = 'chaos')
  * @param {number} [framerate=60] - capture framerate
  * @param {number} [quality=100] - capture quality
  */
-function capture(frame = 180, width = 512, height = 256, format = 'gif', framerate = 60, quality = 100){
+function captureAnimation(frame = 180, width = 512, height = 256, format = 'gif', framerate = 60, quality = 100){
     // CCapture の初期化
-    const capture = new CCapture({
+    const ccapture = new CCapture({
         verbose: false,
         format: format,
         workersPath: './js/',
@@ -1455,11 +1455,11 @@ function capture(frame = 180, width = 512, height = 256, format = 'gif', framera
     let frameCount = 0;
     frag.onDraw(() => {
         if(frameCount < frame){
-            capture.capture(captureCanvas);
+            ccapture.capture(captureCanvas);
         }else{
             frag.run = false;
-            capture.stop();
-            capture.save();
+            ccapture.stop();
+            ccapture.save();
             setTimeout(() => {
                 document.body.removeChild(captureCanvas);
                 captureCanvas = null;
@@ -1469,7 +1469,7 @@ function capture(frame = 180, width = 512, height = 256, format = 'gif', framera
         ++frameCount;
     });
     download.textContent = 'generate...';
-    capture.start();
+    ccapture.start();
     frag.render(editor.getValue());
 }
 
