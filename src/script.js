@@ -508,7 +508,7 @@ window.addEventListener('DOMContentLoaded', () => {
         qualityInput.min = 10;
         qualityInput.max = 100;
         qualityInput.addEventListener('change', () => {
-            qualityInput.value = Math.min(Math.max(qualityInput.value, 10), 100);
+            qualityInput.value = Math.min(Math.max(qualityInput.value, 0), 100);
         }, false);
         const qualityCaption = document.createElement('span');
         qualityCaption.textContent = 'quality';
@@ -532,17 +532,19 @@ window.addEventListener('DOMContentLoaded', () => {
             }
             // まず .disabled を付与して再度押せないようにする
             download.classList.add('disabled');
+            // ダウンロードボタンの表記を変えておく
+            download.textContent = 'generate...';
             // エンコード中のフラグを立てておく
             isEncoding = true;
             // 各種パラメータを DOM から取得してキャプチャ開始する
             setTimeout(() => {
                 captureAnimation(
-                    frameInput.value,
-                    widthInput.value,
-                    heightInput.value,
+                    parseInt(frameInput.value),
+                    parseInt(widthInput.value),
+                    parseInt(heightInput.value),
                     typeRadioGif.checked === true ? 'gif' : 'webm',
-                    framerateInput.value,
-                    qualityInput.value,
+                    parseInt(framerateInput.value),
+                    parseInt(qualityInput.value) * 0.99999,
                 );
             }, 100);
         });
@@ -1439,15 +1441,6 @@ function captureAnimation(frame = 180, width = 512, height = 256, format = 'gif'
             // 変換進捗の出力
             const p = Math.floor(range * 100);
             download.textContent = `${p}%`;
-            // 完全に変換が終わった瞬間をイベントで取れないので
-            // 進捗率が 1.0 以上になった時点で後始末を行っておく
-            if(range >= 1.0){
-                setTimeout(() => {
-                    download.classList.remove('disabled');
-                    download.textContent = 'Download GIF';
-                    isEncoding = false;
-                }, 2000);
-            }
         },
     });
 
@@ -1475,16 +1468,28 @@ function captureAnimation(frame = 180, width = 512, height = 256, format = 'gif'
         }else{
             frag.run = false;
             ccapture.stop();
-            ccapture.save();
-            setTimeout(() => {
-                document.body.removeChild(captureCanvas);
-                captureCanvas = null;
-                frag = null;
-            }, 500);
+            ccapture.save((blob) => {
+                setTimeout(() => {
+                    const url = URL.createObjectURL(blob);
+                    let anchor = document.createElement('a');
+                    document.body.appendChild(anchor);
+                    anchor.download = `${uuid()}.${format}`;
+                    anchor.href = url;
+                    anchor.click();
+                    document.body.removeChild(anchor);
+                    document.body.removeChild(captureCanvas);
+                    URL.revokeObjectURL(url);
+                    download.classList.remove('disabled');
+                    download.textContent = 'Download';
+                    isEncoding = false;
+                    captureCanvas = null;
+                    frag = null;
+                    anchor = null;
+                }, 500);
+            });
         }
         ++frameCount;
     });
-    download.textContent = 'generate...';
     ccapture.start();
     frag.render(editor.getValue());
 }
