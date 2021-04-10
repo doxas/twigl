@@ -2108,6 +2108,4 @@ function copyToClipboard(str){
     document.body.removeChild(t);
 }
 
-window.TWIGL = {capture: capture}; // Expose for use from devtools console (too lazy to build a UI).
-
 })();
