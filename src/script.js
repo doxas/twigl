@@ -415,18 +415,121 @@ window.addEventListener('DOMContentLoaded', () => {
         ){
             return;
         }
-        // まず .disabled を付与して再度押せないようにする
-        download.classList.add('disabled');
-        // エンコード中のフラグを立てておく
-        isEncoding = true;
-        // 各種パラメータを DOM から取得してキャプチャ開始する
-        setTimeout(() => {
-            const f = parseInt(frames.value);
-            const s = size.value.split('x');
-            const w = parseInt(s[0]);
-            const h = parseInt(s[1]);
-            capture(f, w, h);
-        }, 100);
+
+        // ダウンロード用のパラメータを設定するダイアログを表示する
+        const wrap = document.createElement('div');
+        const infoHeader = document.createElement('h3');
+        infoHeader.textContent = 'Download';
+        wrap.appendChild(infoHeader);
+        // エクスポートの種類
+        const typeWrap = document.createElement('div');
+        const typeRadioGif = document.createElement('input');
+        typeRadioGif.setAttribute('type', 'radio');
+        typeRadioGif.setAttribute('name', 'typeradio');
+        typeRadioGif.checked = true;
+        const typeRadioGifLabel = document.createElement('label');
+        const typeRadioGifCaption = document.createElement('span');
+        typeRadioGifCaption.textContent = 'Gif';
+        typeRadioGifLabel.appendChild(typeRadioGif);
+        typeRadioGifLabel.appendChild(typeRadioGifCaption);
+        const typeRadioWebM = document.createElement('input');
+        typeRadioWebM.setAttribute('type', 'radio');
+        typeRadioWebM.setAttribute('name', 'typeradio');
+        const typeRadioWebMLabel = document.createElement('label');
+        const typeRadioWebMCaption = document.createElement('span');
+        typeRadioWebMCaption.textContent = 'WebM';
+        typeRadioWebMLabel.appendChild(typeRadioWebM);
+        typeRadioWebMLabel.appendChild(typeRadioWebMCaption);
+        typeWrap.appendChild(typeRadioGifLabel);
+        typeWrap.appendChild(typeRadioWebMLabel);
+        wrap.appendChild(typeWrap);
+        // フレーム数
+        const frameWrap = document.createElement('div');
+        const frameInput = document.createElement('input');
+        frameInput.setAttribute('type', 'number');
+        frameInput.value = parseInt(frames.value);
+        frameInput.min = 1;
+        const frameCaption = document.createElement('span');
+        frameCaption.textContent = 'frames';
+        frameWrap.appendChild(frameInput);
+        frameWrap.appendChild(frameCaption);
+        wrap.appendChild(frameWrap);
+        // 解像度
+        const sizes = size.value.split('x');
+        const resolutionWrap = document.createElement('div');
+        const widthInput = document.createElement('input');
+        widthInput.setAttribute('type', 'number');
+        widthInput.value = parseInt(sizes[0]);
+        widthInput.min = 1;
+        const heightInput = document.createElement('input');
+        heightInput.setAttribute('type', 'number');
+        heightInput.value = parseInt(sizes[1]);
+        heightInput.min = 1;
+        const resolutionCaption = document.createElement('span');
+        resolutionCaption.textContent = ' x ';
+        resolutionWrap.appendChild(widthInput);
+        resolutionWrap.appendChild(resolutionCaption);
+        resolutionWrap.appendChild(heightInput);
+        wrap.appendChild(resolutionWrap);
+        // フレームレート
+        const framerateWrap = document.createElement('div');
+        const framerateInput = document.createElement('input');
+        framerateInput.setAttribute('type', 'number');
+        framerateInput.value = 60;
+        framerateInput.min = 10;
+        framerateInput.max = 60;
+        const framerateCaption = document.createElement('span');
+        framerateCaption.textContent = 'framerate';
+        framerateWrap.appendChild(framerateInput);
+        framerateWrap.appendChild(framerateCaption);
+        wrap.appendChild(framerateWrap);
+        // 品質
+        const qualityWrap = document.createElement('div');
+        const qualityInput = document.createElement('input');
+        qualityInput.setAttribute('type', 'number');
+        qualityInput.value = 100;
+        qualityInput.min = 10;
+        qualityInput.max = 100;
+        const qualityCaption = document.createElement('span');
+        qualityCaption.textContent = 'quality';
+        qualityWrap.appendChild(qualityInput);
+        qualityWrap.appendChild(qualityCaption);
+        wrap.appendChild(qualityWrap);
+
+        showDialog(wrap, {okLabel: 'start'})
+        .then((isOk) => {
+            if(isOk !== true){return;}
+            if(
+                isNaN(parseInt(frameInput.value)) === true ||
+                isNaN(parseInt(widthInput.value)) === true ||
+                isNaN(parseInt(heightInput.value)) === true ||
+                isNaN(parseInt(framerateInput.value)) === true ||
+                isNaN(parseInt(qualityInput.value)) === true ||
+                false
+            ){
+                alert('Should not be blank.');
+                return;
+            }
+            // まず .disabled を付与して再度押せないようにする
+            download.classList.add('disabled');
+            // エンコード中のフラグを立てておく
+            isEncoding = true;
+            // 各種パラメータを DOM から取得してキャプチャ開始する
+            setTimeout(() => {
+                const f = parseInt(frames.value);
+                const s = size.value.split('x');
+                const w = parseInt(s[0]);
+                const h = parseInt(s[1]);
+                capture(
+                    frameInput.value,
+                    widthInput.value,
+                    heightInput.value,
+                    typeRadioGif.checked === true ? 'gif' : 'webm',
+                    framerateInput.value,
+                    qualityInput.value,
+                );
+            }, 100);
+        });
     }, false);
 
     // リンク生成ボタン
