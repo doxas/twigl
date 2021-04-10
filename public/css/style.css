@@ -731,12 +731,17 @@ input[type=checkbox]:checked + .togglebutton::before {
     padding: 3px 0px 3px 10px;
     min-width: 300px;
     display: block;
+    cursor: pointer;
+}
+#downloadconfig label:hover {
+    background-color: rgba(255, 255, 255, 0.05);
 }
 #downloadconfig label input[type=radio] {
     vertical-align: baseline;
 }
 #downloadconfig label span {
-    margin: 0px 5px;
+    font-size: medium;
+    margin: 0px 5px 0px 10px;
 }
 
 #wrap.overlay .ace-chaos {
