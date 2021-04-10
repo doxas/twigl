@@ -1307,7 +1307,6 @@ function resize(){
 function toggleLayerView(){
     canvasWrap.classList.toggle('fullheight');
     editorWrap.classList.toggle('invisible');
-    infoIcon.classList.toggle('invisible');
     fullIcon.classList.toggle('invisible');
     broadIcon.classList.toggle('invisible');
     hideIcon.classList.toggle('hide');
