@@ -657,6 +657,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }, false);
     audioStopIcon.addEventListener('click', () => {
+        if(musician != null){musician.stop();}
         if(audioToggle.checked !== true){return;}
         onomat.stop();
     }, false);
@@ -688,10 +689,17 @@ window.addEventListener('DOMContentLoaded', () => {
             document.querySelector('#editor').style.fontSize = `${editorFontSize}px`;
             document.querySelector('#editoraudio').style.fontSize = `${editorFontSize}px`;
         }
+        if(evt.key === 'Enter' && evt.altKey === true){
+            if(evt.ctrlKey === true){
+                if(musician != null){musician.stop();}
+            }
+        }
+        // onomat
         if(audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
         // Alt + Enter で再生、Ctrl をさらに付与すると停止
         if(evt.key === 'Enter' && evt.altKey === true){
             if(evt.ctrlKey === true){
+                if(musician != null){musician.stop();}
                 onomat.stop();
             }else{
                 ++soundPlay;
