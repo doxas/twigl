@@ -3,6 +3,7 @@ import 'whatwg-fetch';
 import Promise from 'promise-polyfill';
 import {Fragmen} from './fragmen.js';
 import {Onomat} from './onomat.js';
+import {Musician} from './music.js';
 import {FireDB} from './firedb.js';
 
 import * as firebase from 'firebase/app';
@@ -31,6 +32,7 @@ let fullIcon   = null; // fullscreen icon
 let broadIcon  = null; // broadcast mode icon
 let starIcon   = null; // star icon
 let menuIcon   = null; // menu icon
+let noteIcon   = null; // note icon
 let hideIcon   = null; // hide menu icon
 let syncToggle = null; // スクロール同期用のチェックボックス
 
@@ -51,6 +53,7 @@ let currentSource      = '';                   // 直近のソースコード
 let currentAudioSource = '';                   // 直近の Sound Shader のソースコード
 let fragmen            = null;                 // fragmen.js のインスタンス
 let onomat             = null;                 // onomat.js のインスタンス
+let musician           = null;                 // music.js のインスタンス
 
 let urlParameter = null;  // GET パラメータを解析するための searchParams オブジェクト
 let vimMode      = false; // vim mode
@@ -143,6 +146,7 @@ window.addEventListener('DOMContentLoaded', () => {
     broadIcon  = document.querySelector('#broadcasticon');
     starIcon   = document.querySelector('#stariconwrap');
     menuIcon   = document.querySelector('#togglemenuicon');
+    noteIcon   = document.querySelector('#noteicon');
     hideIcon   = document.querySelector('#hidemenuicon');
     syncToggle = document.querySelector('#syncscrolltoggle');
 
@@ -608,8 +612,16 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
     fragmen.onDraw(() => {
-        if(onomat == null || audioToggle.checked !== true || latestAudioStatus !== 'success'){return;}
-        fragmen.setFrequency(onomat.getFrequencyFloat());
+        let freq = 0.0;
+        if(musician != null && musician.isPlay === true){
+            freq += musician.getFrequencyFloat();
+        }
+        if(onomat != null && audioToggle.checked === true && latestAudioStatus === 'success'){
+            freq += onomat.getFrequencyFloat();
+        }
+        if(freq > 0.0){
+            fragmen.setFrequency(freq);
+        }
     });
     // デフォルトのメッセージを出力
     counter.textContent = `${currentSource.length}`;
@@ -857,6 +869,11 @@ window.addEventListener('DOMContentLoaded', () => {
     // toggle menu
     menuIcon.addEventListener('click', () => {
         toggleEditorView();
+    }, false);
+
+    // import local sound
+    noteIcon.addEventListener('click', () => {
+        execMusician();
     }, false);
 
     // broadcast
@@ -1333,6 +1350,19 @@ function toggleEditorView(){
     audioEditor.resize();
     resize();
     fragmen.rect();
+}
+
+/**
+ * ローカルのオーディオファイルを読み込み及び再生
+ */
+function execMusician(){
+    if(musician == null){
+        musician = new Musician();
+    }
+    musician.loadFile()
+    .then(() => {
+        musician.play();
+    });
 }
 
 /**
