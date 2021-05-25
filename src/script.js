@@ -1336,6 +1336,7 @@ function toggleLayerView(){
     broadIcon.classList.toggle('invisible');
     hideIcon.classList.toggle('hide');
     menuIcon.classList.toggle('invisible');
+    noteIcon.classList.toggle('invisible');
     editor.resize();
     audioEditor.resize();
     resize();
