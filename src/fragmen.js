@@ -296,6 +296,11 @@ ${noise}\n`;
          */
         this.nowTime = 0;
         /**
+         * レンダリング開始からの経過フレーム数
+         * @type {number}
+         */
+        this.frameCount = 0;
+        /**
          * シェーダプログラム
          * @type {WebGLProgram}
          */
@@ -561,6 +566,7 @@ void main(){
         let resolution = 'resolution';
         let mouse      = 'mouse';
         let time       = 'time';
+        let frame      = 'frame';
         let sound      = 'sound';
         let backbuffer = 'backbuffer';
         let mrtBuffers = [];
@@ -581,6 +587,7 @@ void main(){
             resolution = 'r';
             mouse      = 'm';
             time       = 't';
+            frame      = 'f';
             sound      = 's';
             backbuffer = 'b';
         }
@@ -591,6 +598,7 @@ void main(){
         this.uniLocation.resolution = this.gl.getUniformLocation(this.program, resolution);
         this.uniLocation.mouse = this.gl.getUniformLocation(this.program, mouse);
         this.uniLocation.time = this.gl.getUniformLocation(this.program, time);
+        this.uniLocation.frame = this.gl.getUniformLocation(this.program, frame);
         this.uniLocation.sound = this.gl.getUniformLocation(this.program, sound);
         switch(this.mode){
             case Fragmen.MODE_CLASSIC_MRT:
@@ -611,6 +619,7 @@ void main(){
         this.attLocation = this.gl.getAttribLocation(this.program, 'p');
         this.mousePosition = [0.0, 0.0];
         this.startTime = Date.now();
+        this.frameCount = 0;
         if(!this.run){
             this.run = true;
             this.draw();
@@ -624,6 +633,7 @@ void main(){
         if(!this.run){return;}
         requestAnimationFrame(this.draw);
         this.nowTime = (Date.now() - this.startTime) * 0.001;
+        ++this.frameCount;
         this.gl.useProgram(this.program);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fFront.f);
         if(Array.isArray(this.fBack.t) === true){
@@ -643,6 +653,7 @@ void main(){
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         this.gl.uniform2fv(this.uniLocation.mouse, this.mousePosition);
         this.gl.uniform1f(this.uniLocation.time, this.nowTime);
+        this.gl.uniform1f(this.uniLocation.frame, this.frameCount);
         this.gl.uniform2fv(this.uniLocation.resolution, [this.width, this.height]);
         this.gl.uniform1f(this.uniLocation.sound, this.frequency);
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
