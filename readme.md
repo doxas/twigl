@@ -41,13 +41,13 @@ There are four modes in twigl.app, each of which has a sub-mode that uses GLSL E
 
 This mode is compatible with GLSLSandbox.
 
-The uniform variables are "resolution", "mouse", "time", and "backbuffer".
+The uniform variables are "resolution", "mouse", "time", "frame", and "backbuffer".
 
 ### geek:
 
 In this mode, the various uniform variables are in a single-character style.
 
-"r", "m", "t", and "b", respectively.
+"r", "m", "t", "f", and "b", respectively.
 
 ### geeker:
 
