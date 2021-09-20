@@ -153,7 +153,7 @@ ${declareO}void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;
      * ギーカーモード時に先頭に付与されるフラグメントシェーダのコード
      * @type {string}
      */
-    static get GEEKER_CHUNK(){return 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float s;uniform sampler2D b;\n';}
+    static get GEEKER_CHUNK(){return 'precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float f;uniform float s;uniform sampler2D b;\n';}
     /**
      * ギーカーモード + ES 3.0 の場合に付与される out 修飾子付き変数のコード
      * @type {string}
@@ -168,7 +168,7 @@ ${declareO}void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;
         for(let i = 0; i < Fragmen.MRT_TARGET_COUNT; ++i){
             chunk.push(`uniform sampler2D b${i};`);
         }
-        return `precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float s;${chunk.join('')}\n`;
+        return `precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float f;uniform float s;${chunk.join('')}\n`;
     }
     /**
      * ギーカーモード + ES 3.0 + MRT の場合に付与される out 修飾子付き変数のコード
@@ -187,7 +187,7 @@ ${declareO}void main(){vec2 p=(gl_FragCoord.xy*2.-r)/min(r.x,r.y)-m;for(int i=0;
      */
     static get GEEKEST_CHUNK(){
         return `#define FC gl_FragCoord
-precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float s;uniform sampler2D b;
+precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float f;uniform float s;uniform sampler2D b;
 ${noise}\n`;
     }
     /**
@@ -205,7 +205,7 @@ ${noise}\n`;
             chunk.push(`uniform sampler2D b${i};`);
         }
         return `#define FC gl_FragCoord
-precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float s;${chunk.join('')}
+precision highp float;uniform vec2 r;uniform vec2 m;uniform float t;uniform float f;uniform float s;${chunk.join('')}
 ${noise}\n`;
     }
     /**
