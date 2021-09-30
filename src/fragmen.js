@@ -281,6 +281,11 @@ ${noise}\n`;
          */
         this.mode = Fragmen.MODE_CLASSIC;
         /**
+         * アニメーションさせるかどうかのフラグ（コンパイルは普通に行うが描画だけを止める）
+         * @type {boolean}
+         */
+        this.animation = true;
+        /**
          * 実行中かどうかのフラグ
          * @type {boolean}
          */
@@ -631,7 +636,9 @@ void main(){
      */
     draw(){
         if(!this.run){return;}
-        requestAnimationFrame(this.draw);
+        if(this.animation === true){
+            requestAnimationFrame(this.draw);
+        }
         this.nowTime = (Date.now() - this.startTime) * 0.001;
         ++this.frameCount;
         this.gl.useProgram(this.program);
@@ -856,6 +863,14 @@ void main(){
      */
     setFrequency(frequency){
         this.frequency = frequency;
+    }
+
+    /**
+     * アニメーションさせるかどうかを設定する
+     * @param {boolean} animate - アニメーションさせるかどうかの真偽値
+     */
+    setAnimation(animate){
+        this.animation = animate;
     }
 
     /**
