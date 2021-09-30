@@ -232,9 +232,10 @@ body {
     flex-direction: row;
 }
 #pausecaption {
+    color: whitesmoke;
     font-size: 12px;
     text-align: center;
-    width: 48px;
+    width: 60px;
     display: flex;
     flex-direction: column;
     justify-content: center;
