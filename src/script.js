@@ -18,6 +18,7 @@ let lineout    = null; // ステータスバー DOM
 let counter    = null; // 文字数カウンター DOM
 let message    = null; // メッセージ DOM
 let mode       = null; // variable mode select
+let animate    = null; // アニメーション用 toggle
 let frames     = null; // render frame select
 let size       = null; // resolution select
 let download   = null; // download button
@@ -132,6 +133,7 @@ window.addEventListener('DOMContentLoaded', () => {
     counter    = document.querySelector('#counter');
     message    = document.querySelector('#message');
     mode       = document.querySelector('#modeselect');
+    animate    = document.querySelector('#pausetoggle');
     frames     = document.querySelector('#frameselect');
     size       = document.querySelector('#sizeselect');
     download   = document.querySelector('#downloadgif');
@@ -409,6 +411,24 @@ window.addEventListener('DOMContentLoaded', () => {
             update(editor.getValue());
         }
     }, false);
+
+    // アニメーション有効・無効設定用トグル
+    animate.addEventListener('change', () => {
+        if(animate.checked === true){
+            // オンにされた場合はコンパイルを行う
+            if(fragmen != null){
+                fragmen.setAnimation(true);
+                update(editor.getValue());
+                fragmen.draw();
+            }
+        }else{
+            // オフにされた場合はアニメーションさせない設定に切り替える
+            if(fragmen != null){
+                fragmen.setAnimation(false);
+            }
+        }
+    }, false);
+
 
     // ダウンロードボタン
     download.addEventListener('click', () => {
