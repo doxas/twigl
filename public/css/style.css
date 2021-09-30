@@ -224,13 +224,30 @@ body {
 #counter, #counteraudio {
     display: inline-block;
 }
+#pausewrap {
+    margin: 0px 24px 0px 0px;
+}
+#pause {
+    display: flex;
+    flex-direction: row;
+}
+#pausecaption {
+    font-size: 12px;
+    text-align: center;
+    width: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    user-select: none;
+}
 .counter {
-    border-right: 1px solid black;
+    border-left: 2px solid black;
+    border-right: 2px solid black;
     color: whitesmoke;
     font-size: 20px;
     text-align: center;
-    min-width: 100px;
-    max-width: 100px;
+    min-width: 120px;
+    max-width: 120px;
     height: 32px;
     margin: -1px 0px 0px 0px;
     padding: 0px 5px 0px 0px;
