@@ -579,9 +579,15 @@ window.addEventListener('DOMContentLoaded', () => {
         if(link.classList.contains('disabled') === true){return;}
         link.classList.add('disabled');
         generatePermamentLink()
-        .then((json) => {
-            copyToClipboard(json.link);
-            alert('Copied link to the clipboard!');
+        .then((response) => {
+            if(response.json != null && response.json.link != null){
+                copyToClipboard(response.json.link);
+                alert('Copied link to the clipboard!');
+            }else{
+                // embed code too long, or other error.
+                copyToClipboard(response.url);
+                alert('The request to bitly failed.\nProbably the code you tried to embed into the URL is too long.\n\nHowever, copied the unshortened URL to the clipboard.');
+            }
         })
         .finally(() => {
             link.classList.remove('disabled');
@@ -1761,12 +1767,16 @@ function generatePermamentLink(){
         // 何らかのパラメータが付与された場合 URL に結合する
         if(result.length > 0){
             const param = result.join('&');
-            generateUrl(`${BASE_URL}?${param}`)
+            const url = `${BASE_URL}?${param}`;
+            generateUrl(url)
             .then((res) => {
                 return res.json();
             })
             .then((json) => {
-                resolve(json);
+                resolve({
+                    url: url,
+                    json: json,
+                });
             });
         }else{
             reject();
