@@ -777,4 +777,6 @@ input[type=checkbox]:checked + .togglebutton::before {
 #wrap.overlay .ace-chaos .ace_marker-layer .ace_bracket {
     border: 3px solid white;
 }
-
+#wrap.overlay .ace-chaos .ace_comment {
+    color: #aaa;
+}
