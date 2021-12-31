@@ -1561,6 +1561,81 @@ function captureAnimation(frame = 180, width = 512, height = 256, format = 'gif'
 }
 
 /**
+ * 時間を指定して静止画をキャプチャする
+ * @param {number} [time=0] - capture time
+ * @param {number} [width=512] - キャプチャする際の canvas の幅
+ * @param {number} [height=256] - キャプチャする際の canvas の高さ
+ * @param {string} [format='jpeg'] - capture output format
+ * @param {number} [quality=100] - capture quality
+ */
+function captureImage(time = 0, width = 512, height = 256, format = 'jpeg', quality = 100){
+    // CCapture の初期化
+    const ccapture = new CCapture({
+        verbose: false,
+        format: format,
+        workersPath: './js/',
+        framerate: framerate,
+        quality: quality,
+        onProgress: (range) => {
+            // 変換進捗の出力
+            const p = Math.floor(range * 100);
+            download.textContent = `${p}%`;
+        },
+    });
+
+    // キャプチャ用の canvas の生成と設定
+    let captureCanvas = document.createElement('canvas');
+    // document 上に存在しないと WebGL 側で初期化に失敗する
+    captureCanvas.width          = width;
+    captureCanvas.height         = height;
+    captureCanvas.style.position = 'absolute';
+    captureCanvas.style.top      = '-9999px';
+    captureCanvas.style.left     = '-9999px';
+    document.body.appendChild(captureCanvas);
+    const option = Object.assign(FRAGMEN_OPTION, {
+        target: captureCanvas,
+        eventTarget: captureCanvas,
+    });
+    // モードを揃えて新しい fragmen のインスタンスを生成
+    let frag = new Fragmen(option);
+    frag.mode = currentMode;
+    // 引数の指定フレーム数分レンダリングし GIF を生成
+    let frameCount = 0;
+    frag.onDraw(() => {
+        if(frameCount < frame){
+            ccapture.capture(captureCanvas);
+        }else{
+            frag.run = false;
+            ccapture.stop();
+            ccapture.save((blob) => {
+                setTimeout(() => {
+                    // blob からダウンロードリンクを生成する
+                    const url = URL.createObjectURL(blob);
+                    let anchor = document.createElement('a');
+                    document.body.appendChild(anchor);
+                    anchor.download = `${uuid()}.${format}`;
+                    anchor.href = url;
+                    anchor.click();
+                    document.body.removeChild(anchor);
+                    document.body.removeChild(captureCanvas);
+                    // 後始末をして UI を復帰させる
+                    URL.revokeObjectURL(url);
+                    download.classList.remove('disabled');
+                    download.textContent = 'Download';
+                    isEncoding = false;
+                    captureCanvas = null;
+                    frag = null;
+                    anchor = null;
+                }, 500);
+            });
+        }
+        ++frameCount;
+    });
+    ccapture.start();
+    frag.render(editor.getValue());
+}
+
+/**
  * audioToggle の状態によりエディタの表示・非表示を切り替え、場合により Onomat の初期化を行う
  * @param {boolean} [play=true] - そのまま再生まで行うかどうかのフラグ
  */
