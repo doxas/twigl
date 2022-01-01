@@ -565,6 +565,7 @@ window.addEventListener('DOMContentLoaded', () => {
         timeInput.setAttribute('type', 'number');
         timeInput.value = parseInt(0);
         timeInput.min = 0;
+        timeInput.step = 0.1;
         const timeCaption = document.createElement('span');
         timeCaption.textContent = 'time';
         timeWrap.appendChild(timeCaption);
@@ -577,7 +578,6 @@ window.addEventListener('DOMContentLoaded', () => {
             frameInput.disabled = !flag;
             framerateInput.disabled = !flag;
             qualityInput.disabled = !flag;
-            timeInput.disabled = flag;
         };
         typeRadioGif.addEventListener('change', radioListener, false);
         typeRadioWebM.addEventListener('change', radioListener, false);
@@ -630,6 +630,7 @@ window.addEventListener('DOMContentLoaded', () => {
                             formatName,
                             parseInt(framerateInput.value),
                             parseInt(qualityInput.value) * 0.99999,
+                            parseInt(timeInput.value),
                         );
                         break;
                     case 'jpg':
@@ -1565,8 +1566,9 @@ function editorSetting(id, source, onChange, onSelectionChange, theme = 'chaos')
  * @param {string} [format='gif'] - capture output format
  * @param {number} [framerate=60] - capture framerate
  * @param {number} [quality=100] - capture quality
+ * @param {number} [offset=0.0] - offset base time
  */
-function captureAnimation(frame = 180, width = 512, height = 256, format = 'gif', framerate = 60, quality = 100){
+function captureAnimation(frame = 180, width = 512, height = 256, format = 'gif', framerate = 60, quality = 100, offset = 0.0){
     // CCapture の初期化
     const ccapture = new CCapture({
         verbose: false,
@@ -1593,6 +1595,7 @@ function captureAnimation(frame = 180, width = 512, height = 256, format = 'gif'
     const option = Object.assign(FRAGMEN_OPTION, {
         target: captureCanvas,
         eventTarget: captureCanvas,
+        offsetTime: offset,
     });
     // モードを揃えて新しい fragmen のインスタンスを生成
     let frag = new Fragmen(option);
