@@ -567,7 +567,7 @@ window.addEventListener('DOMContentLoaded', () => {
         timeInput.min = 0;
         timeInput.step = 0.1;
         const timeCaption = document.createElement('span');
-        timeCaption.textContent = 'time';
+        timeCaption.textContent = 'start time';
         timeWrap.appendChild(timeCaption);
         timeWrap.appendChild(timeInput);
         wrap.appendChild(timeWrap);
