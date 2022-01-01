@@ -465,9 +465,31 @@ window.addEventListener('DOMContentLoaded', () => {
         typeRadioWebMCaption.textContent = 'WebM';
         typeRadioWebMLabel.appendChild(typeRadioWebM);
         typeRadioWebMLabel.appendChild(typeRadioWebMCaption);
+        const typeRadioJpeg = document.createElement('input');
+        typeRadioJpeg.setAttribute('type', 'radio');
+        typeRadioJpeg.setAttribute('name', 'typeradio');
+        typeRadioJpeg.checked = true;
+        const typeRadioJpegLabel = document.createElement('label');
+        const typeRadioJpegCaption = document.createElement('span');
+        typeRadioJpegCaption.textContent = 'JPEG';
+        typeRadioJpegLabel.appendChild(typeRadioJpeg);
+        typeRadioJpegLabel.appendChild(typeRadioJpegCaption);
+        const typeRadioPng = document.createElement('input');
+        typeRadioPng.setAttribute('type', 'radio');
+        typeRadioPng.setAttribute('name', 'typeradio');
+        typeRadioPng.checked = true;
+        const typeRadioPngLabel = document.createElement('label');
+        const typeRadioPngCaption = document.createElement('span');
+        typeRadioPngCaption.textContent = 'PNG';
+        typeRadioPngLabel.appendChild(typeRadioPng);
+        typeRadioPngLabel.appendChild(typeRadioPngCaption);
         typeWrap.appendChild(typeRadioGifLabel);
         typeWrap.appendChild(typeRadioWebMLabel);
+        typeWrap.appendChild(typeRadioJpegLabel);
+        typeWrap.appendChild(typeRadioPngLabel);
         wrap.appendChild(typeWrap);
+        typeRadioGif.checked = true;
+        // TODO: ラジオボタンに変更があった場合の有効・無効
         // フレーム数
         const frameWrap = document.createElement('div');
         const frameInput = document.createElement('input');
@@ -560,16 +582,40 @@ window.addEventListener('DOMContentLoaded', () => {
             download.textContent = 'generate...';
             // エンコード中のフラグを立てておく
             isEncoding = true;
+            // フォーマットを確定する
+            let formatName = 'gif';
+            if(typeRadioWebM.checked === true){
+                formatName = 'webm';
+            }else if(typeRadioJpeg.checked === true){
+                formatName = 'jpg';
+            }else if(typeRadioPng.checked === true){
+                formatName = 'png';
+            }
             // 各種パラメータを DOM から取得してキャプチャ開始する
             setTimeout(() => {
-                captureAnimation(
-                    parseInt(frameInput.value),
-                    parseInt(widthInput.value),
-                    parseInt(heightInput.value),
-                    typeRadioGif.checked === true ? 'gif' : 'webm',
-                    parseInt(framerateInput.value),
-                    parseInt(qualityInput.value) * 0.99999,
-                );
+                switch(formatName){
+                    case 'gif':
+                    case 'webm':
+                        captureAnimation(
+                            parseInt(frameInput.value),
+                            parseInt(widthInput.value),
+                            parseInt(heightInput.value),
+                            formatName,
+                            parseInt(framerateInput.value),
+                            parseInt(qualityInput.value) * 0.99999,
+                        );
+                        break;
+                    case 'jpg':
+                    case 'png':
+                        captureImage(
+                            0,
+                            parseInt(widthInput.value),
+                            parseInt(heightInput.value),
+                            formatName,
+                            parseInt(qualityInput.value) * 0.99999,
+                        );
+                        break;
+                }
             }, 100);
         });
     }, false);
@@ -1565,24 +1611,9 @@ function captureAnimation(frame = 180, width = 512, height = 256, format = 'gif'
  * @param {number} [time=0] - capture time
  * @param {number} [width=512] - キャプチャする際の canvas の幅
  * @param {number} [height=256] - キャプチャする際の canvas の高さ
- * @param {string} [format='jpeg'] - capture output format
- * @param {number} [quality=100] - capture quality
+ * @param {string} [format='jpg'] - capture output format
  */
-function captureImage(time = 0, width = 512, height = 256, format = 'jpeg', quality = 100){
-    // CCapture の初期化
-    const ccapture = new CCapture({
-        verbose: false,
-        format: format,
-        workersPath: './js/',
-        framerate: framerate,
-        quality: quality,
-        onProgress: (range) => {
-            // 変換進捗の出力
-            const p = Math.floor(range * 100);
-            download.textContent = `${p}%`;
-        },
-    });
-
+function captureImage(time = 0, width = 512, height = 256, format = 'jpg'){
     // キャプチャ用の canvas の生成と設定
     let captureCanvas = document.createElement('canvas');
     // document 上に存在しないと WebGL 側で初期化に失敗する
@@ -1599,40 +1630,27 @@ function captureImage(time = 0, width = 512, height = 256, format = 'jpeg', qual
     // モードを揃えて新しい fragmen のインスタンスを生成
     let frag = new Fragmen(option);
     frag.mode = currentMode;
-    // 引数の指定フレーム数分レンダリングし GIF を生成
-    let frameCount = 0;
     frag.onDraw(() => {
-        if(frameCount < frame){
-            ccapture.capture(captureCanvas);
-        }else{
-            frag.run = false;
-            ccapture.stop();
-            ccapture.save((blob) => {
-                setTimeout(() => {
-                    // blob からダウンロードリンクを生成する
-                    const url = URL.createObjectURL(blob);
-                    let anchor = document.createElement('a');
-                    document.body.appendChild(anchor);
-                    anchor.download = `${uuid()}.${format}`;
-                    anchor.href = url;
-                    anchor.click();
-                    document.body.removeChild(anchor);
-                    document.body.removeChild(captureCanvas);
-                    // 後始末をして UI を復帰させる
-                    URL.revokeObjectURL(url);
-                    download.classList.remove('disabled');
-                    download.textContent = 'Download';
-                    isEncoding = false;
-                    captureCanvas = null;
-                    frag = null;
-                    anchor = null;
-                }, 500);
-            });
-        }
-        ++frameCount;
+        frag.run = false;
+        // blob からダウンロードリンクを生成する
+        const formatName = format === 'jpg' ? 'jpeg' : format;
+        const url = captureCanvas.toDataURL(`image/${formatName}`);
+        let anchor = document.createElement('a');
+        document.body.appendChild(anchor);
+        anchor.download = `${uuid()}.${format}`;
+        anchor.href = url;
+        anchor.click();
+        document.body.removeChild(anchor);
+        document.body.removeChild(captureCanvas);
+        // 後始末をして UI を復帰させる
+        download.classList.remove('disabled');
+        download.textContent = 'Download';
+        isEncoding = false;
+        captureCanvas = null;
+        frag = null;
+        anchor = null;
     });
-    ccapture.start();
-    frag.render(editor.getValue());
+    frag.render(editor.getValue(), time);
 }
 
 /**

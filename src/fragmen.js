@@ -500,15 +500,16 @@ void main(){
     /**
      * rendering hub
      * @param {string} source - fragment shader source
+     * @param {number} [time] - time of uniform
      * @return {object} instance
      */
-    render(source){
+    render(source, time){
         if(source === null || source === undefined || source === ''){
             if(this.FS === ''){return;}
         }else{
             this.FS = source;
         }
-        this.reset();
+        this.reset(time);
         return this;
     }
 
@@ -541,8 +542,9 @@ void main(){
 
     /**
      * reset renderer
+     * @param {number} [time] - time of uniform
      */
-    reset(){
+    reset(time){
         this.rect();
         let program = this.gl.createProgram();
         let vs = this.createShader(program, 0, this.preprocessVertexCode(this.VS));
@@ -570,7 +572,7 @@ void main(){
         }
         let resolution = 'resolution';
         let mouse      = 'mouse';
-        let time       = 'time';
+        let nowTime    = 'time';
         let frame      = 'frame';
         let sound      = 'sound';
         let backbuffer = 'backbuffer';
@@ -591,7 +593,7 @@ void main(){
         ){
             resolution = 'r';
             mouse      = 'm';
-            time       = 't';
+            nowTime    = 't';
             frame      = 'f';
             sound      = 's';
             backbuffer = 'b';
@@ -602,7 +604,7 @@ void main(){
         this.uniLocation = {};
         this.uniLocation.resolution = this.gl.getUniformLocation(this.program, resolution);
         this.uniLocation.mouse = this.gl.getUniformLocation(this.program, mouse);
-        this.uniLocation.time = this.gl.getUniformLocation(this.program, time);
+        this.uniLocation.time = this.gl.getUniformLocation(this.program, nowTime);
         this.uniLocation.frame = this.gl.getUniformLocation(this.program, frame);
         this.uniLocation.sound = this.gl.getUniformLocation(this.program, sound);
         switch(this.mode){
@@ -627,19 +629,26 @@ void main(){
         this.frameCount = 0;
         if(!this.run){
             this.run = true;
-            this.draw();
+            this.draw(time);
         }
     }
 
     /**
      * rendering
+     * @param {number} [time] - time of uniform
      */
-    draw(){
+    draw(time){
         if(!this.run){return;}
         if(this.animation === true){
-            requestAnimationFrame(this.draw);
+            requestAnimationFrame(() => {
+                this.draw();
+            });
         }
-        this.nowTime = (Date.now() - this.startTime) * 0.001;
+        if(time != null){
+            this.nowTime = time;
+        }else{
+            this.nowTime = (Date.now() - this.startTime) * 0.001;
+        }
         ++this.frameCount;
         this.gl.useProgram(this.program);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fFront.f);
