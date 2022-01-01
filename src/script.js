@@ -488,8 +488,6 @@ window.addEventListener('DOMContentLoaded', () => {
         typeWrap.appendChild(typeRadioJpegLabel);
         typeWrap.appendChild(typeRadioPngLabel);
         wrap.appendChild(typeWrap);
-        typeRadioGif.checked = true;
-        // TODO: ラジオボタンに変更があった場合の有効・無効
         // フレーム数
         const frameWrap = document.createElement('div');
         const frameInput = document.createElement('input');
@@ -561,6 +559,35 @@ window.addEventListener('DOMContentLoaded', () => {
         qualityWrap.appendChild(qualityCaption);
         qualityWrap.appendChild(qualityInput);
         wrap.appendChild(qualityWrap);
+        // 時間指定
+        const timeWrap = document.createElement('div');
+        const timeInput = document.createElement('input');
+        timeInput.setAttribute('type', 'number');
+        timeInput.value = parseInt(0);
+        timeInput.min = 0;
+        const timeCaption = document.createElement('span');
+        timeCaption.textContent = 'time';
+        timeWrap.appendChild(timeCaption);
+        timeWrap.appendChild(timeInput);
+        wrap.appendChild(timeWrap);
+
+        // ラジオボタンに変更があった場合の有効・無効
+        const radioListener = () => {
+            const flag = typeRadioGif.checked === true || typeRadioWebM.checked === true;
+            frameInput.disabled = !flag;
+            framerateInput.disabled = !flag;
+            qualityInput.disabled = !flag;
+            timeInput.disabled = flag;
+        };
+        typeRadioGif.addEventListener('change', radioListener, false);
+        typeRadioWebM.addEventListener('change', radioListener, false);
+        typeRadioJpeg.addEventListener('change', radioListener, false);
+        typeRadioPng.addEventListener('change', radioListener, false);
+        typeRadioGif.checked = true;
+        typeRadioWebM.checked = false;
+        typeRadioJpeg.checked = false;
+        typeRadioPng.checked = false;
+        radioListener();
 
         showDialog(wrap, {okLabel: 'start'})
         .then((isOk) => {
@@ -608,7 +635,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     case 'jpg':
                     case 'png':
                         captureImage(
-                            0,
+                            parseInt(timeInput.value),
                             parseInt(widthInput.value),
                             parseInt(heightInput.value),
                             formatName,
