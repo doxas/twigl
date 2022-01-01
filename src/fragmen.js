@@ -228,6 +228,7 @@ ${noise}\n`;
      * @property {boolean} [option.mouse=false] - mouse event enable
      * @property {boolean} [option.escape=false] - keydown event enable
      * @property {boolean} [option.resize=false] - resize event enable
+     * @property {number} [option.offsetTime=0.0] - offset base time
      */
     constructor(option){
         /**
@@ -300,6 +301,11 @@ ${noise}\n`;
          * @type {number}
          */
         this.nowTime = 0;
+        /**
+         * 経過時間へかけるオフセット量（秒）
+         * @type {number}
+         */
+        this.offsetTime = 0;
         /**
          * レンダリング開始からの経過フレーム数
          * @type {number}
@@ -434,6 +440,9 @@ ${noise}\n`;
         if(option.hasOwnProperty('resize') && option.resize === true){
             this.resize = true;
             window.addEventListener('resize', this.rect, false);
+        }
+        if(option.hasOwnProperty('offsetTime') && option.offsetTime > 0.0){
+            this.offsetTime = option.offsetTime;
         }
         // render initial
         this.VS = 'attribute vec3 p;void main(){gl_Position=vec4(p,1.);}';
@@ -647,7 +656,7 @@ void main(){
         if(time != null){
             this.nowTime = time;
         }else{
-            this.nowTime = (Date.now() - this.startTime) * 0.001;
+            this.nowTime = (Date.now() - this.startTime) * 0.001 + this.offsetTime;
         }
         ++this.frameCount;
         this.gl.useProgram(this.program);
