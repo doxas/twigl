@@ -745,6 +745,10 @@ input[type=checkbox]:checked + .togglebutton::before {
     padding: 3px;
     width: 80px;
 }
+#downloadconfig div input[type=number]:disabled {
+    background-color: #6e6e6e;
+    color: #444;
+}
 #downloadconfig label {
     padding: 3px 0px 3px 10px;
     min-width: 300px;
