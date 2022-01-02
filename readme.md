@@ -1,7 +1,7 @@
 
 # twigl
 
-twigl.app is an online editor for One tweet shader, with gif(or webm) generator and sound shader, and broadcast live coding.
+twigl.app is an online editor for One tweet shader, with gif(or webm, jpeg, png) generator and sound shader, and broadcast live coding.
 
 <div style="width: 100%; text-align: center;">
     <img src="./resource/ogp.png" style="max-width: 100%;">
