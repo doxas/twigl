@@ -55,7 +55,7 @@ In this mode, there is no need to declare precision and uniform. They are automa
 
 ### geekest:
 
-In this mode, the description of "void main(){}" can be omitted, and "gl_FragCoord" can be described as "FC". In addition, a variety of GLSL snippets are available.
+In this mode, the description of "void main(){}" may be omitted (or not), and "gl_FragCoord" can be described as "FC". In addition, a variety of GLSL snippets are available.
 
 For more information, please see below.
 
