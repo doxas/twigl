@@ -928,8 +928,10 @@ void main(){
                 break;
             case Fragmen.MODE_GEEKEST:
                 chunkOut = Fragmen.GEEKEST_CHUNK;
-                chunkMain = 'void main(){\n'
-                chunkClose = '\n}'
+                if (!code.includes('void main()')) {
+                    chunkMain = 'void main(){\n'
+                    chunkClose = '\n}'
+                }
                 break;
             case Fragmen.MODE_CLASSIC_300:
             case Fragmen.MODE_GEEK_300:
@@ -948,14 +950,18 @@ void main(){
             case Fragmen.MODE_GEEKEST_300:
                 chunk300 = Fragmen.ES_300_CHUNK;
                 chunkOut = Fragmen.GEEKEST_CHUNK.substr(0, Fragmen.GEEKEST_CHUNK.length - 1) + Fragmen.GEEKEST_OUT_CHUNK;
-                chunkMain = 'void main(){\n'
-                chunkClose = '\n}'
+                if (!code.includes('void main()')) {
+                    chunkMain = 'void main(){\n'
+                    chunkClose = '\n}'
+                }
                 break;
             case Fragmen.MODE_GEEKEST_MRT:
                 chunk300 = Fragmen.ES_300_CHUNK;
                 chunkOut = Fragmen.GEEKEST_MRT_CHUNK.substr(0, Fragmen.GEEKEST_MRT_CHUNK.length - 1) + Fragmen.GEEKEST_OUT_MRT_CHUNK;
-                chunkMain = 'void main(){\n'
-                chunkClose = '\n}'
+                if (!code.includes('void main()')) {
+                    chunkMain = 'void main(){\n'
+                    chunkClose = '\n}'
+                }
                 break;
             default:
                 break;
