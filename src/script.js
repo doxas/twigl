@@ -902,6 +902,7 @@ window.addEventListener('DOMContentLoaded', () => {
             'In this mode, there is no need to declare precision and uniform. They are automatically complemented on the implementation side. Otherwise, it is the same as in geek mode.',
             'geekest:',
             'In this mode, the description of "void main(){}" can be omitted (or not), and "gl_FragCoord" can be described as "FC". In addition, a variety of GLSL snippets are available.',
+            'The reason why we support the notation that does not omit the definition of the main function is to allow users to define their own functions.',
             'For more information, please see below.',
         ];
         modeMessage.forEach((v) => {
