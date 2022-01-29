@@ -59,7 +59,7 @@ In this mode, the description of "void main(){}" may be omitted (or not), and "g
 
 The reason why we support the notation that does not omit the definition of the main function is to allow users to define their own functions.
 
-For more information, please see below.
+For more information on snippets, please see below.
 
 
 ## GLSL snippets in GEEKEST mode
