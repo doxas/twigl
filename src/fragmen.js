@@ -928,7 +928,7 @@ void main(){
                 break;
             case Fragmen.MODE_GEEKEST:
                 chunkOut = Fragmen.GEEKEST_CHUNK;
-                if (!code.includes('void main()')) {
+                if (code.match(/void\s+main\s*\(/) == null) {
                     chunkMain = 'void main(){\n'
                     chunkClose = '\n}'
                 }
@@ -950,7 +950,7 @@ void main(){
             case Fragmen.MODE_GEEKEST_300:
                 chunk300 = Fragmen.ES_300_CHUNK;
                 chunkOut = Fragmen.GEEKEST_CHUNK.substr(0, Fragmen.GEEKEST_CHUNK.length - 1) + Fragmen.GEEKEST_OUT_CHUNK;
-                if (!code.includes('void main()')) {
+                if (code.match(/void\s+main\s*\(/) == null) {
                     chunkMain = 'void main(){\n'
                     chunkClose = '\n}'
                 }
@@ -958,7 +958,7 @@ void main(){
             case Fragmen.MODE_GEEKEST_MRT:
                 chunk300 = Fragmen.ES_300_CHUNK;
                 chunkOut = Fragmen.GEEKEST_MRT_CHUNK.substr(0, Fragmen.GEEKEST_MRT_CHUNK.length - 1) + Fragmen.GEEKEST_OUT_MRT_CHUNK;
-                if (!code.includes('void main()')) {
+                if (code.match(/void\s+main\s*\(/) == null) {
                     chunkMain = 'void main(){\n'
                     chunkClose = '\n}'
                 }
@@ -975,6 +975,8 @@ void main(){
      * @private
      */
     formatErrorMessage(message){
+        const code = this.FS;
+        const mainFunction = code.match(/void\s+main\s*\(/) != null ? 1 : 0;
         let dec = 0;
         let noiseDec = noise.split('\n').length;
         switch(this.mode){
@@ -986,7 +988,7 @@ void main(){
                 dec += 1;
                 break;
             case Fragmen.MODE_GEEKEST:
-                dec += 3 + noiseDec;
+                dec += 3 + noiseDec - mainFunction;
                 break;
             case Fragmen.MODE_CLASSIC_300:
             case Fragmen.MODE_GEEK_300:
@@ -1001,10 +1003,10 @@ void main(){
                 dec += 2;
                 break;
             case Fragmen.MODE_GEEKEST_300:
-                dec += 4 + noiseDec;
+                dec += 4 + noiseDec - mainFunction;
                 break;
             case Fragmen.MODE_GEEKEST_MRT:
-                dec += 4 + noiseDec;
+                dec += 4 + noiseDec - mainFunction;
                 break;
         }
         return message.replace(/^ERROR: (\d+):(\d+)/gm, (...args) => {
