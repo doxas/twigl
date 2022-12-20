@@ -26,9 +26,6 @@ let download   = null; // download button
 let link       = null; // generate link button
 let layer      = null; // dialog layer
 let dialog     = null; // dialog message wrapper
-let canvasWrap = null; // canvas を包んでいるラッパー DOM
-let editorWrap = null; // editor を包んでいるラッパー DOM
-let iconColumn = null; // icon を包んでいるラッパー DOM
 let infoIcon   = null; // information icon
 let fullIcon   = null; // fullscreen icon
 let broadIcon  = null; // broadcast mode icon
@@ -143,9 +140,6 @@ window.addEventListener('DOMContentLoaded', () => {
     link       = document.querySelector('#permanentlink');
     layer      = document.querySelector('#layer');
     dialog     = document.querySelector('#dialogmessage');
-    canvasWrap = document.querySelector('#canvaswrap');
-    editorWrap = document.querySelector('#editorwrap');
-    iconColumn = document.querySelector('#globaliconcolumn');
     infoIcon   = document.querySelector('#informationicon');
     fullIcon   = document.querySelector('#fullscreenicon');
     broadIcon  = document.querySelector('#broadcasticon');
@@ -2285,9 +2279,8 @@ function exitFullscreen(){
  * フルスクリーンを解除後の DOM 操作とエディタ領域のリサイズのみを行う
  */
 function exitFullscreenMode(){
-    canvasWrap.classList.remove('fullscreen');
-    editorWrap.classList.remove('invisible');
-    iconColumn.classList.remove('invisible');
+    wrap.classList.remove('fullscreen');
+
     editor.resize();
     audioEditor.resize();
     resize();
@@ -2307,14 +2300,10 @@ function requestFullscreenMode(){
     // 一度変数にキャッシュしたりすると Illegal invocation になるので直接呼ぶ
     if(document.body.requestFullscreen != null){
         document.body.requestFullscreen();
-        canvasWrap.classList.add('fullscreen');
-        editorWrap.classList.add('invisible');
-        iconColumn.classList.add('invisible');
+        wrap.classList.add('fullscreen');
     }else if(document.body.webkitRequestFullScreen != null){
         document.body.webkitRequestFullScreen();
-        canvasWrap.classList.add('fullscreen');
-        editorWrap.classList.add('invisible');
-        iconColumn.classList.add('invisible');
+        wrap.classList.add('fullscreen');
     }
     editor.resize();
     audioEditor.resize();

@@ -32,9 +32,6 @@ body {
     position: relative;
     overflow: hidden;
 }
-#canvaswrap.fullscreen {
-    height: 100%;
-}
 #canvaswrap canvas {
     position: absolute;
 }
@@ -42,6 +39,9 @@ body {
     height: 100%;
 }
 #wrap.hide #canvaswrap {
+    height: 100%;
+}
+#wrap.fullscreen #canvaswrap {
     height: 100%;
 }
 #globaliconwrap {
@@ -62,7 +62,7 @@ body {
     flex-direction: column;
     justify-content: flex-start;
 }
-#globaliconcolumn.invisible {
+#wrap.fullscreen #globaliconcolumn {
     display: none;
 }
 .globaliconinner {
@@ -305,9 +305,6 @@ body {
     flex-direction: row;
     position: relative;
 }
-#editorwrap.invisible {
-    display: none;
-}
 #wrap.overlay #editorwrap {
     width: 100%;
     min-height: 100%;
@@ -316,6 +313,9 @@ body {
     position: absolute;
 }
 #wrap.hide #editorwrap {
+    display: none;
+}
+#wrap.fullscreen #editorwrap {
     display: none;
 }
 #interface {
