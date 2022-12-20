@@ -976,12 +976,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // hide menu
     hideIcon.addEventListener('click', () => {
-        toggleLayerView();
+        setLayerView(true);
     }, false);
 
     // show menu
     showIcon.addEventListener('click', () => {
-        toggleLayerView();
+        setLayerView(false);
     }, false);
 
     // toggle menu
@@ -1438,14 +1438,30 @@ function resize(){
 
 /**
  * レイヤービューの変更
+ *
+ * `true` を渡すと、エディタが隠れてシェーダが全画面で実行される状態になる
+ * `false` を渡すと、その状態が解除される
  */
-function toggleLayerView(){
-    wrap.classList.toggle('hide');
+function setLayerView(value){
+    if (value) {
+        wrap.classList.add('hide');
+    } else {
+        wrap.classList.remove('hide');
+    }
 
     editor.resize();
     audioEditor.resize();
     resize();
     fragmen.rect();
+}
+
+/**
+ * レイヤービューの変更
+ *
+ * {@link setLayerView} と違い、こちらはトグル
+ */
+function toggleLayerView(){
+    setLayerView(!wrap.classList.contains('hide'));
 }
 
 /**
