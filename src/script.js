@@ -5,6 +5,7 @@ import {Fragmen} from './fragmen.js';
 import {Onomat} from './onomat.js';
 import {Musician} from './music.js';
 import {FireDB} from './firedb.js';
+import {registerCursorTimeout} from './registerCursorTimeout.js';
 
 import * as firebase from 'firebase/app';
 import 'firebase/database';
@@ -83,6 +84,9 @@ let channelData = null;           // チャンネルのデータを保持
 let starData = null;              // スターに関するデータを保持
 let viewerData = null;            // 視聴者数に関するデータを保持
 let editorFontSize = 17;          // エディタのフォントサイズ
+
+/** {@link registerCursorTimeout} で追加した処理を消す関数 */
+let unregisterCursorTimeout = null;
 
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
@@ -2281,6 +2285,10 @@ function exitFullscreen(){
 function exitFullscreenMode(){
     wrap.classList.remove('fullscreen');
 
+    if (unregisterCursorTimeout != null) {
+        unregisterCursorTimeout();
+    }
+
     editor.resize();
     audioEditor.resize();
     resize();
@@ -2300,11 +2308,13 @@ function requestFullscreenMode(){
     // 一度変数にキャッシュしたりすると Illegal invocation になるので直接呼ぶ
     if(document.body.requestFullscreen != null){
         document.body.requestFullscreen();
-        wrap.classList.add('fullscreen');
     }else if(document.body.webkitRequestFullScreen != null){
         document.body.webkitRequestFullScreen();
-        wrap.classList.add('fullscreen');
     }
+
+    wrap.classList.add('fullscreen');
+    unregisterCursorTimeout = registerCursorTimeout(wrap);
+
     editor.resize();
     audioEditor.resize();
     resize();
