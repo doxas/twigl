@@ -12,6 +12,7 @@ import 'firebase/analytics';
 
 (() => {
 
+let wrap       = null; // だいたいすべてを包んでいるラッパー DOM
 let canvas     = null; // スクリーン
 let editor     = null; // Ace editor のインスタンス
 let lineout    = null; // ステータスバー DOM
@@ -35,6 +36,7 @@ let starIcon   = null; // star icon
 let menuIcon   = null; // menu icon
 let noteIcon   = null; // note icon
 let hideIcon   = null; // hide menu icon
+let showIcon   = null; // show menu icon
 let syncToggle = null; // スクロール同期用のチェックボックス
 
 let audioWrap     = null; // サウンドシェーダペインのラッパー
@@ -128,6 +130,7 @@ window.addEventListener('DOMContentLoaded', () => {
     fire = new FireDB(firebase);
 
     // DOM への参照
+    wrap       = document.querySelector('#wrap');
     canvas     = document.querySelector('#webgl');
     lineout    = document.querySelector('#lineout');
     counter    = document.querySelector('#counter');
@@ -150,6 +153,7 @@ window.addEventListener('DOMContentLoaded', () => {
     menuIcon   = document.querySelector('#togglemenuicon');
     noteIcon   = document.querySelector('#noteicon');
     hideIcon   = document.querySelector('#hidemenuicon');
+    showIcon   = document.querySelector('#showmenuicon');
     syncToggle = document.querySelector('#syncscrolltoggle');
 
     audioWrap     = document.querySelector('#audio');
@@ -207,7 +211,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 isOwner = value === 'true';
                 break;
             case 'ol': // overlay (hide menu view)
-                document.querySelector('#wrap').classList.add('overlay');
+                wrap.classList.add('overlay');
                 isLayerHidden = true;
                 break;
         }
@@ -975,6 +979,11 @@ window.addEventListener('DOMContentLoaded', () => {
         toggleLayerView();
     }, false);
 
+    // show menu
+    showIcon.addEventListener('click', () => {
+        toggleLayerView();
+    }, false);
+
     // toggle menu
     menuIcon.addEventListener('click', () => {
         toggleEditorView();
@@ -1431,31 +1440,20 @@ function resize(){
  * レイヤービューの変更
  */
 function toggleLayerView(){
-    canvasWrap.classList.toggle('fullheight');
-    editorWrap.classList.toggle('invisible');
-    fullIcon.classList.toggle('invisible');
-    broadIcon.classList.toggle('invisible');
-    hideIcon.classList.toggle('hide');
-    menuIcon.classList.toggle('invisible');
-    noteIcon.classList.toggle('invisible');
+    wrap.classList.toggle('hide');
+
     editor.resize();
     audioEditor.resize();
     resize();
     fragmen.rect();
-
-    if(hideIcon.classList.contains('hide') === true){
-        hideIcon.title = 'hide editor';
-    }else{
-        hideIcon.title = 'show editor';
-    }
 }
 
 /**
  * エディタビューの変更
  */
 function toggleEditorView(){
-    const wrap = document.querySelector('#wrap');
     wrap.classList.toggle('overlay');
+
     editor.resize();
     audioEditor.resize();
     resize();
