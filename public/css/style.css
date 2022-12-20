@@ -99,9 +99,6 @@ body {
 #wrap.hide #broadcasticon {
     display: none;
 }
-#wrap.hide #fullscreenicon {
-    display: none;
-}
 #wrap.hide #hidemenuicon {
     display: none;
 }
