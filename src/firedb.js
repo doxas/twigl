@@ -269,7 +269,22 @@ export class FireDB {
     }
 
     /**
+     * スナップショットを読み込む
+     *
+     * スナップショットIDを含むURLを開いたときに叩かれる想定
+     *
+     * @param {string} snapshotId - スナップショットID
+     * @param {Record<string, any>} - スナップショットを表すオブジェクト
+     */
+    async getSnapshot(snapshotId) {
+        const snapshotRef = this.db.ref(`snapshot/${snapshotId}`);
+        const snapshot = await snapshotRef.once('value');
+        return snapshot.val();
+    }
+
+    /**
      * スナップショットを作成する
+     *
      * Generate LINKが押されたときに叩かれる想定
      *
      * @param {string} graphicsSource - グラフィックスソース
@@ -310,21 +325,21 @@ export class FireDB {
      * スナップショットのビュー数をincrementする
      *
      * @param {string} snapshotId - スナップショットID
-     * @returns {Promise<void>}
+     * @returns {Promise<number>} - ビュー数
      */
     incrementSnapshotViewCount(snapshotId) {
         const viewCountRef = this.db.ref(`snapshot/${snapshotId}/viewCount`);
-        viewCountRef.transaction((current) => current + 1);
+        return viewCountRef.transaction((current) => current + 1);
     }
 
     /**
      * スナップショットのリアクション数をincrementする
      *
      * @param {string} snapshotId - スナップショットID
-     * @returns {Promise<void>}
+     * @returns {Promise<number>} - リアクション数
      */
     incrementSnapshotStarCount(snapshotId) {
         const starCountRef = this.db.ref(`snapshot/${snapshotId}/starCount`);
-        starCountRef.transaction((current) => current + 1);
+        return starCountRef.transaction((current) => current + 1);
     }
 }

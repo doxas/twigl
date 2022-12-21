@@ -60,11 +60,14 @@ let urlParameter = null;  // GET パラメータを解析するための searchP
 let vimMode      = false; // vim mode
 let syncScroll   = true;  // エディタ上で配信を受けている場合にスクロール同期するか
 
-let fire = null;                  // firedb
+/** @type {FireDB | null} */
+let fire = null;
+
 let currentDirectorId = null;     // 自分自身のディレクター ID
 let friendDirectorId = null;      // 招待用のディレクター ID
 let currentChannelId = null;      // 自分自身がディレクターとなったチャンネルの ID
 let currentDirectorName = null;   // ディレクターが指定した名前・グループ名
+let loadingSnapshotId = null;     // 読み込むスナップショットID
 let broadcastForm = null;         // 登録用フォームの実体
 let broadcastSetting = null;      // 登録用フォームの入力内容
 let directionMode = null;         // 何に対するディレクターなのか
@@ -202,6 +205,9 @@ window.addEventListener('DOMContentLoaded', () => {
                     directionMode = null;
                 }
                 break;
+            case 'ss':
+                loadingSnapshotId = value;
+                break;
             case 'ch': // channel
                 currentChannelId = value;
                 break;
@@ -306,6 +312,7 @@ window.addEventListener('DOMContentLoaded', () => {
             broadcastMode = 'audience';
         }
     }
+
     if(invalidURL === true){
         // 無効な URL とみなされるなにかがあったので通常の初期化フローにする
         currentDirectorId = null;
@@ -651,23 +658,23 @@ window.addEventListener('DOMContentLoaded', () => {
     }, false);
 
     // リンク生成ボタン
-    link.addEventListener('click', () => {
+    link.addEventListener('click', async () => {
         if(link.classList.contains('disabled') === true){return;}
         link.classList.add('disabled');
-        generatePermamentLink()
-        .then((response) => {
-            if(response.json != null && response.json.link != null){
-                copyToClipboard(response.json.link);
-                alert('Copied link to the clipboard!');
-            }else{
-                // embed code too long, or other error.
-                copyToClipboard(response.url);
-                alert('The request to bitly failed.\nProbably the code you tried to embed into the URL is too long.\n\nHowever, copied the unshortened URL to the clipboard.');
-            }
-        })
-        .finally(() => {
-            link.classList.remove('disabled');
+
+        const snapshotLink = await generateSnapshotLink().catch((error) => {
+            console.error(error);
+            alert('Failed to create a snapshot. See the console for more info.');
+
+            return null;
         });
+
+        if (snapshotLink != null) {
+            copyToClipboard(snapshotLink);
+            alert('Copied link to the clipboard!');
+        }
+
+        link.classList.remove('disabled');
     }, false);
 
     // スクロール同期
@@ -1419,6 +1426,49 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // スナップショットIDが見つかった場合、スナップショットの読み込みを試みる
+    if(loadingSnapshotId != null){
+        console.log(loadingSnapshotId);
+
+        fire.getSnapshot(loadingSnapshotId).then((snapshot) => {
+            fragmen.mode = currentMode = snapshot.graphics.mode;        // モードの復元と設定
+            mode.selectedIndex = currentMode;                           // ドロップダウンリストのモードの復元
+            editor.setValue(snapshot.graphics.source);                  // エディタ上にソースを復元
+            update(snapshot.graphics.source);                           // 復元したソースで更新
+            counter.textContent = `${snapshot.graphics.source.length}`; // 文字数カウント
+            setTimeout(() => {editor.gotoLine(1);}, 100);
+
+            if (snapshot.sound != null) {
+                audioToggle.checked = true;
+
+                audioEditor.setValue(snapshot.sound.source);                  // サウンドシェーダのソースを復元
+                updateAudio(snapshot.sound.source, true);                     // 復元したソースで更新
+                audioCounter.textContent = `${snapshot.sound.source.length}`; // 文字数カウント
+                setTimeout(() => {audioEditor.gotoLine(1);}, 100);
+
+                // まず自家製ダイアログを出しユーザーにクリック操作をさせる
+                showDialog('This URL is a valid of sound shader.\nIt is OK play the audio?', {
+                    okLabel: 'yes',
+                    cancelLabel: 'no',
+                })
+                .then((result) => {
+                    // ユーザーが OK, Cancel のいずれをクリックしたかのフラグを引数に与える
+                    onomatSetting(result);
+                });
+            }
+
+            updateStar(snapshot.starCount);   // スターの内容を更新
+            updateViewer(snapshot.viewCount); // 視聴者数の内容を更新
+            showStarIcon();                   // スターを表示
+            showViewerIcon();                 // 視聴者数を表示
+
+            fire.incrementSnapshotViewCount(loadingSnapshotId).then((viewCount) => {
+                updateViewer(viewCount);
+            });
+        });
+
+    }
+
     // メニュー及びエディタが非表示の場合（フルスクリーンとは異なる点に注意）
     if(isLayerHidden === true){toggleLayerView();}
 
@@ -1883,59 +1933,22 @@ function getParameter(){
 }
 
 /**
- * 現在の状態を再現するための URL パラメータを生成し短縮 URL を取得する
- * @return {Promise} - 短縮 URL を取得すると解決する Promise
+ * スナップショットを作成し、URLを発行する
+ *
+ * @returns {Promise<string>} - スナップショットのURL
  */
-function generatePermamentLink(){
-    return new Promise((resolve, reject) => {
-        let result = [];
-        if(latestStatus === 'success'){
-            result.push(`ol=true`);
-            result.push(`mode=${mode.value}`);
-            result.push(`source=${encodeURIComponent(editor.getValue())}`);
-            if(audioToggle.checked === true){
-                if(latestAudioStatus === 'success'){
-                    result.push(`sound=true`);
-                    result.push(`soundsource=${encodeURIComponent(audioEditor.getValue())}`);
-                }
-            }
-        }
-        // 何らかのパラメータが付与された場合 URL に結合する
-        if(result.length > 0){
-            const param = result.join('&');
-            const url = `${BASE_URL}?${param}`;
-            generateUrl(url)
-            .then((res) => {
-                return res.json();
-            })
-            .then((json) => {
-                resolve({
-                    url: url,
-                    json: json,
-                });
-            });
-        }else{
-            reject();
-        }
-    });
-}
+async function generateSnapshotLink() {
+    const graphicsSource = editor.getValue();
+    const graphicsMode = mode.value;
 
-/**
- * パラメータの付与された「もととなる URL」から短縮 URL の取得を試みる
- * @param {string} - もととなる URL
- * @return {Promise}
- */
-function generateUrl(url){
-    const endpoint = 'https://api-ssl.bitly.com/v4/shorten';
-    const headers = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${__BITLY_ACCESS_TOKEN__}`
-    };
-    return fetch(endpoint, {
-        method: 'post',
-        headers, headers,
-        body: JSON.stringify({long_url: url}),
-    });
+    let soundSource = undefined;
+    if (audioToggle.checked && latestAudioStatus === 'success') {
+        soundSource = audioEditor.getValue();
+    }
+
+    const snapshotId = await fire.createSnapshot(graphicsSource, graphicsMode, soundSource);
+    const snapshotUrl = `${BASE_URL}?ss=${snapshotId}`;
+    return snapshotUrl;
 }
 
 /**
