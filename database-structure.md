@@ -6,8 +6,8 @@ twigl uses [Firebase Realtime Database](https://firebase.google.com/products/rea
 
 `director` is an object from director ID to `Director`.
 
-`Director` is like a user per a session.
-`Director` has an information of the director.
+`Director` is like a user per session.
+`Director` has information about the director.
 
 ```ts
 interface Director {
@@ -68,7 +68,7 @@ interface Channel {
     disc: string;
 
     /**
-     * Always `true` ?
+     * Always `true`?
      */
     initialized: boolean;
 
@@ -100,7 +100,7 @@ interface Channel {
         cursor: string;
 
         /**
-         * The counter which increments when the coder hit the play button.
+         * The counter increments when the coder hits the play button.
          */
         mode: GraphicsMode;
 
@@ -116,7 +116,7 @@ interface Channel {
 
 `viewer` is an object from channel ID to `Viewer`.
 
-`Viewer` has an information about viewers of the channel.
+`Viewer` has information about viewers of the channel.
 
 ```ts
 interface Viewer {
