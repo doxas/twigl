@@ -108,10 +108,13 @@ body {
 #hidemenuicon .showmenu {
     display: inherit;
 }
+#globaliconcolumnmargin {
+    margin: auto 0px;
+}
 #eyeiconwrap {
     background-color: rgba(64, 64, 64, 0.5);
     border-radius: 20px;
-    margin: auto 0px 8px;
+    margin: 8px 0px 0px;
     padding: 10px 8px;
     width: 40px;
     height: 60px;
@@ -125,7 +128,7 @@ body {
 #stariconwrap {
     background-color: rgba(64, 64, 64, 0.5);
     border-radius: 20px;
-    margin: 0px;
+    margin: 8px 0px 0px;
     padding: 10px 8px;
     width: 40px;
     height: 60px;
