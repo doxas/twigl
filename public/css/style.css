@@ -32,16 +32,16 @@ body {
     position: relative;
     overflow: hidden;
 }
-#canvaswrap.fullscreen {
-    height: 100%;
-}
 #canvaswrap canvas {
     position: absolute;
 }
 #wrap.overlay #canvaswrap {
     height: 100%;
 }
-#canvaswrap.fullheight {
+#wrap.hide #canvaswrap {
+    height: 100%;
+}
+#wrap.fullscreen #canvaswrap {
     height: 100%;
 }
 #globaliconwrap {
@@ -62,7 +62,7 @@ body {
     flex-direction: column;
     justify-content: flex-start;
 }
-#globaliconcolumn.invisible {
+#wrap.fullscreen #globaliconcolumn {
     display: none;
 }
 .globaliconinner {
@@ -96,20 +96,26 @@ body {
 .globaliconinner:hover img {
     opacity: 0.8;
 }
-#hidemenuicon.hide .hidemenu {
-    display: inherit;
-}
-#hidemenuicon.hide .showmenu {
+#wrap.hide #broadcasticon {
     display: none;
 }
-#hidemenuicon .hidemenu {
+#wrap.hide #hidemenuicon {
     display: none;
 }
-#hidemenuicon .showmenu {
+#showmenuicon {
+    display: none;
+}
+#wrap.hide #showmenuicon {
     display: inherit;
 }
 #globaliconcolumnmargin {
     margin: auto 0px;
+}
+#wrap.hide #togglemenuicon {
+    display: none;
+}
+#wrap.hide #noteicon {
+    display: none;
 }
 #eyeiconwrap {
     background-color: rgba(64, 64, 64, 0.5);
@@ -299,15 +305,18 @@ body {
     flex-direction: row;
     position: relative;
 }
-#editorwrap.invisible {
-    display: none;
-}
 #wrap.overlay #editorwrap {
     width: 100%;
     min-height: 100%;
     max-height: 100%;
     flex-direction: column;
     position: absolute;
+}
+#wrap.hide #editorwrap {
+    display: none;
+}
+#wrap.fullscreen #editorwrap {
+    display: none;
 }
 #interface {
     width: 100%;
