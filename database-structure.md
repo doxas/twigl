@@ -167,7 +167,7 @@ interface Snapshot {
          * The GLSL code of the sound.
          */
         source: string;
-    };
+    } | null;
 
     /**
      * The date when the snapshot was saved, in unix epoch.
@@ -182,6 +182,6 @@ interface Snapshot {
     /**
      * The reaction count.
      */
-    reactionCount: number;
+    starCount: number;
 }
 ```

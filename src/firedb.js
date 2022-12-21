@@ -267,5 +267,64 @@ export class FireDB {
             if(reject != null){reject(err);}
         });
     }
-}
 
+    /**
+     * スナップショットを作成する
+     * Generate LINKが押されたときに叩かれる想定
+     *
+     * @param {string} graphicsSource - グラフィックスソース
+     * @param {number} graphicsMode - グラフィックスモード
+     * @param {string} [soundSource] - サウンドソース
+     * @returns {Promise<string>} - スナップショットID
+     */
+    createSnapshot(graphicsSource, graphicsMode, soundSource) {
+        const date = Math.floor(Date.now() / 1000.0);
+        const payload = {
+            graphics: {
+                mode: graphicsMode, // current mode of graphics（classic, geek, geeker, and others）
+                source: graphicsSource,
+            },
+            sound: null, // サウンドシェーダの情報は、あれば後で入れるし、なければnullのまま
+            date, // 投稿日時
+            viewCount: 0, // ビュー数
+            starCount: 0, // リアクション数
+        };
+
+        // サウンドシェーダがあれば、それもペイロードに入れる
+        if (soundSource != null) {
+            payload.sound = {
+                source: soundSource,
+            };
+        }
+
+        // DBにプッシュ・スナップショットIDをPromiseに包んで返す
+        return new Promise((resolve, reject) => {
+            const snapshot = this.db.ref('snapshot').push(payload, (error) => {
+                if (error) { reject(error); }
+                resolve(snapshot);
+            });
+        });
+    }
+
+    /**
+     * スナップショットのビュー数をincrementする
+     *
+     * @param {string} snapshotId - スナップショットID
+     * @returns {Promise<void>}
+     */
+    incrementSnapshotViewCount(snapshotId) {
+        const viewCountRef = this.db.ref(`snapshot/${snapshotId}/viewCount`);
+        viewCountRef.transaction((current) => current + 1);
+    }
+
+    /**
+     * スナップショットのリアクション数をincrementする
+     *
+     * @param {string} snapshotId - スナップショットID
+     * @returns {Promise<void>}
+     */
+    incrementSnapshotStarCount(snapshotId) {
+        const starCountRef = this.db.ref(`snapshot/${snapshotId}/starCount`);
+        starCountRef.transaction((current) => current + 1);
+    }
+}
