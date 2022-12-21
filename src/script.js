@@ -5,6 +5,7 @@ import {Fragmen} from './fragmen.js';
 import {Onomat} from './onomat.js';
 import {Musician} from './music.js';
 import {FireDB} from './firedb.js';
+import {registerCursorTimeout} from './registerCursorTimeout.js';
 
 import * as firebase from 'firebase/app';
 import 'firebase/database';
@@ -12,6 +13,7 @@ import 'firebase/analytics';
 
 (() => {
 
+let wrap       = null; // だいたいすべてを包んでいるラッパー DOM
 let canvas     = null; // スクリーン
 let editor     = null; // Ace editor のインスタンス
 let lineout    = null; // ステータスバー DOM
@@ -25,9 +27,6 @@ let download   = null; // download button
 let link       = null; // generate link button
 let layer      = null; // dialog layer
 let dialog     = null; // dialog message wrapper
-let canvasWrap = null; // canvas を包んでいるラッパー DOM
-let editorWrap = null; // editor を包んでいるラッパー DOM
-let iconColumn = null; // icon を包んでいるラッパー DOM
 let infoIcon   = null; // information icon
 let fullIcon   = null; // fullscreen icon
 let broadIcon  = null; // broadcast mode icon
@@ -35,6 +34,7 @@ let starIcon   = null; // star icon
 let menuIcon   = null; // menu icon
 let noteIcon   = null; // note icon
 let hideIcon   = null; // hide menu icon
+let showIcon   = null; // show menu icon
 let syncToggle = null; // スクロール同期用のチェックボックス
 
 let audioWrap     = null; // サウンドシェーダペインのラッパー
@@ -85,6 +85,9 @@ let starData = null;              // スターに関するデータを保持
 let viewerData = null;            // 視聴者数に関するデータを保持
 let editorFontSize = 17;          // エディタのフォントサイズ
 
+/** {@link registerCursorTimeout} で追加した処理を消す関数 */
+let unregisterCursorTimeout = null;
+
 // fragmen.js 用のオプションの雛形
 const FRAGMEN_OPTION = {
     target: null,
@@ -128,6 +131,7 @@ window.addEventListener('DOMContentLoaded', () => {
     fire = new FireDB(firebase);
 
     // DOM への参照
+    wrap       = document.querySelector('#wrap');
     canvas     = document.querySelector('#webgl');
     lineout    = document.querySelector('#lineout');
     counter    = document.querySelector('#counter');
@@ -140,9 +144,6 @@ window.addEventListener('DOMContentLoaded', () => {
     link       = document.querySelector('#permanentlink');
     layer      = document.querySelector('#layer');
     dialog     = document.querySelector('#dialogmessage');
-    canvasWrap = document.querySelector('#canvaswrap');
-    editorWrap = document.querySelector('#editorwrap');
-    iconColumn = document.querySelector('#globaliconcolumn');
     infoIcon   = document.querySelector('#informationicon');
     fullIcon   = document.querySelector('#fullscreenicon');
     broadIcon  = document.querySelector('#broadcasticon');
@@ -150,6 +151,7 @@ window.addEventListener('DOMContentLoaded', () => {
     menuIcon   = document.querySelector('#togglemenuicon');
     noteIcon   = document.querySelector('#noteicon');
     hideIcon   = document.querySelector('#hidemenuicon');
+    showIcon   = document.querySelector('#showmenuicon');
     syncToggle = document.querySelector('#syncscrolltoggle');
 
     audioWrap     = document.querySelector('#audio');
@@ -207,7 +209,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 isOwner = value === 'true';
                 break;
             case 'ol': // overlay (hide menu view)
-                document.querySelector('#wrap').classList.add('overlay');
+                wrap.classList.add('overlay');
                 isLayerHidden = true;
                 break;
         }
@@ -972,7 +974,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // hide menu
     hideIcon.addEventListener('click', () => {
-        toggleLayerView();
+        setLayerView(true);
+    }, false);
+
+    // show menu
+    showIcon.addEventListener('click', () => {
+        setLayerView(false);
     }, false);
 
     // toggle menu
@@ -1429,33 +1436,38 @@ function resize(){
 
 /**
  * レイヤービューの変更
+ *
+ * `true` を渡すと、エディタが隠れてシェーダが全画面で実行される状態になる
+ * `false` を渡すと、その状態が解除される
  */
-function toggleLayerView(){
-    canvasWrap.classList.toggle('fullheight');
-    editorWrap.classList.toggle('invisible');
-    fullIcon.classList.toggle('invisible');
-    broadIcon.classList.toggle('invisible');
-    hideIcon.classList.toggle('hide');
-    menuIcon.classList.toggle('invisible');
-    noteIcon.classList.toggle('invisible');
+function setLayerView(value){
+    if (value) {
+        wrap.classList.add('hide');
+    } else {
+        wrap.classList.remove('hide');
+    }
+
     editor.resize();
     audioEditor.resize();
     resize();
     fragmen.rect();
+}
 
-    if(hideIcon.classList.contains('hide') === true){
-        hideIcon.title = 'hide editor';
-    }else{
-        hideIcon.title = 'show editor';
-    }
+/**
+ * レイヤービューの変更
+ *
+ * {@link setLayerView} と違い、こちらはトグル
+ */
+function toggleLayerView(){
+    setLayerView(!wrap.classList.contains('hide'));
 }
 
 /**
  * エディタビューの変更
  */
 function toggleEditorView(){
-    const wrap = document.querySelector('#wrap');
     wrap.classList.toggle('overlay');
+
     editor.resize();
     audioEditor.resize();
     resize();
@@ -2271,9 +2283,12 @@ function exitFullscreen(){
  * フルスクリーンを解除後の DOM 操作とエディタ領域のリサイズのみを行う
  */
 function exitFullscreenMode(){
-    canvasWrap.classList.remove('fullscreen');
-    editorWrap.classList.remove('invisible');
-    iconColumn.classList.remove('invisible');
+    wrap.classList.remove('fullscreen');
+
+    if (unregisterCursorTimeout != null) {
+        unregisterCursorTimeout();
+    }
+
     editor.resize();
     audioEditor.resize();
     resize();
@@ -2293,15 +2308,13 @@ function requestFullscreenMode(){
     // 一度変数にキャッシュしたりすると Illegal invocation になるので直接呼ぶ
     if(document.body.requestFullscreen != null){
         document.body.requestFullscreen();
-        canvasWrap.classList.add('fullscreen');
-        editorWrap.classList.add('invisible');
-        iconColumn.classList.add('invisible');
     }else if(document.body.webkitRequestFullScreen != null){
         document.body.webkitRequestFullScreen();
-        canvasWrap.classList.add('fullscreen');
-        editorWrap.classList.add('invisible');
-        iconColumn.classList.add('invisible');
     }
+
+    wrap.classList.add('fullscreen');
+    unregisterCursorTimeout = registerCursorTimeout(wrap);
+
     editor.resize();
     audioEditor.resize();
     resize();
