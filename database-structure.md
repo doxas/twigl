@@ -102,7 +102,7 @@ interface Channel {
         /**
          * The counter increments when the coder hits the play button.
          */
-        mode: GraphicsMode;
+        play: number;
 
         /**
          * The GLSL code of the sound.
