@@ -1950,7 +1950,7 @@ function getParameter(){
  */
 async function generateSnapshotLink() {
     const graphicsSource = editor.getValue();
-    const graphicsMode = mode.value;
+    const graphicsMode = parseInt(mode.value);
 
     let soundSource = undefined;
     if (audioToggle.checked && latestAudioStatus === 'success') {
