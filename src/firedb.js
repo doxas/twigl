@@ -316,7 +316,7 @@ export class FireDB {
         return new Promise((resolve, reject) => {
             const snapshot = this.db.ref('snapshot').push(payload, (error) => {
                 if (error) { reject(error); }
-                resolve(snapshot);
+                resolve(snapshot.key);
             });
         });
     }
@@ -327,9 +327,10 @@ export class FireDB {
      * @param {string} snapshotId - スナップショットID
      * @returns {Promise<number>} - ビュー数
      */
-    incrementSnapshotViewCount(snapshotId) {
+    async incrementSnapshotViewCount(snapshotId) {
         const viewCountRef = this.db.ref(`snapshot/${snapshotId}/viewCount`);
-        return viewCountRef.transaction((current) => current + 1);
+        const result = await viewCountRef.transaction((current) => current + 1);
+        return result.snapshot.val();
     }
 
     /**
@@ -338,8 +339,9 @@ export class FireDB {
      * @param {string} snapshotId - スナップショットID
      * @returns {Promise<number>} - リアクション数
      */
-    incrementSnapshotStarCount(snapshotId) {
+    async incrementSnapshotStarCount(snapshotId) {
         const starCountRef = this.db.ref(`snapshot/${snapshotId}/starCount`);
-        return starCountRef.transaction((current) => current + 1);
+        const result = await starCountRef.transaction((current) => current + 1);
+        return result.snapshot.val();
     }
 }
