@@ -67,7 +67,7 @@ let currentDirectorId = null;     // 自分自身のディレクター ID
 let friendDirectorId = null;      // 招待用のディレクター ID
 let currentChannelId = null;      // 自分自身がディレクターとなったチャンネルの ID
 let currentDirectorName = null;   // ディレクターが指定した名前・グループ名
-let loadingSnapshotId = null;     // 読み込むスナップショットID
+let currentSnapshotId = null;     // 読み込むスナップショットID
 let broadcastForm = null;         // 登録用フォームの実体
 let broadcastSetting = null;      // 登録用フォームの入力内容
 let directionMode = null;         // 何に対するディレクターなのか
@@ -206,7 +206,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
                 break;
             case 'ss':
-                loadingSnapshotId = value;
+                currentSnapshotId = value;
                 break;
             case 'ch': // channel
                 currentChannelId = value;
@@ -228,7 +228,12 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     // この時点でカレントソースが空である場合既定のソースを利用する
     if(currentSource === ''){
-        currentSource = fragmenDefaultSource[currentMode];
+        if (currentChannelId != null || currentSnapshotId != null) {
+            // broadcast・snapshotの場合は、空のまま通す
+            // 最初に一瞬デフォルトシェーダが読み込まれるのを防ぐため
+        } else {
+            currentSource = fragmenDefaultSource[currentMode];
+        }
     }
     // audioToggle が checked ではないかサウンドシェーダのソースが空の場合既定のソースを利用する
     if(audioToggle.checked !== true || currentAudioSource === ''){
@@ -670,6 +675,13 @@ window.addEventListener('DOMContentLoaded', () => {
         });
 
         if (snapshotLink != null) {
+            if (currentChannelId == null) {
+                // オムニバー（アドレスバー）の状態をシェアリンクと同じ URL に変更
+                // Broadcast中の場合は、そっちのほうが大事なので、そちらを優先する
+                history.replaceState('', '', snapshotLink);
+            }
+
+            // クリップボードにコピーし、通知する
             copyToClipboard(snapshotLink);
             alert('Copied link to the clipboard!');
         }
@@ -735,9 +747,13 @@ window.addEventListener('DOMContentLoaded', () => {
     // デフォルトのメッセージを出力
     counter.textContent = `${currentSource.length}`;
     message.textContent = ' ● ready';
+
     // レンダリング開始
-    fragmen.mode = currentMode;
-    fragmen.render(currentSource);
+    // currentSourceが空の場合は、BroadcastあるいはSnapshotの待ち状態
+    if (currentSource !== '') {
+        fragmen.mode = currentMode;
+        fragmen.render(currentSource);
+    }
 
     // WebGL 2.0 に対応しているかどうかによりドロップダウンリストの状態を変更
     if(fragmen.isWebGL2 !== true){
@@ -975,8 +991,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // star
     starIcon.addEventListener('click', () => {
-        if(currentChannelId == null){return;}
-        fire.updateStarData(currentChannelId);
+        if(currentChannelId != null){
+            // broadcastの場合
+            fire.updateStarData(currentChannelId);
+        }else if(currentSnapshotId != null){
+            // snapshotの場合
+            // broadcastの場合と違い、DBを監視していないため、callbackで反映させる
+            fire.incrementSnapshotStarCount(currentSnapshotId).then((starCount) => {
+                updateStar(starCount);
+            });
+        }
     }, false);
 
     // hide menu
@@ -1427,10 +1451,8 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     // スナップショットIDが見つかった場合、スナップショットの読み込みを試みる
-    if(loadingSnapshotId != null){
-        console.log(loadingSnapshotId);
-
-        fire.getSnapshot(loadingSnapshotId).then((snapshot) => {
+    if(currentSnapshotId != null){
+        fire.getSnapshot(currentSnapshotId).then((snapshot) => {
             fragmen.mode = currentMode = snapshot.graphics.mode;        // モードの復元と設定
             mode.selectedIndex = currentMode;                           // ドロップダウンリストのモードの復元
             editor.setValue(snapshot.graphics.source);                  // エディタ上にソースを復元
@@ -1457,20 +1479,18 @@ window.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            updateStar(snapshot.starCount);   // スターの内容を更新
-            updateViewer(snapshot.viewCount); // 視聴者数の内容を更新
-            showStarIcon();                   // スターを表示
-            showViewerIcon();                 // 視聴者数を表示
+            updateStar(snapshot.starCount);       // スターの内容を更新
+            updateViewer(snapshot.viewCount + 1); // 視聴者数の内容を更新 あらかじめ1上げておく
+            showStarIcon();                       // スターを表示
+            showViewerIcon();                     // 視聴者数を表示
 
-            fire.incrementSnapshotViewCount(loadingSnapshotId).then((viewCount) => {
-                updateViewer(viewCount);
-            });
+            fire.incrementSnapshotViewCount(currentSnapshotId);
         });
 
     }
 
     // メニュー及びエディタが非表示の場合（フルスクリーンとは異なる点に注意）
-    if(isLayerHidden === true){toggleLayerView();}
+    if(isLayerHidden === true){setLayerView(true);}
 
 }, false);
 
@@ -1501,15 +1521,6 @@ function setLayerView(value){
     audioEditor.resize();
     resize();
     fragmen.rect();
-}
-
-/**
- * レイヤービューの変更
- *
- * {@link setLayerView} と違い、こちらはトグル
- */
-function toggleLayerView(){
-    setLayerView(!wrap.classList.contains('hide'));
 }
 
 /**
@@ -1946,8 +1957,8 @@ async function generateSnapshotLink() {
         soundSource = audioEditor.getValue();
     }
 
-    const snapshotId = await fire.createSnapshot(graphicsSource, graphicsMode, soundSource);
-    const snapshotUrl = `${BASE_URL}?ss=${snapshotId}`;
+    currentSnapshotId = await fire.createSnapshot(graphicsSource, graphicsMode, soundSource);
+    const snapshotUrl = `${BASE_URL}?ol=true&ss=${currentSnapshotId}`;
     return snapshotUrl;
 }
 
