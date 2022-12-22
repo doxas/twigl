@@ -3,15 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 
-// bitly api access token
-let BITLY_ACCESS_TOKEN = '';
-try {
-    BITLY_ACCESS_TOKEN = fs.readFileSync('./.bitly', {encoding: 'utf-8'});
-} catch(err) {
-    console.log('[ERR] `.bitly` not found.');
-}
-console.log(BITLY_ACCESS_TOKEN);
-
 module.exports = (env, argv) => {
     let devmode;
     let isDevelopment = argv.mode === 'development';
@@ -60,11 +51,6 @@ module.exports = (env, argv) => {
             publicPath: '/js/',
             watchContentBase: true,
         },
-        plugins: [
-            new webpack.DefinePlugin({
-                __BITLY_ACCESS_TOKEN__    : JSON.stringify(BITLY_ACCESS_TOKEN),
-            })
-        ],
         cache: true,
         devtool: devmode,
     };
