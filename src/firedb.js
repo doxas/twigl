@@ -10,7 +10,7 @@ export class FireDB {
     constructor(firebase){
         /**
          * Firebase の Database インスタンス
-         * @type {Database}
+         * @type {import('firebase/app').database.Database}
          */
         this.db = firebase.database();
     }
