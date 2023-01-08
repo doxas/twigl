@@ -681,6 +681,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 history.replaceState('', '', snapshotLink);
 
                 // 視聴者数・スター数を消す
+                // Broadcast中の場合は消さない
                 hideViewerIcon();
                 hideStarIcon();
             }
