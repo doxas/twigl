@@ -679,6 +679,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 // オムニバー（アドレスバー）の状態をシェアリンクと同じ URL に変更
                 // Broadcast中の場合は、そっちのほうが大事なので、そちらを優先する
                 history.replaceState('', '', snapshotLink);
+
+                // 視聴者数・スター数を消す
+                hideViewerIcon();
+                hideStarIcon();
             }
 
             // クリップボードにコピーし、通知する
@@ -2097,6 +2101,14 @@ function showSyncScrollSwitch(){
  */
 function hideStarIcon(){
     const wrap = document.querySelector('#stariconwrap');
+    wrap.classList.remove('visible');
+}
+
+/**
+ * 視聴者アイコンを非表示にする
+ */
+function hideViewerIcon(){
+    const wrap = document.querySelector('#eyeiconwrap');
     wrap.classList.remove('visible');
 }
 
