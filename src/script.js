@@ -684,6 +684,9 @@ window.addEventListener('DOMContentLoaded', () => {
                 // Broadcast中の場合は消さない
                 hideViewerIcon();
                 hideStarIcon();
+            } else {
+                // 投稿日時を隠す
+                clearSnapshotDate();
             }
 
             // クリップボードにコピーし、通知する
@@ -1484,6 +1487,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
+            setSnapshotDate(snapshot.date);       // 投稿日時を表示
             updateStar(snapshot.starCount);       // スターの内容を更新
             updateViewer(snapshot.viewCount + 1); // 視聴者数の内容を更新 あらかじめ1上げておく
             showStarIcon();                       // スターを表示
@@ -2160,6 +2164,25 @@ function updateViewer(count){
         counter.textContent = overlay.textContent = zeroPadding(clamp, 3);
         overlay.classList.add('popup');
     }, 100);
+}
+
+/**
+ * snapshotの投稿日時を表示
+ */
+function setSnapshotDate(unixtime){
+    const snapshotdate = document.querySelector('#snapshotdate');
+    snapshotdate.classList.add('visible');
+
+    const date = new Date(1000 * unixtime);
+    snapshotdate.textContent = date.toLocaleString();
+}
+
+/**
+ * snapshotの投稿日時を隠す
+ */
+function clearSnapshotDate(){
+    const snapshotdate = document.querySelector('#snapshotdate');
+    snapshotdate.classList.remove('visible');
 }
 
 /**
