@@ -141,3 +141,47 @@ interface Star {
     count: number;
 }
 ```
+
+## `snapshot`
+
+`snapshot` is an object from snapshot ID to `Snapshot`.
+
+`Snapshot` corresponds to a single generated link of a shader.
+
+```ts
+interface Snapshot {
+    graphics: {
+        /**
+         * The current graphics mode (regulation)
+         */
+        mode: GraphicsMode;
+
+        /**
+         * The GLSL code of the graphics.
+         */
+        source: string;
+    };
+
+    sound: {
+        /**
+         * The GLSL code of the sound.
+         */
+        source: string;
+    } | null;
+
+    /**
+     * The date when the snapshot was saved, in unix epoch.
+     */
+    date: number;
+
+    /**
+     * The view count.
+     */
+    viewCount: number;
+
+    /**
+     * The reaction count.
+     */
+    starCount: number;
+}
+```

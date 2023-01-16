@@ -923,6 +923,9 @@ void main(){
         let chunkMain = ''
         let chunkClose = ''
         switch(this.mode){
+            case Fragmen.MODE_CLASSIC:
+            case Fragmen.MODE_GEEK:
+                break;
             case Fragmen.MODE_GEEKER:
                 chunkOut = Fragmen.GEEKER_CHUNK;
                 break;
@@ -964,7 +967,7 @@ void main(){
                 }
                 break;
             default:
-                break;
+                throw new Error(`Invalid fragmen mode: ${this.mode} (it might be a string number?)`);
         }
         return chunk300 + chunkOut + chunkMain + code + chunkClose;
     }
