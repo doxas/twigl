@@ -676,6 +676,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
         if (snapshotLink != null) {
             if (currentChannelId == null) {
+                // Broadcast中でない場合
+
                 // オムニバー（アドレスバー）の状態をシェアリンクと同じ URL に変更
                 // Broadcast中の場合は、そっちのほうが大事なので、そちらを優先する
                 history.replaceState('', '', snapshotLink);
@@ -684,10 +686,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 // Broadcast中の場合は消さない
                 hideViewerIcon();
                 hideStarIcon();
-            } else {
-                // 投稿日時を隠す
-                clearSnapshotDate();
             }
+
+            // 投稿日時を隠す
+            clearSnapshotDate();
 
             // クリップボードにコピーし、通知する
             copyToClipboard(snapshotLink);
