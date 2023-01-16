@@ -272,6 +272,7 @@ body {
     border-right: 2px solid black;
     color: whitesmoke;
     padding: 0 16px;
+    user-select: none;
 }
 #snapshotdate.visible {
     display: flex;
