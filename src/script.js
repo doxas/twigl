@@ -345,7 +345,6 @@ window.addEventListener('DOMContentLoaded', () => {
         if(disableAttachEvent !== true){
           // ブロードキャストの視聴者ではなく、かつ一度も編集していなかった場合、一度だけ設定する
           if(isEdit !== true && broadcastMode !== 'audience'){
-              console.log('🚀');
               isEdit = true;
               window.addEventListener('beforeunload', (evt) => {
                   evt.preventDefault();
@@ -382,7 +381,6 @@ window.addEventListener('DOMContentLoaded', () => {
         if(disableAttachEvent !== true){
           // ブロードキャストの視聴者ではなく、かつ一度も編集していなかった場合、一度だけ設定する
           if(isEdit !== true && broadcastMode !== 'audience'){
-              console.log('🚅');
               isEdit = true;
               window.addEventListener('beforeunload', (evt) => {
                   evt.preventDefault();
