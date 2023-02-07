@@ -87,6 +87,8 @@ let channelData = null;           // チャンネルのデータを保持
 let starData = null;              // スターに関するデータを保持
 let viewerData = null;            // 視聴者数に関するデータを保持
 let editorFontSize = 17;          // エディタのフォントサイズ
+let isEdit = false;               // コードの編集を行ったことがあるかどうか
+let disableAttachEvent = false;   // コードの編集時、beforeunload を設定させない場合真を設定する
 
 /** {@link registerCursorTimeout} で追加した処理を消す関数 */
 let unregisterCursorTimeout = null;
@@ -339,6 +341,21 @@ window.addEventListener('DOMContentLoaded', () => {
     // Ace editor 関連の初期化
     let timeoutId = null;
     editor = editorSetting('editor', currentSource, (evt) => {
+        // イベントの設定が抑止されていない場合だけ行う
+        if(disableAttachEvent !== true){
+          // ブロードキャストの視聴者ではなく、かつ一度も編集していなかった場合、一度だけ設定する
+          if(isEdit !== true && broadcastMode !== 'audience'){
+              console.log('🚀');
+              isEdit = true;
+              window.addEventListener('beforeunload', (evt) => {
+                  evt.preventDefault();
+                  evt.returnValue = '';
+              }, false);
+          }
+          isEdit = true;
+        }else{
+          disableAttachEvent = false;
+        }
         // １秒以内の場合はタイマーをキャンセル
         if(timeoutId != null){clearTimeout(timeoutId);}
         timeoutId = setTimeout(() => {
@@ -361,6 +378,21 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     let audioTimeoutId = null;
     audioEditor = editorSetting('editoraudio', currentAudioSource, (evt) => {
+        // イベントの設定が抑止されていない場合だけ行う
+        if(disableAttachEvent !== true){
+          // ブロードキャストの視聴者ではなく、かつ一度も編集していなかった場合、一度だけ設定する
+          if(isEdit !== true && broadcastMode !== 'audience'){
+              console.log('🚅');
+              isEdit = true;
+              window.addEventListener('beforeunload', (evt) => {
+                  evt.preventDefault();
+                  evt.returnValue = '';
+              }, false);
+          }
+          isEdit = true;
+        }else{
+          disableAttachEvent = false;
+        }
         // １秒以内の場合はタイマーをキャンセル
         if(audioTimeoutId != null){clearTimeout(audioTimeoutId);}
         audioTimeoutId = setTimeout(() => {
@@ -1465,6 +1497,7 @@ window.addEventListener('DOMContentLoaded', () => {
         fire.getSnapshot(currentSnapshotId).then((snapshot) => {
             fragmen.mode = currentMode = snapshot.graphics.mode;        // モードの復元と設定
             mode.selectedIndex = currentMode;                           // ドロップダウンリストのモードの復元
+            disableAttachEvent = true;                                  // エディタ上に復元する際、beforeunload は設定しない
             editor.setValue(snapshot.graphics.source);                  // エディタ上にソースを復元
             update(snapshot.graphics.source);                           // 復元したソースで更新
             counter.textContent = `${snapshot.graphics.source.length}`; // 文字数カウント
