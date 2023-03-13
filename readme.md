@@ -63,6 +63,12 @@ For more information on snippets, please see below.
 
 ## advanced
 
+### backbuffers
+
+The various back buffers are RGBA8 format textures.
+
+Note that therefore, they do not maintain the same precision as floating point.
+
 ### 300 es
 
 GLSL ES 3.0 is available for WebGL 2.0 enabled environments.
