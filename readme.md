@@ -17,10 +17,10 @@ $ npm start
 ## screen shot
 
 <div style="width: 100%; text-align: center;">
-    <img src="./resource/capture-01.jpg" style="max-width: 100%; margin: 30px auto; display: block;">
-    <img src="./resource/capture-02.jpg" style="max-width: 100%; margin: 30px auto; display: block;">
-    <img src="./resource/capture-03.jpg" style="max-width: 100%; margin: 30px auto; display: block;">
-    <img src="./resource/capture.gif" style="max-width: 100%; margin: 30px auto; display: block;">
+  <img src="./resource/capture-01.jpg" style="max-width: 100%; margin: 30px auto; display: block;">
+  <img src="./resource/capture-02.jpg" style="max-width: 100%; margin: 30px auto; display: block;">
+  <img src="./resource/capture-03.jpg" style="max-width: 100%; margin: 30px auto; display: block;">
+  <img src="./resource/capture.gif" style="max-width: 100%; margin: 30px auto; display: block;">
 </div>
 
 Example:
@@ -65,13 +65,19 @@ For more information on snippets, please see below.
 
 ### 300 es
 
-GLSL ES 300 is available for WebGL 2.0 enabled environments.
+GLSL ES 3.0 is available for WebGL 2.0 enabled environments.
 
-### MRT
+When using GLSL ES 3.0, use `outColor` instead of `gl_FragColor` for the final output in classic mode.
+
+In the other geek, geeker, and geekest modes, `outColor` is shortened to `o`.
+
+### MRT (Multiple Render Targets)
 
 In classic mode, `outColor0` and `outColor1` can be used to output to two channels simultaneously.
 
-In the other geek, geeker, and geekest modes, these are written as `o0` and `o1`.
+In non-classical mode, these are written as `o0` and `o1`.
+
+The result of the previous frame can be referenced as `backbuffer0` and `backbuffer1` in classic mode. In other modes, they are written as `b0` and `b1`.
 
 ### Input from the sound shader
 
