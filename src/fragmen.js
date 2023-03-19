@@ -252,6 +252,18 @@ ${noise}\n`;
          */
         this.isWebGL2 = false;
         /**
+         * 拡張機能用
+         * @type {boolean}
+         */
+        this.extension = {
+            float: null,
+            floatLinear: null,
+            colorBufferFloat: null,
+            halfFloat: null,
+            halfFloatLinear: null,
+            colorBufferHalfFloat: null,
+        };
+        /**
          * WebGL のレンダリングコンテキスト
          * @type {WebGLRenderingContext}
          */
@@ -419,9 +431,24 @@ ${noise}\n`;
         const opt = {alpha: false, preserveDrawingBuffer: true};
         this.gl = this.canvas.getContext('webgl2', opt);
         this.isWebGL2 = this.gl != null;
-        if(this.isWebGL2 !== true){
+        if(this.isWebGL2 === true){
+            // in WebGL2
+            this.gl.getExtension('EXT_color_buffer_float');
+            this.extension.floatLinear = this.gl.getExtension('OES_texture_float_linear');
+        }else{
+            // in WebGL1
             this.gl = this.canvas.getContext('webgl', opt);
             this.gl.getExtension('OES_standard_derivatives');
+            // renderable color buffer float
+            this.extension.float = this.gl.getExtension('OES_texture_float');
+            this.extension.colorBufferFloat = this.gl.getExtension('WEBGL_color_buffer_float');
+            this.extension.floatLinear = this.gl.getExtension('OES_texture_float_linear');
+            if(this.extension.float == null){
+                // renderable color buffer half float
+                this.extension.halfFloat = this.gl.getExtension('OES_texture_half_float');
+                this.extension.colorBufferHalfFloat = this.gl.getExtension('EXT_color_buffer_half_float');
+                this.extension.halfFloatLinear = this.gl.getExtension('OES_texture_half_float_linear');
+            }
         }
         if(this.gl == null){
             console.log('webgl unsupported');
@@ -746,6 +773,61 @@ void main(){
     }
 
     /**
+     * format texture on framebuffer
+     * @param {WebGLTexture} texture - target texture
+     * @param {number} width - set to framebuffer width
+     * @param {number} height - set to framebuffer height
+     */
+    formatTexture(texture, width, height){
+        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+        if(this.isWebGL2 === true){
+            this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA32F, width, height, 0, this.gl.RGBA, this.gl.FLOAT, null);
+            if(this.extension.floatLinear != null){
+                // WebGL2 + FLOAT + LINEAR
+                this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+                this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+            }else{
+                // WebGL2 + FLOAT + NEAREST
+                this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+                this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+            }
+        }else{
+            if(this.extension.float != null){
+                this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.FLOAT, null);
+                if(this.extension.floatLinear != null){
+                    // WebGL1 + FLOAT + LINEAR
+                    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+                    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+                }else{
+                    // WebGL1 + FLOAT + NEAREST
+                    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+                    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+                }
+            }else{
+                if(this.extension.halfFloat != null){
+                    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.extension.halfFloat.HALF_FLOAT_OES, null);
+                    if(this.extension.halfFloatLinear != null){
+                        // WebGL1 + HALF_FLOAT + LINEAR
+                        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+                        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+                    }else{
+                        // WebGL1 + HALF_FLOAT + NEAREST
+                        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+                        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+                    }
+                }else{
+                    // WebGL1 + UNSIGNED_BYTE + LINEAR
+                    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+                    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+                    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+                }
+            }
+        }
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+    }
+
+    /**
      * create framebuffer
      * @param {number} width - set to framebuffer width
      * @param {number} height - set to framebuffer height
@@ -762,12 +844,7 @@ void main(){
         this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, width, height);
         this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, depthRenderBuffer);
         const fTexture = this.gl.createTexture();
-        this.gl.bindTexture(this.gl.TEXTURE_2D, fTexture);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+        this.formatTexture(fTexture, width, height);
         this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, fTexture, 0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
         this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
@@ -796,12 +873,7 @@ void main(){
         this.buffers = [];
         for(let i = 0; i < count; ++i){
             const tex = this.gl.createTexture();
-            this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
-            this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+            this.formatTexture(tex, width, height);
             this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0 + i, this.gl.TEXTURE_2D, tex, 0);
             fTexture.push(tex);
             this.buffers.push(this.gl.COLOR_ATTACHMENT0 + i);

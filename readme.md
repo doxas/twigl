@@ -65,9 +65,9 @@ For more information on snippets, please see below.
 
 ### backbuffers
 
-The various back buffers are RGBA8 format textures.
+As a general rule, attempt to process in the highest precision texture format possible. Under ideal circumstances, a 32-bit floating-point format is used.
 
-Note that therefore, they do not maintain the same precision as floating point.
+However, there may be cases where floating-point textures are not available, depending on the execution environment and whether or not extensions can be enabled. In such cases, textures generated in RGBA8(unsigned byte) format are used.
 
 ### 300 es
 
